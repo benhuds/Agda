@@ -1,0 +1,19 @@
+Agda
+--------
+Complexity-lang.agda
+  Implementing stuff from Dan's paper.
+Godel.agda
+  Proof of progress and preservation in Gödel's system T.
+finalproject.agda
+  COMP360 final project (done with Ted Kim): Using Agda to
+  define and prove some properties and theorems in group theory.
+Preorder.agda
+  Working with preorders and monotonic functions in Agda in
+  order to eventually try and interpret programs in different
+  languages as monotonic functions.
+Preorder-withmax.agda
+  Extending the preorder definition to include the notion of
+  maximums to help make stuff monotone.
+L.agda
+  Type safety and meaning functions for a language with arrow,
+  sum, product, and unit types.

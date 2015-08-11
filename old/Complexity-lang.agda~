@@ -1,0 +1,159 @@
+{- Name: Bowornmet (Ben) Hudson
+
+--Complexity Language : "Playing The Game"--
+
+-}
+
+open import Preliminaries
+
+module Complexity-lang where
+
+  {- "Most of the time you'll be underwater with
+     this stuff, but maybe you'll be able to swim
+     up to the surface for a moment." - DRL
+  -}
+  record Preorder-max-str (A : Set) : Set1 where
+    constructor preorder-max
+    field
+      ≤ : A → A → Set
+      refl : ∀ x → ≤ x x
+      trans : ∀ x y z → ≤ x y → ≤ y z → ≤ x z
+      max : A → A → A
+      max-l : ∀ l r → ≤ l (max l r)
+      max-r : ∀ l r → ≤ r (max l r)
+      max-lub : ∀ k l r → ≤ l k → ≤ r k → ≤ (max l r) k
+
+------------------------------------------
+
+  -- order on nats
+  ≤nat : Nat → Nat → Set
+  ≤nat Z Z = Unit
+  ≤nat Z (S y) = Unit
+  ≤nat (S x) Z = Void
+  ≤nat (S x) (S y) = ≤nat x y
+
+  -- proof that Nat is reflexive under ≤
+  nat-refl : ∀ (x : Nat) → ≤nat x x
+  nat-refl Z = <>
+  nat-refl (S x) = nat-refl x
+
+  -- proof that Nat is transitive under ≤
+  nat-trans : ∀ (x y z : Nat) → ≤nat x y → ≤nat y z → ≤nat x z
+  nat-trans Z Z Z p q = <>
+  nat-trans Z Z (S z) p q = <>
+  nat-trans Z (S y) Z p q = <>
+  nat-trans Z (S y) (S z) p q = <>
+  nat-trans (S x) Z Z p q = p
+  nat-trans (S x) Z (S z) () q
+  nat-trans (S x) (S y) Z p ()
+  nat-trans (S x) (S y) (S z) p q = nat-trans x y z p q
+
+  -- nat max
+  nat-max : Nat → Nat → Nat
+  nat-max Z n = n
+  nat-max (S m) Z = S m
+  nat-max (S m) (S n) = S (nat-max m n)
+
+  -- left max
+  nat-max-l : ∀ (l r : Nat) → ≤nat l (nat-max l r)
+  nat-max-l Z Z = <>
+  nat-max-l Z (S n) = <>
+  nat-max-l (S m) Z = nat-refl m
+  nat-max-l (S m) (S n) = nat-max-l m n
+
+  -- right max
+  nat-max-r : ∀ (l r : Nat) → ≤nat r (nat-max l r)
+  nat-max-r Z Z = <>
+  nat-max-r Z (S n) = nat-refl n
+  nat-max-r (S m) Z = <>
+  nat-max-r (S m) (S n) = nat-max-r m n
+
+  -- rub a dub dub, Nats have a lub
+  nat-max-lub : ∀ (k l r : Nat) → ≤nat l k → ≤nat r k → ≤nat (nat-max l r) k
+  nat-max-lub Z Z Z p q = <>
+  nat-max-lub Z Z (S r) p ()
+  nat-max-lub Z (S l) Z () q
+  nat-max-lub Z (S l) (S r) () q
+  nat-max-lub (S k) Z Z p q = <>
+  nat-max-lub (S k) Z (S r) p q = q
+  nat-max-lub (S k) (S l) Z p q = p
+  nat-max-lub (S k) (S l) (S r) p q = nat-max-lub k l r p q
+
+  -- Nat is 'all that'
+  nat-p : Preorder-max-str Nat
+  nat-p = preorder-max ≤nat nat-refl nat-trans nat-max nat-max-l nat-max-r nat-max-lub
+
+------------------------------------------
+
+--same thing for products
+
+  -- relation for products
+  ≤axb : ∀ {A B : Set} → Preorder-max-str A → Preorder-max-str B → (A × B) → (A × B) → Set
+  ≤axb PA PB (a1 , b1) (a2 , b2) = Preorder-max-str.≤ PA a1 a2 × Preorder-max-str.≤ PB b1 b2
+
+  axb-refl : ∀ {A B : Set} → (PA : Preorder-max-str A) → (PB : Preorder-max-str B) → (x : (A × B)) →  ≤axb PA PB x x
+  axb-refl PA PB (a , b) = Preorder-max-str.refl PA a , Preorder-max-str.refl PB b
+
+  axb-trans : ∀ {A B : Set} → (PA : Preorder-max-str A) → (PB : Preorder-max-str B) → (x y z : (A × B)) → ≤axb PA PB x y → ≤axb PA PB y z → ≤axb PA PB x z
+  axb-trans PA PB (a1 , b1) (a2 , b2) (a3 , b3) (a1<a2 , b1<b2) (a2<a3 , b2<b3) = 
+                          Preorder-max-str.trans PA a1 a2 a3 a1<a2 a2<a3 , Preorder-max-str.trans PB b1 b2 b3 b1<b2 b2<b3
+
+  axb-max : ∀ {A B : Set} → Preorder-max-str A → Preorder-max-str B → (A × B) → (A × B) → (A × B)
+  axb-max PA PB (a1 , b1) (a2 , b2) = Preorder-max-str.max PA a1 a2 , Preorder-max-str.max PB b1 b2
+
+  axb-max-l : ∀ {A B : Set} → (PA : Preorder-max-str A) → (PB : Preorder-max-str B) → (l r : (A × B)) → ≤axb PA PB l (axb-max PA PB l r)
+  axb-max-l PA PB (a1 , b1) (a2 , b2) = Preorder-max-str.max-l PA a1 a2 , Preorder-max-str.max-l PB b1 b2
+
+  axb-max-r : ∀ {A B : Set} → (PA : Preorder-max-str A) → (PB : Preorder-max-str B) → (l r : (A × B)) → ≤axb PA PB r (axb-max PA PB l r)
+  axb-max-r PA PB (a1 , b1) (a2 , b2) = Preorder-max-str.max-r PA a1 a2 , Preorder-max-str.max-r PB b1 b2
+
+  axb-max-lub : ∀ {A B : Set} 
+                → (PA : Preorder-max-str A) 
+                → (PB : Preorder-max-str B) 
+                → (k l r : (A × B)) 
+                → ≤axb PA PB l k → ≤axb PA PB r k → ≤axb PA PB (axb-max PA PB l r) k
+  axb-max-lub PA PB (k1 , k2) (l1 , l2) (r1 , r2) (l1<k1 , l2<k2) (r1<k1 , r2<k2) =
+                 Preorder-max-str.max-lub PA k1 l1 r1 l1<k1 r1<k1 , Preorder-max-str.max-lub PB k2 l2 r2 l2<k2 r2<k2
+
+  axb-p : ∀ (A B : Set) → Preorder-max-str A → Preorder-max-str B → Preorder-max-str (A × B)
+  axb-p A B PA PB = preorder-max (≤axb PA PB) (axb-refl PA PB) (axb-trans PA PB) (axb-max PA PB) (axb-max-l PA PB) (axb-max-r PA PB) (axb-max-lub PA PB)
+
+------------------------------------------
+
+  -- the type of monotone functions from A to B
+  record Monotone (A : Set) (B : Set) (PA : Preorder-max-str A) (PB : Preorder-max-str B) : Set where
+    constructor monotone
+    field
+      f : A → B
+      is-monotone : ∀ (x y : A) → Preorder-max-str.≤ PA x y → Preorder-max-str.≤ PB (f x) (f y)
+
+  ≤mono : ∀ {A B : Set} → (PA : Preorder-max-str A) → (PB : Preorder-max-str B) → (Monotone A B PA PB) → (Monotone A B PA PB) → Set
+  ≤mono {A} PA PB f g = (x : A) → Preorder-max-str.≤ PB (Monotone.f f x) (Monotone.f g x)
+
+  mono-refl : ∀ {A B : Set} → (PA : Preorder-max-str A) → (PB : Preorder-max-str B) → (x : (Monotone A B PA PB)) → ≤mono PA PB x x
+  mono-refl PA PB f = λ x → Preorder-max-str.refl PB (Monotone.f f x)
+
+  mono-trans : ∀ {A B : Set} → (PA : Preorder-max-str A) → (PB : Preorder-max-str B) → (x y z : (Monotone A B PA PB)) → ≤mono PA PB x y → ≤mono PA PB y z → ≤mono PA PB x z
+  mono-trans PA PB f g h p q = λ x → Preorder-max-str.trans PB (Monotone.f f x) (Monotone.f g x) (Monotone.f h x) (p x) (q x)
+
+  mono-max : ∀ {A B : Set} → (PA : Preorder-max-str A) → (PB : Preorder-max-str B) → (Monotone A B PA PB) → (Monotone A B PA PB) → (Monotone A B PA PB)
+  mono-max PA PB (monotone f f-ismono) (monotone g g-ismono) = 
+             monotone (λ x → Preorder-max-str.max PB (f x) (g x)) (λ x y x₁ → Preorder-max-str.max-lub PB (Preorder-max-str.max PB (f y) (g y)) (f x) (g x) 
+               (Preorder-max-str.trans PB (f x) (f y) (Preorder-max-str.max PB (f y) (g y)) (f-ismono x y x₁) (Preorder-max-str.max-l PB (f y) (g y))) 
+                 (Preorder-max-str.trans PB (g x) (g y) (Preorder-max-str.max PB (f y) (g y)) (g-ismono x y x₁) (Preorder-max-str.max-r PB (f y) (g y))))
+
+  mono-max-l : ∀ {A B : Set} → (PA : Preorder-max-str A) → (PB : Preorder-max-str B) → (l r : Monotone A B PA PB) → ≤mono PA PB l (mono-max PA PB l r)
+  mono-max-l PA PB f g = λ x → Preorder-max-str.max-l PB (Monotone.f f x) (Monotone.f g x)
+
+  mono-max-r : ∀ {A B : Set} → (PA : Preorder-max-str A) → (PB : Preorder-max-str B) → (l r : Monotone A B PA PB) → ≤mono PA PB r (mono-max PA PB l r)
+  mono-max-r PA PB f g = λ x → Preorder-max-str.max-r PB (Monotone.f f x) (Monotone.f g x)
+
+  mono-max-lub : ∀ {A B : Set} 
+                → (PA : Preorder-max-str A) 
+                → (PB : Preorder-max-str B) 
+                → (k l r : Monotone A B PA PB) 
+                → ≤mono PA PB l k → ≤mono PA PB r k → ≤mono PA PB (mono-max PA PB l r) k
+  mono-max-lub PA PB f g h p q = λ x → Preorder-max-str.max-lub PB (Monotone.f f x) (Monotone.f g x) (Monotone.f h x) (p x) (q x)
+
+  mono-p : ∀ (A B : Set) → (PA : Preorder-max-str A) → (PB : Preorder-max-str B) → Preorder-max-str (Monotone A B PA PB)
+  mono-p A B PA PB = preorder-max (≤mono PA PB) (mono-refl PA PB) (mono-trans PA PB) (mono-max PA PB) (mono-max-l PA PB) (mono-max-r PA PB) (mono-max-lub PA PB)

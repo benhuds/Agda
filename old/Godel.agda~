@@ -1,0 +1,34 @@
+{-
+--Progress and Preservation in Godel's T--
+Name: Bowornmet (Ben) Hudson
+-}
+
+module Godel where
+
+  -- nat and =>
+  data Typ : Set where
+    nat : Typ
+    _⇒_ : Typ → Typ → Typ
+
+  -- lists
+  data List (A : Set) : Set where
+    [] : List A
+    _::_ : A → List A → List A
+
+  ctx = List Typ
+ 
+  -- constructors (static dynamics)
+  data T-Exp (Γ : ctx) : Typ → Set where
+    var : ∀{τ} → T-Exp Γ τ
+    z : T-Exp Γ nat
+    suc : (e : T-Exp Γ nat) → T-Exp Γ nat
+    rec : ∀{τ} → (e3 : T-Exp Γ nat) → (e0 : T-Exp Γ τ) → (e1 : T-Exp (nat :: (τ :: Γ)) τ) → T-Exp Γ τ
+    lam : ∀{ρ τ} (e : T-Exp (ρ :: Γ) τ) → T-Exp Γ (ρ ⇒ τ)
+    ap : ∀{τ1 τ2} (e1 : T-Exp Γ (τ2 ⇒ τ1)) (e1 : T-Exp Γ τ2) → T-Exp Γ τ1
+
+  data Result : ∀{Γ A} → T-Exp Γ A → Set where
+    val : ∀{Γ} → Result {Γ} z
+
+  data Res : Set where
+    val : Res
+    step : T-Exp → Res
