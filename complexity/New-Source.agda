@@ -57,7 +57,7 @@ module New-Source where
     -- list stuff and bools
     nil : ∀ {Γ τ} → Γ |- list τ
     _::s_ : ∀ {Γ τ} → Γ |- τ → Γ |- list τ → Γ |- list τ
-    listrec : ∀ {Γ τ} → Γ |- list τ → Γ |- τ → (list τ :: (susp τ :: Γ)) |- τ → Γ |- τ
+    listrec : ∀ {Γ τ τ'} → Γ |- list τ → Γ |- τ' → (τ :: (list τ :: (susp τ' :: Γ))) |- τ' → Γ |- τ'
     true : ∀ {Γ} → Γ |- bool
     false : ∀ {Γ} → Γ |- bool
 
@@ -125,7 +125,7 @@ module New-Source where
       ren (x ::s xs) ρ = ren x ρ ::s ren xs ρ
       ren true ρ = true
       ren false ρ = false
-      ren (listrec e e₁ e₂) ρ = listrec (ren e ρ) (ren e₁ ρ) (ren e₂ (r-extend (r-extend ρ)))
+      ren (listrec e e₁ e₂) ρ = listrec (ren e ρ) (ren e₁ ρ) (ren e₂ (r-extend (r-extend (r-extend ρ))))
 
       -- weakening a context
       wkn : ∀ {Γ τ1 τ2} → Γ |- τ2 → (τ1 :: Γ) |- τ2
@@ -192,7 +192,7 @@ module New-Source where
     subst (x ::s xs) Θ = subst x Θ ::s subst xs Θ
     subst true Θ = true
     subst false Θ = false
-    subst (listrec e e₁ e₂) Θ = listrec (subst e Θ) (subst e₁ Θ) (subst e₂ (s-extend (s-extend Θ)))
+    subst (listrec e e₁ e₂) Θ = listrec (subst e Θ) (subst e₁ Θ) (subst e₂ (s-extend (s-extend (s-extend Θ))))
 
     subst1 : ∀ {τ τ1} → [] |- τ1 → (τ1 :: []) |- τ → [] |- τ
     subst1 e e' = subst e' (q e)
@@ -226,23 +226,16 @@ module New-Source where
               → Id {_} {sctx A D} ((ρ1 rs Θ) sr ρ2) (ρ1 rs (Θ sr ρ2))
     rsr-assoc = λ ρ1 Θ ρ2 → Refl
 
-    extend-id-once-lemma : ∀ {Γ τ} → (x : τ ∈ τ :: Γ) → _==_ {_} {τ :: Γ |- τ}
-                         (ids {τ :: Γ} {τ} x) (s-extend {Γ} {Γ} {τ} (ids {Γ}) {τ} x)
+    extend-id-once-lemma : ∀ {Γ τ τ'} → (x : τ ∈ τ' :: Γ) → _==_ {_} {τ' :: Γ |- τ}
+                         (ids {τ' :: Γ} {τ} x) (s-extend {Γ} {Γ} {τ'} (ids {Γ}) {τ} x)
     extend-id-once-lemma i0 = Refl
     extend-id-once-lemma (iS x) = Refl
 
     extend-id-once : ∀ {Γ τ} → Id {_} {sctx (τ :: Γ) (τ :: Γ)} (ids {τ :: Γ}) (s-extend ids)
-    extend-id-once = λ=i (λ τ → λ= (λ x → {!!}))
-    --_==_ {_} {sctx (.ρ :: .Γ) (.ρ :: .Γ)}
-      --(ids {.ρ :: .Γ}) (s-extend {.Γ} {.Γ} {.ρ} (ids {.Γ}))
-
-    extend-id-twice-lemma : ∀ {Γ τ1 τ2 τ} → (x : τ ∈ τ1 :: τ2 :: Γ) → _==_ {_} {τ1 :: τ2 :: Γ |- τ} (ids {τ1 :: τ2 :: Γ} {τ} x)
-                          (s-extend {τ2 :: Γ} {τ2 :: Γ} {τ1} (s-extend {Γ} {Γ} {τ2} (ids {Γ})) {τ} x)
-    extend-id-twice-lemma i0 = Refl
-    extend-id-twice-lemma (iS x) = {!!}
+    extend-id-once = λ=i (λ τ → λ= (λ x → extend-id-once-lemma x))
 
     extend-id-twice : ∀ {Γ τ1 τ2} → Id {_} {sctx (τ1 :: τ2 :: Γ) (τ1 :: τ2 :: Γ)} (ids {τ1 :: τ2 :: Γ}) (s-extend (s-extend ids))
-    extend-id-twice = λ=i (λ τ → λ= (λ x → extend-id-twice-lemma x))
+    extend-id-twice = ap s-extend extend-id-once ∘ extend-id-once
 
     subst-id : ∀ {Γ τ} (e : Γ |- τ) → e == subst e ids
     subst-id unit = Refl
@@ -260,15 +253,22 @@ module New-Source where
     subst-id (e ::s e₁) = ap2 _::s_ (subst-id e) (subst-id e₁)
     subst-id true = Refl
     subst-id false = Refl
-    subst-id (listrec e e₁ e₂) = ap3 listrec (subst-id e) (subst-id e₁) (ap (subst e₂) extend-id-twice ∘ subst-id e₂)
+    subst-id (listrec e e₁ e₂) = ap3 listrec (subst-id e) (subst-id e₁) (ap (subst e₂) (ap s-extend (ap s-extend extend-id-once) ∘ extend-id-twice) ∘ subst-id e₂)
 
-    extend-rs-once : ∀ {A B C} → (ρ : rctx C A) (Θ : sctx A B)
-                     --→ (λ {.τ} → r-extend (λ {.τ₁} → ρ)) rs (λ {.τ} → s-extend (λ {.τ₁} → Θ)) == s-extend (ρ rs Θ)
-                   → r-extend ρ rs s-extend Θ == s-extend (ρ rs Θ)
-    extend-rs-once = {!!}
+    extend-rs-once-lemma : ∀ {A B C τ τ'} → (x : τ ∈ τ' :: B) (ρ : rctx C A) (Θ : sctx A B) → _==_ {_} {τ' :: C |- τ}
+                         (_rs_ {τ' :: C} {τ' :: A} {τ' :: B} (r-extend {C} {A} {τ'} ρ)
+                           (s-extend {A} {B} {τ'} Θ) {τ} x)
+                           (s-extend {C} {B} {τ'} (_rs_ {C} {A} {B} ρ Θ) {τ} x)
+    extend-rs-once-lemma i0 ρ Θ = Refl
+    extend-rs-once-lemma (iS x) ρ Θ = {!!}
 
-    extend-rs-twice : ∀ {A B C} → (ρ : rctx C A) (Θ : sctx A B) → (r-extend (r-extend ρ)) rs (s-extend (s-extend Θ)) == (s-extend (s-extend (ρ rs Θ)))
-    extend-rs-twice = {!!}
+    extend-rs-once : ∀ {A B C τ} → (ρ : rctx C A) (Θ : sctx A B)
+                   → Id {_} {sctx (τ :: C) (τ :: B)} (r-extend ρ rs s-extend Θ) (s-extend (ρ rs Θ))
+    extend-rs-once ρ Θ = λ=i (λ τ → λ= (λ x → extend-rs-once-lemma x ρ Θ))
+
+    extend-rs-twice : ∀ {A B C τ τ'} → (ρ : rctx C A) (Θ : sctx A B)
+                    → Id {_} {sctx (τ :: τ' :: C) (τ :: τ' :: B)} ((r-extend (r-extend ρ)) rs (s-extend (s-extend Θ))) ((s-extend (s-extend (ρ rs Θ))))
+    extend-rs-twice ρ Θ = ap s-extend (extend-rs-once ρ Θ) ∘ extend-rs-once (r-extend ρ) (s-extend Θ)
 
     subst-rs : ∀ {A B C τ} → (ρ : rctx C A) (Θ : sctx A B) (e : B |- τ)
              → ren (subst e Θ) ρ == subst e (ρ rs Θ)
@@ -276,24 +276,33 @@ module New-Source where
     subst-rs ρ Θ (var x) = svar-rs ρ Θ x
     subst-rs ρ Θ z = Refl
     subst-rs ρ Θ (suc e) = ap suc (subst-rs ρ Θ e)
-    subst-rs ρ Θ (rec e e₁ e₂) = ap3 rec (subst-rs ρ Θ e) (subst-rs ρ Θ e₁) (ap (subst e₂) {!!} ∘ subst-rs (r-extend (r-extend ρ)) (s-extend (s-extend Θ)) e₂)
-    subst-rs ρ Θ (lam e) = ap lam (ap (subst e) {!!} ∘ subst-rs (r-extend ρ) (s-extend Θ) e)
+    subst-rs ρ Θ (rec e e₁ e₂) = ap3 rec (subst-rs ρ Θ e) (subst-rs ρ Θ e₁) (ap (subst e₂) (extend-rs-twice ρ Θ) ∘ subst-rs (r-extend (r-extend ρ)) (s-extend (s-extend Θ)) e₂)
+    subst-rs ρ Θ (lam e) = ap lam (ap (subst e) (extend-rs-once ρ Θ) ∘ subst-rs (r-extend ρ) (s-extend Θ) e)
     subst-rs ρ Θ (app e e₁) = ap2 app (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
     subst-rs ρ Θ (prod e e₁) = ap2 prod (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
     subst-rs ρ Θ (delay e) = ap delay (subst-rs ρ Θ e)
     subst-rs ρ Θ (force e) = ap force (subst-rs ρ Θ e)
-    subst-rs ρ Θ (split e e₁) = ap2 split (subst-rs ρ Θ e) (ap (subst e₁) {!!} ∘ subst-rs (r-extend (r-extend ρ)) (s-extend (s-extend Θ)) e₁)
+    subst-rs ρ Θ (split e e₁) = ap2 split (subst-rs ρ Θ e) (ap (subst e₁) (extend-rs-twice ρ Θ) ∘ subst-rs (r-extend (r-extend ρ)) (s-extend (s-extend Θ)) e₁)
     subst-rs ρ Θ nil = Refl
     subst-rs ρ Θ (e ::s e₁) = ap2 _::s_ (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
     subst-rs ρ Θ true = Refl
     subst-rs ρ Θ false = Refl
     subst-rs ρ Θ (listrec e e₁ e₂) = ap3 listrec (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
-                                       (ap (subst e₂) {!!} ∘
-                                        subst-rs (r-extend (r-extend ρ)) (s-extend (s-extend Θ)) e₂)
+                                         (ap (subst e₂) (ap s-extend (ap s-extend (extend-rs-once ρ Θ))
+                                         ∘ extend-rs-twice (r-extend ρ) (s-extend Θ))
+                                         ∘ subst-rs (r-extend (r-extend (r-extend ρ))) (s-extend (s-extend (s-extend Θ))) e₂)
 
     srs-assoc : ∀ {A B C D} → (Θ1 : sctx A B) (ρ : rctx B C) (Θ2 : sctx C D)
               → Id {_} {sctx A D} (Θ1 ss (ρ rs Θ2)) ((Θ1 sr ρ) ss Θ2)
     srs-assoc = λ Θ1 ρ Θ2 → {!!}
+
+    extend-ss-once : ∀ {A B C τ ρ} → (Θ1 : sctx A B) (Θ2 : sctx B C) (e : ρ :: C |- τ)
+                   → _==_ {_} {ρ :: A |- τ} (subst {ρ :: A} {ρ :: C} {τ} e
+       (s-extend {A} {C} {ρ} (_ss_ {A} {B} {C} Θ1 Θ2)))
+      (subst {ρ :: A} {ρ :: B} {τ}
+       (subst {ρ :: B} {ρ :: C} {τ} e (s-extend {B} {C} {ρ} Θ2))
+       (s-extend {A} {B} {ρ} Θ1))
+    extend-ss-once Θ1 Θ2 e = {!!}
 
     subst-ss : ∀ {A B C τ} → (Θ1 : sctx A B) (Θ2 : sctx B C) (e : C |- τ)
              → subst e (Θ1 ss Θ2) == subst (subst e Θ2) Θ1
@@ -320,28 +329,13 @@ module New-Source where
     ss-unitl : ∀ {A B} → {Θ : sctx A B} → Id {_} {sctx A B} (ids ss Θ) Θ
     ss-unitl = λ=i (λ x → λ= (λ x₁ → {!!}))
 
-    compose1 : ∀ {Γ τ1} → (Θ : sctx [] Γ) (e' : [] |- τ1)
-             → lem3' Θ e' == q e' ss (s-extend Θ)
-    compose1 Θ e' = {!!}
+    subst-compose-lemma : ∀ {Γ Γ' τ} (v : Γ |- τ) (Θ : sctx Γ Γ')
+                        → _==_ {_} {sctx Γ (τ :: Γ')} ((q v) ss (s-extend Θ)) (lem3' Θ v)
+    subst-compose-lemma v Θ = λ=i (λ τ → λ= (λ x → {!!}))
 
     subst-compose : ∀ {Γ Γ' τ τ1} (Θ : sctx Γ Γ') (v : Γ |- τ) (e : (τ :: Γ' |- τ1) )
                   → subst (subst e (s-extend Θ)) (q v) == subst e (lem3' Θ v)
-    subst-compose Θ v unit = Refl
-    subst-compose Θ v (var x) = {!!}
-    subst-compose Θ v z = Refl
-    subst-compose Θ v (suc e) = ap suc (subst-compose Θ v e)
-    subst-compose Θ v (rec e e₁ e₂) = ap3 rec (subst-compose Θ v e) (subst-compose Θ v e₁) {!!}
-    subst-compose Θ v (lam e) = ap lam {!!}
-    subst-compose Θ v (app e e₁) = ap2 app (subst-compose Θ v e) (subst-compose Θ v e₁)
-    subst-compose Θ v (prod e e₁) = ap2 prod (subst-compose Θ v e) (subst-compose Θ v e₁)
-    subst-compose Θ v (delay e) = ap delay (subst-compose Θ v e)
-    subst-compose Θ v (force e) = ap force (subst-compose Θ v e)
-    subst-compose Θ v (split e e₁) = ap2 split (subst-compose Θ v e) {!!}
-    subst-compose Θ v nil = Refl
-    subst-compose Θ v (e ::s e₁) = ap2 _::s_ (subst-compose Θ v e) (subst-compose Θ v e₁)
-    subst-compose Θ v true = Refl
-    subst-compose Θ v false = Refl
-    subst-compose Θ v (listrec e e₁ e₂) = {!!}
+    subst-compose Θ v e = ap (subst e) (subst-compose-lemma v Θ) ∘ (! (subst-ss (q v) (s-extend Θ) e))
 
   open RenSubst
 
