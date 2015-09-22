@@ -345,7 +345,9 @@ module Source2 where
     extend-ss-once-lemma : ∀ {A B C τ τ'} → (Θ1 : sctx A B) (Θ2 : sctx B C) (x : τ ∈ τ' :: C)
                          → _==_ {_} {τ' :: A |- τ} (s-extend (_ss_ Θ1 Θ2) x) (_ss_ (s-extend Θ1) (s-extend Θ2) x)
     extend-ss-once-lemma Θ1 Θ2 i0 = Refl
-    extend-ss-once-lemma Θ1 Θ2 (iS x) = {!!} ∘ rs-comp iS Θ1 (Θ2 x)
+    extend-ss-once-lemma Θ1 Θ2 (iS x) = {!!} ∘ rs-comp iS Θ1 (Θ2 x)  --{!!} ∘ rs-comp iS Θ1 (Θ2 x)
+
+{-! (ren-comp iS ρ (Θ x)) ∘ ren-comp (r-extend ρ) iS (Θ x)-}
 
     extend-ss-once : ∀ {A B C τ} → (Θ1 : sctx A B) (Θ2 : sctx B C)
                 → _==_ {_} {sctx (τ :: A) (τ :: C)} (s-extend (Θ1 ss Θ2))
@@ -400,11 +402,11 @@ module Source2 where
     subst-compose2 : ∀ {Γ Γ' τ} (Θ : sctx Γ Γ') (n : Γ |- nat) (e1 : Γ' |- τ) (e2 : (nat :: (susp τ :: Γ')) |- τ)
                   →  subst (subst e2 (s-extend (s-extend Θ))) (lem4 n (delay (rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ)))))) ==
                      subst e2 (lem4' Θ n (delay (rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ))))))
-    subst-compose2 Θ n e1 e2 = {!!}
+    subst-compose2 Θ n e1 e2 = ap (subst e2) {!!} ∘ ! (subst-ss (lem4 n (delay (rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ)))))) (s-extend (s-extend Θ)) e2)
 
     subst-compose3 : ∀ {Γ Γ' τ τ1 τ2} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ |- τ1) (v2 : Γ |- τ2)
                    → subst (subst e1 (s-extend (s-extend Θ))) (lem4 v1 v2) == subst e1 (lem4' Θ v1 v2)
-    subst-compose3 Θ e1 v1 v2 = {!!}
+    subst-compose3 Θ e1 v1 v2 = ap (subst e1) {!!} ∘ ! (subst-ss (lem4 v1 v2) (s-extend (s-extend Θ)) e1)
 
     subst-compose4 : ∀ {Γ Γ' τ} (Θ : sctx Γ Γ') (v' : Γ |- nat) (r : Γ |- susp τ) (e2 : (nat :: (susp τ :: Γ')) |- τ)
                    → subst (subst e2 (s-extend (s-extend Θ))) (lem4 v' r) == subst e2 (lem4' Θ v' r)
