@@ -308,7 +308,9 @@ module Source2 where
     subst-rs ρ Θ (prod e e₁) = ap2 prod (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
     subst-rs ρ Θ (delay e) = ap delay (subst-rs ρ Θ e)
     subst-rs ρ Θ (force e) = ap force (subst-rs ρ Θ e)
-    subst-rs ρ Θ (split e e₁) = ap2 split (subst-rs ρ Θ e) (ap (subst e₁) (extend-rs-twice ρ Θ) ∘ subst-rs (r-extend (r-extend ρ)) (s-extend (s-extend Θ)) e₁)
+    subst-rs ρ Θ (split e e₁) = ap2 split (subst-rs ρ Θ e)
+                                          (ap (subst e₁) (extend-rs-twice ρ Θ) ∘
+                                          subst-rs (r-extend (r-extend ρ)) (s-extend (s-extend Θ)) e₁)
     subst-rs ρ Θ nil = Refl
     subst-rs ρ Θ (e ::s e₁) = ap2 _::s_ (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
     subst-rs ρ Θ true = Refl
@@ -342,12 +344,53 @@ module Source2 where
     rs-comp ρ Θ true = Refl
     rs-comp ρ Θ false = Refl
 
+    extend-sr-once-lemma : ∀ {A B C τ τ'} → (Θ : sctx A B) (ρ : rctx B C) (x : τ ∈ τ' :: C)
+                         → _==_ {_} {τ' :: A |- τ} (s-extend (_sr_ Θ ρ) x) (_sr_ (s-extend Θ) (r-extend ρ) x)
+    extend-sr-once-lemma Θ ρ i0 = Refl
+    extend-sr-once-lemma Θ ρ (iS x) = Refl
+
+    extend-sr-once : ∀ {A B C τ} → (Θ : sctx A B) (ρ : rctx B C)
+                   → Id {_} {sctx (τ :: A) (τ :: C)} (s-extend Θ sr r-extend ρ) (s-extend (Θ sr ρ))
+    extend-sr-once Θ ρ = λ=i (λ τ → λ= (λ x → ! (extend-sr-once-lemma Θ ρ x)))
+
+    extend-sr-twice : ∀ {A B C τ τ'} → (Θ : sctx A B) (ρ : rctx B C)
+                   → Id {_} {sctx (τ' :: τ :: A) (τ' :: τ :: C)}
+                     (s-extend (s-extend Θ) sr r-extend (r-extend ρ)) (s-extend (s-extend (Θ sr ρ)))
+    extend-sr-twice Θ ρ = ap s-extend (extend-sr-once Θ ρ) ∘ extend-sr-once (s-extend Θ) (r-extend ρ)
+
+    sr-comp : ∀ {Γ Γ' Γ'' τ} → (Θ : sctx Γ Γ') → (ρ : rctx Γ' Γ'') → (e : Γ'' |- τ)
+            → (subst (ren e ρ) Θ) == subst e (Θ sr ρ)
+    sr-comp Θ ρ unit = Refl
+    sr-comp Θ ρ (var x) = svar-sr Θ ρ x
+    sr-comp Θ ρ z = Refl
+    sr-comp Θ ρ (suc e) = ap suc (sr-comp Θ ρ e)
+    sr-comp Θ ρ (rec e e₁ e₂) = ap3 rec (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
+                                        (ap (subst e₂) (ap s-extend (extend-sr-once Θ ρ) ∘
+                                        extend-sr-once (s-extend Θ) (r-extend ρ)) ∘
+                                        sr-comp (s-extend (s-extend Θ)) (r-extend (r-extend ρ)) e₂)
+    sr-comp Θ ρ (lam e) = ap lam (ap (subst e) (extend-sr-once Θ ρ) ∘ sr-comp (s-extend Θ) (r-extend ρ) e)
+    sr-comp Θ ρ (app e e₁) = ap2 app (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
+    sr-comp Θ ρ (prod e e₁) = ap2 prod (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
+    sr-comp Θ ρ (delay e) = ap delay (sr-comp Θ ρ e)
+    sr-comp Θ ρ (force e) = ap force (sr-comp Θ ρ e)
+    sr-comp Θ ρ (split e e₁) = ap2 split (sr-comp Θ ρ e) (ap (subst e₁) (ap s-extend (extend-sr-once Θ ρ) ∘
+                                                         extend-sr-once (s-extend Θ) (r-extend ρ)) ∘
+                                                         sr-comp (s-extend (s-extend Θ)) (r-extend (r-extend ρ)) e₁)
+    sr-comp Θ ρ nil = Refl
+    sr-comp Θ ρ (e ::s e₁) = ap2 _::s_ (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
+    sr-comp Θ ρ (listrec e e₁ e₂) = ap3 listrec (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
+                                                (ap (subst e₂) (ap s-extend (ap s-extend (extend-sr-once Θ ρ)) ∘
+                                                extend-sr-twice (s-extend Θ) (r-extend ρ)) ∘
+                                                   sr-comp (s-extend (s-extend (s-extend Θ)))
+                                                   (r-extend (r-extend (r-extend ρ))) e₂)
+                                                
+    sr-comp Θ ρ true = Refl
+    sr-comp Θ ρ false = Refl
+
     extend-ss-once-lemma : ∀ {A B C τ τ'} → (Θ1 : sctx A B) (Θ2 : sctx B C) (x : τ ∈ τ' :: C)
                          → _==_ {_} {τ' :: A |- τ} (s-extend (_ss_ Θ1 Θ2) x) (_ss_ (s-extend Θ1) (s-extend Θ2) x)
     extend-ss-once-lemma Θ1 Θ2 i0 = Refl
-    extend-ss-once-lemma Θ1 Θ2 (iS x) = {!!} ∘ rs-comp iS Θ1 (Θ2 x)  --{!!} ∘ rs-comp iS Θ1 (Θ2 x)
-
-{-! (ren-comp iS ρ (Θ x)) ∘ ren-comp (r-extend ρ) iS (Θ x)-}
+    extend-ss-once-lemma Θ1 Θ2 (iS x) = ! (sr-comp (s-extend Θ1) iS (Θ2 x)) ∘ rs-comp iS Θ1 (Θ2 x)
 
     extend-ss-once : ∀ {A B C τ} → (Θ1 : sctx A B) (Θ2 : sctx B C)
                 → _==_ {_} {sctx (τ :: A) (τ :: C)} (s-extend (Θ1 ss Θ2))
@@ -383,6 +426,10 @@ module Source2 where
                                        ap (subst e₂) (extend-ss-once (s-extend (s-extend Θ1)) (s-extend (s-extend Θ2)) ∘
                                        ap s-extend (extend-ss-once (s-extend Θ1) (s-extend Θ2) ∘
                                        ap s-extend (extend-ss-once Θ1 Θ2))))
+
+    ss-comp : ∀ {Γ Γ' Γ'' τ} → (Θ1 : sctx Γ Γ') → (Θ2 : sctx Γ' Γ'') → (e : Γ'' |- τ)
+            → (subst (subst e Θ2) Θ1) == subst e (Θ1 ss Θ2)
+    ss-comp = {!!}
 
     subst-compose-lemma-lemma : ∀ {Γ Γ' τ τ'} (v : Γ |- τ') (Θ : sctx Γ Γ') (x : τ ∈ τ' :: Γ')
                               → _==_ {_} {Γ |- τ} (_ss_ (q v) (s-extend Θ) x) (lem3' Θ v x)
