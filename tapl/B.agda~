@@ -1,0 +1,6 @@
+open import Preliminaries
+
+module B where
+
+  data Tp : Set where
+    bool : Tp
