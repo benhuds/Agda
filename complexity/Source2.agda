@@ -187,7 +187,7 @@ module Source2 where
 
       --lem3
     q : ∀ {Γ τ} → Γ |- τ → sctx Γ (τ :: Γ)
-    q e  = lem3' ids e
+    q e = lem3' ids e
 
     -- subst-var
     svar : ∀ {Γ1 Γ2 τ} → sctx Γ1 Γ2 → τ ∈ Γ2 → Γ1 |- τ
@@ -431,11 +431,23 @@ module Source2 where
             → (subst (subst e Θ2) Θ1) == subst e (Θ1 ss Θ2)
     ss-comp = {!!}
 
+    aa : ∀ {Γ Γ' τ τ'} → (v : Γ |- τ') (Θ : sctx Γ Γ') (x : τ ∈ Γ')
+       → subst (wkn (Θ x)) (lem3' ids v) == subst (Θ x) ids
+    aa v Θ x = {!!} --! (ss-comp (q v) (s-extend Θ) (wkn {!var x!})) --ss-comp {!!} (s-extend ids) (var i0) --ss-comp Θ ids {!var x!}
+{-
+(ss-comp (q v) (s-extend Θ) (wkn (var x)))
+want (q v ss s-extend Θ) (iS x) == Θ x
+! (ss-comp Θ ids (var x))
+Goal: subst (wkn (Θ x)) (lem3' ids v) == Θ x
+Have: ((λ {.τ} → Θ) ss (λ {.τ} → ids)) x == Θ x-}
+
     subst-compose-lemma-lemma : ∀ {Γ Γ' τ τ'} (v : Γ |- τ') (Θ : sctx Γ Γ') (x : τ ∈ τ' :: Γ')
                               → _==_ {_} {Γ |- τ} (_ss_ (q v) (s-extend Θ) x) (lem3' Θ v x)
     subst-compose-lemma-lemma v Θ i0 = Refl
     subst-compose-lemma-lemma v Θ (iS x) = {!!}
 
+--ss-comp (q v) (s-extend Θ) (lem3' (s-extend ids) (var {!iS!}) i0)
+--ss-comp Θ ids (var x)
     subst-compose-lemma : ∀ {Γ Γ' τ} (v : Γ |- τ) (Θ : sctx Γ Γ')
                         → _==_ {_} {sctx Γ (τ :: Γ')} ((q v) ss (s-extend Θ)) (lem3' Θ v)
     subst-compose-lemma v Θ = λ=i (λ τ → λ= (λ x → subst-compose-lemma-lemma v Θ x))
@@ -444,24 +456,32 @@ module Source2 where
                   → subst (subst e (s-extend Θ)) (q v) == subst e (lem3' Θ v)
     subst-compose Θ v e = ap (subst e) (subst-compose-lemma v Θ) ∘ (! (subst-ss (q v) (s-extend Θ) e))
 
-{-these lemmas can be compressed into one general lemma for subst-compose with 2 s-extends...-}
+    subst-compose2-lemma-lemma : ∀ {Γ Γ' τ τ1 τ2 τ'} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (e1 : τ1 :: τ2 :: Γ' |- τ) (Θ : sctx Γ Γ') (x : τ' ∈ τ1 :: τ2 :: Γ')
+                               → _==_ {_} {_} ((lem4 v1 v2 ss s-extend (s-extend Θ)) x) (lem4' Θ v1 v2 x)
+    subst-compose2-lemma-lemma v1 v2 e1 Θ i0 = Refl
+    subst-compose2-lemma-lemma v1 v2 e1 Θ (iS x) = {!!}
+
+    subst-compose2-lemma : ∀ {Γ Γ' τ τ1 τ2} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (e1 : τ1 :: τ2 :: Γ' |- τ) (Θ : sctx Γ Γ')
+                         → _==_ {_} {sctx Γ (τ1 :: τ2 :: Γ')} (lem4 v1 v2 ss s-extend (s-extend Θ)) (lem4' Θ v1 v2)
+    subst-compose2-lemma v1 v2 e1 Θ = λ=i (λ τ → λ= (λ x → subst-compose2-lemma-lemma v1 v2 e1 Θ x))
 
     subst-compose2 : ∀ {Γ Γ' τ} (Θ : sctx Γ Γ') (n : Γ |- nat) (e1 : Γ' |- τ) (e2 : (nat :: (susp τ :: Γ')) |- τ)
                   →  subst (subst e2 (s-extend (s-extend Θ))) (lem4 n (delay (rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ)))))) ==
                      subst e2 (lem4' Θ n (delay (rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ))))))
-    subst-compose2 Θ n e1 e2 = ap (subst e2) {!!} ∘ ! (subst-ss (lem4 n (delay (rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ)))))) (s-extend (s-extend Θ)) e2)
+    subst-compose2 Θ n e1 e2 = ap (subst e2) (subst-compose2-lemma n (delay (rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ))))) e2 Θ) ∘
+                               ! (subst-ss (lem4 n (delay (rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ)))))) (s-extend (s-extend Θ)) e2)
 
     subst-compose3 : ∀ {Γ Γ' τ τ1 τ2} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ |- τ1) (v2 : Γ |- τ2)
                    → subst (subst e1 (s-extend (s-extend Θ))) (lem4 v1 v2) == subst e1 (lem4' Θ v1 v2)
-    subst-compose3 Θ e1 v1 v2 = ap (subst e1) {!!} ∘ ! (subst-ss (lem4 v1 v2) (s-extend (s-extend Θ)) e1)
+    subst-compose3 Θ e1 v1 v2 = ap (subst e1) (subst-compose2-lemma v1 v2 e1 Θ) ∘
+                                ! (subst-ss (lem4 v1 v2) (s-extend (s-extend Θ)) e1)
+ --ap (subst e1) {!!} ∘ ! (subst-ss (lem4 v1 v2) (s-extend (s-extend Θ)) e1)
 
     subst-compose4 : ∀ {Γ Γ' τ} (Θ : sctx Γ Γ') (v' : Γ |- nat) (r : Γ |- susp τ) (e2 : (nat :: (susp τ :: Γ')) |- τ)
                    → subst (subst e2 (s-extend (s-extend Θ))) (lem4 v' r) == subst e2 (lem4' Θ v' r)
-    subst-compose4 Θ v' r e2 = ap (subst e2) {!!} ∘ ! (subst-ss (lem4 v' r) (s-extend (s-extend Θ)) e2)
-                                      --i want to use ap with something like
-                                      --subst-compose-lemma v' Θ
-                                      --here but i think i'm missing something.
---(ap lem3' (subst-compose-lemma v' Θ)) ∘ ?
+    subst-compose4 Θ v' r e2 = ap (subst e2) (subst-compose2-lemma v' r e2 Θ) ∘
+                             ! (subst-ss (lem4 v' r) (s-extend (s-extend Θ)) e2)
+--original strategy: (ap lem3' (subst-compose-lemma v' Θ)) ∘ ?
 
   open RenSubst
 
