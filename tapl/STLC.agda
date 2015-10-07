@@ -119,9 +119,12 @@ module STLC where
 
     head-expand : (τ : Tp) {e e' : [] |- τ} → e ↦ e' → SN τ e' → SN τ e
     head-expand b e↦e' (e₁ , e₁-isval , e'↦*e₁) = e₁ , (e₁-isval , Step e↦e' e'↦*e₁)
-    head-expand (e ⇒ e₁) e↦e' ((body , body-isval , e'↦*body) , k , sn) = (body , (body-isval , Step e↦e' e'↦*body)) , (k , {!!}) 
+    head-expand (e ⇒ e₁) e↦e' ((body , body-isval , e'↦*body) , k , sn) =
+                   (body , (body-isval , Step e↦e' e'↦*body)) , (k , (λ x → head-expand _ (Step/app e↦e') (sn x)))
 
---(body , (body-isval , (Step e↦e' e'↦*body))) , (k , {!!})
+    head-expand* : {τ : Tp} {e e' : [] |- τ} → e ↦* e' → SN τ e' → SN τ e
+    head-expand* Done sn = sn
+    head-expand* (Step x steps) sn = head-expand _ x (head-expand* steps sn)
 
     fund : {Γ : Ctx} {τ : Tp} {Θ : sctx [] Γ} 
          → (e : Γ |- τ)
