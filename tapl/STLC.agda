@@ -3,7 +3,7 @@ open import Preliminaries
 {-
 strong normalization for STLC
 adapted from OPLSS
-edward yang's proof is also helpful
+edward yang's proof of weak normalization is also helpful
 -}
 
 module STLC where
@@ -112,3 +112,24 @@ module STLC where
     SN b e = e ⇣
     -- SN_(t1->t2)(e) iff e ⇣ and ∀ e', SN_t1(e') -> SN_t2(app e e')
     SN (t1 ⇒ t2) e = e ⇣ × Σ (λ e' → SN t1 e' → SN t2 (app e e'))
+
+    SNc : (Γ : Ctx) → sctx [] Γ → Set
+    SNc [] Θ = Unit
+    SNc (τ :: Γ) Θ = SNc Γ {!!} × SN τ (Θ i0)
+
+    head-expand : (τ : Tp) {e e' : [] |- τ} → e ↦ e' → SN τ e' → SN τ e
+    head-expand b e↦e' (e₁ , e₁-isval , e'↦*e₁) = e₁ , (e₁-isval , Step e↦e' e'↦*e₁)
+    head-expand (e ⇒ e₁) e↦e' ((body , body-isval , e'↦*body) , k , sn) = (body , (body-isval , Step e↦e' e'↦*body)) , (k , {!!}) 
+
+--(body , (body-isval , (Step e↦e' e'↦*body))) , (k , {!!})
+
+    fund : {Γ : Ctx} {τ : Tp} {Θ : sctx [] Γ} 
+         → (e : Γ |- τ)
+         → SNc Γ Θ
+         → SN τ (subst e Θ)
+    fund c snc = c , (c-isval , Done)
+    fund (v i0) snc = snd snc
+    fund (v (iS x)) snc = fund (v x) (fst snc)
+    fund {_} {τ1 ⇒ τ2} {Θ} (lam e) snc = (subst (lam e) Θ , (lam-isval , Done)) , ({!!} , {!!})
+    fund (app e1 e2) snc with fund e1 snc
+    ... | (v1 , v1-isval , e1↦*v1) , v2 , IH = {!!}
