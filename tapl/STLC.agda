@@ -113,9 +113,12 @@ module STLC where
     -- SN_(t1->t2)(e) iff e ⇣ and ∀ e', SN_t1(e') -> SN_t2(app e e')
     SN (t1 ⇒ t2) e = e ⇣ × Σ (λ e' → SN t1 e' → SN t2 (app e e'))
 
+    throw : ∀ {Γ Γ' τ} → sctx Γ (τ :: Γ') → sctx Γ Γ'
+    throw Θ x = Θ (iS x)
+
     SNc : (Γ : Ctx) → sctx [] Γ → Set
     SNc [] Θ = Unit
-    SNc (τ :: Γ) Θ = SNc Γ {!!} × SN τ (Θ i0)
+    SNc (τ :: Γ) Θ = SNc Γ (throw Θ) × SN τ (Θ i0)
 
     head-expand : (τ : Tp) {e e' : [] |- τ} → e ↦ e' → SN τ e' → SN τ e
     head-expand b e↦e' (e₁ , e₁-isval , e'↦*e₁) = e₁ , (e₁-isval , Step e↦e' e'↦*e₁)
@@ -126,6 +129,18 @@ module STLC where
     head-expand* Done sn = sn
     head-expand* (Step x steps) sn = head-expand _ x (head-expand* steps sn)
 
+    Step/app*  :{τ1 τ2 : Tp} {e e' : [] |- τ1 ⇒ τ2} {e1 : [] |- τ1}
+             → e ↦* e'
+             → (app e e1) ↦* (app e' e1)
+    Step/app* Done = Done
+    Step/app* (Step s ss) = (Step (Step/app s) (Step/app* ss))
+
+    Step' : {τ : Tp} {e1 e2 e3 : [] |- τ} 
+           → e1 ↦* e2  →  e2 ↦ e3
+           → e1 ↦* e3
+    Step' Done s = Step s Done
+    Step' (Step s ss) s' = Step s (Step' ss s')
+
     fund : {Γ : Ctx} {τ : Tp} {Θ : sctx [] Γ} 
          → (e : Γ |- τ)
          → SNc Γ Θ
@@ -133,6 +148,6 @@ module STLC where
     fund c snc = c , (c-isval , Done)
     fund (v i0) snc = snd snc
     fund (v (iS x)) snc = fund (v x) (fst snc)
-    fund {_} {τ1 ⇒ τ2} {Θ} (lam e) snc = (subst (lam e) Θ , (lam-isval , Done)) , ({!!} , {!!})
+    fund {_} {τ1 ⇒ τ2} {Θ} (lam e) snc = (subst (lam e) {!!} , (lam-isval , Done)) , ({!!} , {!!})
     fund (app e1 e2) snc with fund e1 snc
-    ... | (v1 , v1-isval , e1↦*v1) , v2 , IH = {!!}
+    ... | (v1 , v1-isval , e1↦*v1) , v2 , IH = head-expand* (Step' (Step/app* e1↦*v1) {!Step/β!}) {!snc!}
