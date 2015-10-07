@@ -33,6 +33,25 @@ module STLC where
     c-isval : val c
     lam-isval : {τ₁ τ₂ : Tp} {e : τ₁ :: [] |- τ₂} → val (lam e)
 
+  module Semantics (B : Set) (elB : B)  where
+
+    -- map STLC types to Agda types
+    [_]t : Tp → Set
+    [ b ]t = B
+    [ τ1 ⇒ τ2 ]t = [ τ1 ]t → [ τ2 ]t
+
+    [_]c : Ctx → Set
+    [ [] ]c = Unit
+    [ τ :: Γ ]c = [ Γ ]c × [ τ ]t
+
+    -- interpretation of terms
+    [_] : {Γ : Ctx} {τ : Tp} → Γ |- τ → [ Γ ]c → [ τ ]t
+    [ c ]  γ = elB
+    [ v i0 ] γ = snd γ
+    [ v (iS i) ] γ = [ v i ] (fst γ)
+    [  lam e ] γ x = [ e ] (γ , x)
+    [ app e1 e2 ] γ = [ e1 ] γ ([ e2 ] γ)
+
   module RenSubst where
 
     rctx : Ctx → Ctx → Set
@@ -74,8 +93,33 @@ module STLC where
     q : ∀ {Γ τ} → Γ |- τ → sctx Γ (τ :: Γ)
     q e = add1 ids e
 
+    svar : ∀ {Γ1 Γ2 τ} → sctx Γ1 Γ2 → τ ∈ Γ2 → Γ1 |- τ
+    svar Θ i = q (Θ i) i0
+
     subst1 : {τ τ0 : Tp} → [] |- τ0 → (τ0 :: []) |- τ → [] |- τ
     subst1 e0 e = subst e (add1 ids e0)
+
+    throw : ∀ {Γ Γ' τ} → sctx Γ (τ :: Γ') → sctx Γ Γ'
+    throw Θ x = Θ (iS x)
+
+    -- do i need to show an isomorphism or something like that
+    throw' : ∀ {Γ Γ' τ} → sctx Γ Γ' → sctx Γ (τ :: Γ')
+    throw' Θ x = {!!}
+
+    throw-eq-lemma : ∀ {Γ Γ' τ τ'} → (Θ : sctx Γ (τ :: Γ')) (Θ' : sctx Γ Γ') (x : τ' ∈ Γ') → _==_ (throw Θ x) (Θ' x)
+    throw-eq-lemma Θ Θ' x = {!!}
+
+    throw-eq : ∀ {Γ Γ' τ} → (Θ : sctx Γ (τ :: Γ')) (Θ' : sctx Γ Γ') → _==_ {_} {sctx Γ Γ'} (throw Θ) Θ'
+    throw-eq Θ Θ' = λ=i (λ τ → λ= (λ x → throw-eq-lemma Θ Θ' x))
+
+    throw-svar : ∀ {Γ Γ' τ τ'} (Θ : sctx Γ (τ :: Γ')) (Θ' : sctx Γ Γ') (x : τ' ∈ Γ') → svar (throw Θ) x == svar Θ' x
+    throw-svar Θ Θ' x = throw-eq-lemma Θ Θ' x
+
+    throw-is-ok : ∀ {Γ Γ' τ τ'} (Θ : sctx Γ (τ :: Γ')) (Θ' : sctx Γ Γ') (e : Γ' |- τ') → subst e (throw Θ) == subst e Θ'
+    throw-is-ok Θ Θ' c = Refl
+    throw-is-ok Θ Θ' (v x) = throw-svar Θ Θ' x
+    throw-is-ok Θ Θ' (lam e) = ap lam (ap (subst e) (ap s-extend (throw-eq Θ Θ')))
+    throw-is-ok Θ Θ' (app e e₁) = ap2 app (ap (subst e) (throw-eq Θ Θ')) (ap (subst e₁) (throw-eq Θ Θ'))
 
   open RenSubst
 
@@ -95,9 +139,16 @@ module STLC where
            → e1 ↦ e2  →  e2 ↦* e3
            → e1 ↦* e3
 
+    -- a well-typed expression e evals to k if k is a value and
+    -- there is some sequence of eval steps from e to k
+    -- type \d
     _⇣_ : {τ : Tp} → [] |- τ → [] |- τ → Set
     e ⇣ k = val k × e ↦* k
 
+    -- classical notion of strong normalization:
+    -- e is strongly normalizing if there is no infinite
+    -- reduction sequence e → e' → e'' → ...
+    -- i.e. there's some value k which e eventually evaluates to
     _⇣ : {τ : Tp} → [] |- τ → Set
     e ⇣ = Σ (λ k → e ⇣ k)
 
@@ -106,25 +157,25 @@ module STLC where
 
     -- definition of SN from
     -- http://www.cs.cornell.edu/courses/cs6110/2013sp/lectures/lec33-sp13.pdf
-    -- from my understanding: if e is a well-typed term, then e normalizes to a value
+    -- if e is a well-typed term, then e is strongly normalizing
     SN : (τ : Tp) → [] |- τ → Set
     -- SN_b(e) iff e ⇣
     SN b e = e ⇣
     -- SN_(t1->t2)(e) iff e ⇣ and ∀ e', SN_t1(e') -> SN_t2(app e e')
     SN (t1 ⇒ t2) e = e ⇣ × Σ (λ e' → SN t1 e' → SN t2 (app e e'))
 
-    throw : ∀ {Γ Γ' τ} → sctx Γ (τ :: Γ') → sctx Γ Γ'
-    throw Θ x = Θ (iS x)
-
+    -- how to describe?
     SNc : (Γ : Ctx) → sctx [] Γ → Set
     SNc [] Θ = Unit
     SNc (τ :: Γ) Θ = SNc Γ (throw Θ) × SN τ (Θ i0)
 
+    -- step relation is closed under head expansion
     head-expand : (τ : Tp) {e e' : [] |- τ} → e ↦ e' → SN τ e' → SN τ e
     head-expand b e↦e' (e₁ , e₁-isval , e'↦*e₁) = e₁ , (e₁-isval , Step e↦e' e'↦*e₁)
     head-expand (e ⇒ e₁) e↦e' ((body , body-isval , e'↦*body) , k , sn) =
                    (body , (body-isval , Step e↦e' e'↦*body)) , (k , (λ x → head-expand _ (Step/app e↦e') (sn x)))
 
+    -- refl/trans closure of step relation is closed under head expansion
     head-expand* : {τ : Tp} {e e' : [] |- τ} → e ↦* e' → SN τ e' → SN τ e
     head-expand* Done sn = sn
     head-expand* (Step x steps) sn = head-expand _ x (head-expand* steps sn)
@@ -141,6 +192,7 @@ module STLC where
     Step' Done s = Step s Done
     Step' (Step s ss) s' = Step s (Step' ss s')
 
+    -- fundamental theorem
     fund : {Γ : Ctx} {τ : Tp} {Θ : sctx [] Γ} 
          → (e : Γ |- τ)
          → SNc Γ Θ
@@ -148,6 +200,6 @@ module STLC where
     fund c snc = c , (c-isval , Done)
     fund (v i0) snc = snd snc
     fund (v (iS x)) snc = fund (v x) (fst snc)
-    fund {_} {τ1 ⇒ τ2} {Θ} (lam e) snc = (subst (lam e) {!!} , (lam-isval , Done)) , ({!!} , {!!})
+    fund {_} {τ1 ⇒ τ2} {Θ} (lam e) snc = (subst (lam e) Θ , (lam-isval , Done)) , ({!!} , {!!})
     fund (app e1 e2) snc with fund e1 snc
-    ... | (v1 , v1-isval , e1↦*v1) , v2 , IH = head-expand* (Step' (Step/app* e1↦*v1) {!Step/β!}) {!snc!}
+    ... | (v1 , v1-isval , e1↦*v1) , v2 , IH = head-expand* (Step' (Step/app* e1↦*v1) {!Step/β!}) {!!}

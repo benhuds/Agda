@@ -441,6 +441,9 @@ want (q v ss s-extend Θ) (iS x) == Θ x
 Goal: subst (wkn (Θ x)) (lem3' ids v) == Θ x
 Have: ((λ {.τ} → Θ) ss (λ {.τ} → ids)) x == Θ x-}
 
+    throw : ∀ {Γ Γ' τ} → sctx Γ (τ :: Γ') → sctx Γ Γ'
+    throw Θ x = Θ (iS x)
+
     subst-compose-lemma-lemma : ∀ {Γ Γ' τ τ'} (v : Γ |- τ') (Θ : sctx Γ Γ') (x : τ ∈ τ' :: Γ')
                               → _==_ {_} {Γ |- τ} (_ss_ (q v) (s-extend Θ) x) (lem3' Θ v x)
     subst-compose-lemma-lemma v Θ i0 = Refl
