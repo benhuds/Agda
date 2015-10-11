@@ -96,24 +96,27 @@ module STLC where
     svar : ∀ {Γ1 Γ2 τ} → sctx Γ1 Γ2 → τ ∈ Γ2 → Γ1 |- τ
     svar Θ i = q (Θ i) i0
 
-    subst1 : {τ τ0 : Tp} → [] |- τ0 → (τ0 :: []) |- τ → [] |- τ
+    subst1 : ∀ {Γ τ τ'} → Γ |- τ' → (τ' :: Γ) |- τ → Γ |- τ
     subst1 e0 e = subst e (add1 ids e0)
 
     throw : ∀ {Γ Γ' τ} → sctx Γ (τ :: Γ') → sctx Γ Γ'
     throw Θ x = Θ (iS x)
 
-    -- do i need to show an isomorphism or something like that
-    throw' : ∀ {Γ Γ' τ} → sctx Γ Γ' → sctx Γ (τ :: Γ')
-    throw' Θ x = {!!}
-
     throw-eq-lemma : ∀ {Γ Γ' τ τ'} → (Θ : sctx Γ (τ :: Γ')) (Θ' : sctx Γ Γ') (x : τ' ∈ Γ') → _==_ (throw Θ x) (Θ' x)
-    throw-eq-lemma Θ Θ' x = {!!}
+    throw-eq-lemma Θ Θ' x = {!!} --i'm thinking i have to do some sort of equation chain
+-- wts throw Θ x = Θ (iS x) == Θ' x
+
+    throw-eq2 : ∀ {Γ Γ' τ} → (Θ : sctx Γ Γ') → _==_ {_} {_} (throw (s-extend Θ)) {!throw (s-extend Θ)!}
+    throw-eq2 = {!!}
 
     throw-eq : ∀ {Γ Γ' τ} → (Θ : sctx Γ (τ :: Γ')) (Θ' : sctx Γ Γ') → _==_ {_} {sctx Γ Γ'} (throw Θ) Θ'
     throw-eq Θ Θ' = λ=i (λ τ → λ= (λ x → throw-eq-lemma Θ Θ' x))
 
     throw-svar : ∀ {Γ Γ' τ τ'} (Θ : sctx Γ (τ :: Γ')) (Θ' : sctx Γ Γ') (x : τ' ∈ Γ') → svar (throw Θ) x == svar Θ' x
     throw-svar Θ Θ' x = throw-eq-lemma Θ Θ' x
+
+    throw-subst : ∀ {Γ Γ' τ τ'} (Θ : sctx Γ (τ :: Γ')) (Θ' : sctx Γ Γ') (e : Γ' |- τ') (x : τ' ∈ Γ') → subst e (throw Θ) == Θ (iS x)
+    throw-subst Θ Θ' e x = {!!}
 
     throw-is-ok : ∀ {Γ Γ' τ τ'} (Θ : sctx Γ (τ :: Γ')) (Θ' : sctx Γ Γ') (e : Γ' |- τ') → subst e (throw Θ) == subst e Θ'
     throw-is-ok Θ Θ' c = Refl
@@ -151,6 +154,10 @@ module STLC where
     -- i.e. there's some value k which e eventually evaluates to
     _⇣ : {τ : Tp} → [] |- τ → Set
     e ⇣ = Σ (λ k → e ⇣ k)
+
+    -- can i represent strong normalization like this instead?
+    _* : {τ : Tp} → [] |- τ → Set
+    e * = Σ (λ k → val k × e ↦* k)
 
   module StrongNormalization where
     open OpSem
@@ -203,3 +210,27 @@ module STLC where
     fund {_} {τ1 ⇒ τ2} {Θ} (lam e) snc = (subst (lam e) Θ , (lam-isval , Done)) , ({!!} , {!!})
     fund (app e1 e2) snc with fund e1 snc
     ... | (v1 , v1-isval , e1↦*v1) , v2 , IH = head-expand* (Step' (Step/app* e1↦*v1) {!Step/β!}) {!!}
+
+
+-------------- using alternate definition
+
+    -- SN with alternative definition of strong normalization
+    SN2 : (τ : Tp) → [] |- τ → Set
+    SN2 b e = e *
+    SN2 (t1 ⇒ t2) e = e * × Σ (λ e' → SN2 t1 e' → SN2 t2 (app e e'))
+
+    head-expand2 : (τ : Tp) {e e' : [] |- τ} → e ↦ e' → SN2 τ e' → SN2 τ e
+    head-expand2 b e↦e' (k , k-isval , e'↦*k) = k , (k-isval , (Step e↦e' e'↦*k))
+    head-expand2 (t ⇒ t₁) e↦e' ((body , body-isval , e'↦*body) , k , snd) =
+      (body , (body-isval , (Step e↦e' e'↦*body))) , k , (λ x → head-expand2 _ (Step/app e↦e') (snd x))
+{-
+    -- step relation is closed under head expansion
+    head-expand : (τ : Tp) {e e' : [] |- τ} → e ↦ e' → SN τ e' → SN τ e
+    head-expand b e↦e' (e₁ , e₁-isval , e'↦*e₁) = e₁ , (e₁-isval , Step e↦e' e'↦*e₁)
+    head-expand (e ⇒ e₁) e↦e' ((body , body-isval , e'↦*body) , k , sn) =
+                   (body , (body-isval , Step e↦e' e'↦*body)) , (k , (λ x → head-expand _ (Step/app e↦e') (sn x)))
+
+    -- refl/trans closure of step relation is closed under head expansion
+    head-expand* : {τ : Tp} {e e' : [] |- τ} → e ↦* e' → SN τ e' → SN τ e
+    head-expand* Done sn = sn
+    head-expand* (Step x steps) sn = head-expand _ x (head-expand* steps sn)-}

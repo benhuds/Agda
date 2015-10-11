@@ -444,6 +444,22 @@ Have: ((λ {.τ} → Θ) ss (λ {.τ} → ids)) x == Θ x-}
     throw : ∀ {Γ Γ' τ} → sctx Γ (τ :: Γ') → sctx Γ Γ'
     throw Θ x = Θ (iS x)
 
+    -- do i need to show an isomorphism or something like that
+    throw' : ∀ {Γ Γ' τ} → sctx Γ Γ' → sctx Γ (τ :: Γ')
+    throw' Θ x = lem3' Θ ({!ids!}) x
+
+    throw-eq-lemma : ∀ {Γ Γ' τ τ'} → (Θ : sctx Γ (τ :: Γ')) (Θ' : sctx Γ Γ') (x : τ' ∈ Γ') → _==_ (throw Θ x) (Θ' x)
+    throw-eq-lemma Θ Θ' x = {!!}
+
+    throw-eq : ∀ {Γ Γ' τ} → (Θ : sctx Γ (τ :: Γ')) (Θ' : sctx Γ Γ') → _==_ {_} {sctx Γ Γ'} (throw Θ) Θ'
+    throw-eq Θ Θ' = λ=i (λ τ → λ= (λ x → throw-eq-lemma Θ Θ' x))
+
+    throw-svar : ∀ {Γ Γ' τ τ'} (Θ : sctx Γ (τ :: Γ')) (Θ' : sctx Γ Γ') (x : τ' ∈ Γ') → svar (throw Θ) x == svar Θ' x
+    throw-svar Θ Θ' x = throw-eq-lemma Θ Θ' x
+
+    postulate
+      throw-is-ok : ∀ {Γ Γ' τ τ'} (Θ : sctx Γ (τ :: Γ')) (Θ' : sctx Γ Γ') (e : Γ' |- τ') → subst e (throw Θ) == subst e Θ'
+
     subst-compose-lemma-lemma : ∀ {Γ Γ' τ τ'} (v : Γ |- τ') (Θ : sctx Γ Γ') (x : τ ∈ τ' :: Γ')
                               → _==_ {_} {Γ |- τ} (_ss_ (q v) (s-extend Θ) x) (lem3' Θ v x)
     subst-compose-lemma-lemma v Θ i0 = Refl

@@ -1,2 +1,7 @@
 *.agdai
 *.agda~
+
+*.aux
+*.log
+*.ptb
+*.pdf
