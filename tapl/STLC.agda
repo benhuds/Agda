@@ -216,9 +216,11 @@ module STLC where
     fund c snc = c , (c-isval , Done)
     fund (v i0) snc = snd snc
     fund (v (iS x)) snc = fund (v x) (fst snc)
-    fund {_} {τ1 ⇒ τ2} {Θ} (lam e) snc = (subst (lam e) Θ , (lam-isval , Done)) , ({!!} , {!!})
-    fund {_} {_} {Θ} (app e1 e2) snc with fund e1 snc
-    ... | (v1 , v1-isval , e1↦*v1) , v2 , IH = head-expand* {_} {_} {{!!}} (Step' (Step/app* e1↦*v1) {!Step/β!}) (IH {!!})
+    fund {_} {τ1 ⇒ τ2} {Θ} (lam e) snc = (subst (lam e) Θ , lam-isval , Done) , {!!}
+    fund {_} {τ} {Θ} (app e1 e2) snc with fund e1 snc | fund e2 snc
+    ... | (v1 , v1-isval , e1↦*v1) , k2 , IH1 | IH2 = {!!}
 
+    -- conclude strong normalization for all types in STLC
     corollary : {τ : Tp} → (e : [] |- τ) → e ⇓
-    corollary e = transport (λ e' → e' ⇓) (! (subst-id e)) (e , {!!} , {!fund e <>!})
+    corollary {b} e = transport (λ e' → e' ⇓) (! (subst-id e)) (fund e <>)
+    corollary {τ ⇒ τ₁} e = transport (λ x → x ⇓) (! (subst-id e)) (fst (fund e <>))

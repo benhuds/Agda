@@ -95,15 +95,15 @@ where $\mapsto*$ is the reflexive/transitive closure of the step relation $\maps
 Strong normalization states that all well-typed terms evaluate to a normal form, i.e. ``if $e$ is a well-typed term, then $e \Downarrow$,’’ where we can formalize evaluation to a normal form as:
 
 \begin{code}
-_⇓ : {τ : Tp} → [] |- τ → Set
-e ⇓ = Σ (λ k → e ⇓ k)
-\end{code}
-
-where $\Downarrow$ is defined as
-
-\begin{code}
 _⇓_ : {τ : Tp} → [] |- τ → [] |- τ → Set
 e ⇓ k = val k × e ↦* k
+\end{code}
+
+The statement of strong normalization can then be stated as follows:
+
+\begin{code}
+_⇓ : {τ : Tp} → [] |- τ → Set
+e ⇓ = Σ (λ k → e ⇓ k)
 \end{code}
 
 Intuitively, this says ``$e$ is strongly normalizing if there is some $k$ such that $k$ is a value and there is a reduction sequence from $e$ to $k$’’.
@@ -118,7 +118,7 @@ SN b e = e ⇓
 SN (t1 ⇒ t2) e = e ⇓ × Σ (λ e' → SN t1 e' → SN t2 (app e e'))
 \end{code}
 
-A unary logical relation is just a logical predicate: $SN_b(e)$ means an expression of base type $b$ holds for $SN$ iff $e \Downarrow$.  The case for function of type $\tau1\to\tau2$ states that $SN_{(t1\to t2)}(e)$ iff $e \Downarrow$, and for all e', $SN_{t1}(e’)$ implies $SN_{t2}(e\ e’)$.  This condition allows us to show that the logical relation is preserved by the elimination form for function types (application).
+A unary logical relation is just a logical predicate: $SN_b(e)$ means an expression $e$ of base type $b$ holds for $SN$ iff $e \Downarrow$.  The case for function of type $\tau1\to\tau2$ states that $SN_{(t1\to t2)}(e)$ iff $e \Downarrow$, and for all e', $SN_{t1}(e’)$ implies $SN_{t2}(e\ e’)$.  This condition allows us to show that the logical relation is preserved by the elimination form for function types (application).
 
 We also need to ensure substitutions are strongly normalizing:
 
@@ -137,6 +137,6 @@ fund : {Γ : Ctx} {τ : Tp} {Θ : sctx [] Γ}
      → SN τ (subst e Θ)
 \end{code}
 
-This says that all well-typed terms $e : \tau$ hold for the logical relation $SN_\tau$ which we have just defined.
+This says that all well-typed terms $e : \tau$ hold for the logical relation $SN_\tau$ which we have just defined.  We proceed by pattern matching on $e$, which corresponds to term induction on $e$.
 
 \end{document}
