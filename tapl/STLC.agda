@@ -103,7 +103,7 @@ module STLC where
     subst-id : ∀ {Γ τ} (e : Γ |- τ) → e == subst e ids
     subst-id c = Refl
     subst-id (v x) = svar-id x
-    subst-id (lam e) = {!!}
+    subst-id (lam e) = ap lam {!!}
     subst-id (app e e₁) = ap2 app (subst-id e) (subst-id e₁)
 
     add1 : ∀ {Γ Γ' τ} → sctx Γ Γ' → Γ |- τ → sctx Γ (τ :: Γ')
@@ -115,28 +115,6 @@ module STLC where
 
     throw : ∀ {Γ Γ' τ} → sctx Γ (τ :: Γ') → sctx Γ Γ'
     throw Θ x = Θ (iS x)
-
-    throw-eq-lemma : ∀ {Γ Γ' τ τ'} → (Θ : sctx Γ (τ :: Γ')) (Θ' : sctx Γ Γ') (x : τ' ∈ Γ') → _==_ (throw Θ x) (Θ' x)
-    throw-eq-lemma Θ Θ' x = {!!} --i'm thinking i have to do some sort of equation chain
--- wts throw Θ x = Θ (iS x) == Θ' x
-
-    throw-eq2 : ∀ {Γ Γ' τ} → (Θ : sctx Γ Γ') → _==_ {_} {_} (throw (s-extend Θ)) {!throw (s-extend Θ)!}
-    throw-eq2 = {!!}
-
-    throw-eq : ∀ {Γ Γ' τ} → (Θ : sctx Γ (τ :: Γ')) (Θ' : sctx Γ Γ') → _==_ {_} {sctx Γ Γ'} (throw Θ) Θ'
-    throw-eq Θ Θ' = λ=i (λ τ → λ= (λ x → throw-eq-lemma Θ Θ' x))
-
-    throw-svar : ∀ {Γ Γ' τ τ'} (Θ : sctx Γ (τ :: Γ')) (Θ' : sctx Γ Γ') (x : τ' ∈ Γ') → svar (throw Θ) x == svar Θ' x
-    throw-svar Θ Θ' x = throw-eq-lemma Θ Θ' x
-
-    throw-subst : ∀ {Γ Γ' τ τ'} (Θ : sctx Γ (τ :: Γ')) (Θ' : sctx Γ Γ') (e : Γ' |- τ') (x : τ' ∈ Γ') → subst e (throw Θ) == Θ (iS x)
-    throw-subst Θ Θ' e x = {!!}
-
-    throw-is-ok : ∀ {Γ Γ' τ τ'} (Θ : sctx Γ (τ :: Γ')) (Θ' : sctx Γ Γ') (e : Γ' |- τ') → subst e (throw Θ) == subst e Θ'
-    throw-is-ok Θ Θ' c = Refl
-    throw-is-ok Θ Θ' (v x) = throw-svar Θ Θ' x
-    throw-is-ok Θ Θ' (lam e) = ap lam (ap (subst e) (ap s-extend (throw-eq Θ Θ')))
-    throw-is-ok Θ Θ' (app e e₁) = ap2 app (ap (subst e) (throw-eq Θ Θ')) (ap (subst e₁) (throw-eq Θ Θ'))
 
   open RenSubst
 
@@ -216,7 +194,12 @@ module STLC where
     fund c snc = c , (c-isval , Done)
     fund (v i0) snc = snd snc
     fund (v (iS x)) snc = fund (v x) (fst snc)
-    fund {_} {τ1 ⇒ τ2} {Θ} (lam e) snc = (subst (lam e) Θ , lam-isval , Done) , {!!}
+    fund {Γ} {τ1 ⇒ τ2} {Θ} (lam e) snc =
+      (lam (subst e (s-extend Θ)) , lam-isval , Done) ,
+        ({!!} , (λ sn → head-expand τ2 Step/β (transport (SN τ2) {!!} IH)))
+      where
+        IH = fund e (snc , {!!})
+      --(subst (lam e) Θ , lam-isval , Done) , {!!} , {!!}
     fund {_} {τ} {Θ} (app e1 e2) snc with fund e1 snc | fund e2 snc
     ... | (v1 , v1-isval , e1↦*v1) , k2 , IH1 | IH2 = {!!}
 
