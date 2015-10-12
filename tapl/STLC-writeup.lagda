@@ -88,17 +88,55 @@ data _↦_ : {τ : Tp} → [] |- τ → [] |- τ → Set where
 \end{code}
 
 
-where $\mapsto *$ is the reflexive/transitive closure of the step relation $\mapsto$.
+where $\mapsto*$ is the reflexive/transitive closure of the step relation $\mapsto$.
 
 \section{Strong Normalization}
 
-Before we can define strong normalization, we need to define some preliminary notions:
+Strong normalization states that all well-typed terms evaluate to a normal form, i.e. ``if $e$ is a well-typed term, then $e \Downarrow$,’’ where we can formalize evaluation to a normal form as:
 
 \begin{code}
-_\d_ : {τ : Tp} → [] |- τ → [] |- τ → Set
-e \d k = val k × e ↦* k
+_⇓ : {τ : Tp} → [] |- τ → Set
+e ⇓ = Σ (λ k → e ⇓ k)
 \end{code}
 
-Intuitively, this says ``a well-typed term $e$ evaluates to $k$ if $k$ is a value and there is some finite sequence of evaluation steps from $e$ to $k$.  With this definition, we can define strong normalization: a well-typed term $e$ is strongly normalizing if there is no infinite reduction sequence starting from $e$ ($e \to e’ \to …$), i.e. there is some value $k$ which $e$ eventually evaluates to.
+where $\Downarrow$ is defined as
+
+\begin{code}
+_⇓_ : {τ : Tp} → [] |- τ → [] |- τ → Set
+e ⇓ k = val k × e ↦* k
+\end{code}
+
+Intuitively, this says ``$e$ is strongly normalizing if there is some $k$ such that $k$ is a value and there is a reduction sequence from $e$ to $k$’’.
+
+A first attempt at proving strong normalization would usually be done by first inducting on the structure of the term $e$.  However, when we arrive at the case where we want to show strong normalization for an application $e1\ e2$, we get stuck, because we don’t know if substitution during $\beta$-reduction normalizes.
+
+To overcome this problem, we define a unary logical relation $SN_\tau$ by induction on type $\tau$:
+
+\begin{code}
+SN : (τ : Tp) → [] |- τ → Set
+SN b e = e ⇓
+SN (t1 ⇒ t2) e = e ⇓ × Σ (λ e' → SN t1 e' → SN t2 (app e e'))
+\end{code}
+
+A unary logical relation is just a logical predicate: $SN_b(e)$ means an expression of base type $b$ holds for $SN$ iff $e \Downarrow$.  The case for function of type $\tau1\to\tau2$ states that $SN_{(t1\to t2)}(e)$ iff $e \Downarrow$, and for all e', $SN_{t1}(e’)$ implies $SN_{t2}(e\ e’)$.  This condition allows us to show that the logical relation is preserved by the elimination form for function types (application).
+
+We also need to ensure substitutions are strongly normalizing:
+
+\begin{code}
+SNc : (Γ : Ctx) → sctx [] Γ → Set
+SNc [] Θ = Unit
+SNc (τ :: Γ) Θ = SNc Γ (throw Θ) × SN τ (Θ i0)
+\end{code}
+
+This leads us to the fundamental theorem of logical relations that we would like to prove:
+
+\begin{code}
+fund : {Γ : Ctx} {τ : Tp} {Θ : sctx [] Γ} 
+     → (e : Γ |- τ)
+     → SNc Γ Θ
+     → SN τ (subst e Θ)
+\end{code}
+
+This says that all well-typed terms $e : \tau$ hold for the logical relation $SN_\tau$ which we have just defined.
 
 \end{document}

@@ -77,24 +77,38 @@ module STLC where
     s-extend Θ i0 = v i0
     s-extend Θ (iS x) = wkn (Θ x)
 
+    lem3' : ∀ {Γ Γ' τ} → sctx Γ Γ' → Γ |- τ → sctx Γ (τ :: Γ')
+    lem3' Θ e i0 = e
+    lem3' Θ e (iS i) = Θ i
+
+    ids : ∀ {Γ} → sctx Γ Γ
+    ids x = v x
+
+      --lem3
+    q : ∀ {Γ τ} → Γ |- τ → sctx Γ (τ :: Γ)
+    q e = lem3' ids e
+
+    svar : ∀ {Γ1 Γ2 τ} → sctx Γ1 Γ2 → τ ∈ Γ2 → Γ1 |- τ
+    svar Θ i = q (Θ i) i0
+
     subst : ∀ {Γ Γ' τ} → Γ' |- τ → sctx Γ Γ' → Γ |- τ
     subst c Θ = c
     subst (v x) Θ = Θ x
     subst (lam e) Θ = lam (subst e (s-extend Θ))
     subst (app e e₁) Θ = app (subst e Θ) (subst e₁ Θ)
 
-    ids : ∀ {Γ} → sctx Γ Γ
-    ids x = v x
+    svar-id : ∀ {Γ τ} → (x : τ ∈ Γ) → v x == svar ids x
+    svar-id = λ x → Refl
+
+    subst-id : ∀ {Γ τ} (e : Γ |- τ) → e == subst e ids
+    subst-id c = Refl
+    subst-id (v x) = svar-id x
+    subst-id (lam e) = {!!}
+    subst-id (app e e₁) = ap2 app (subst-id e) (subst-id e₁)
 
     add1 : ∀ {Γ Γ' τ} → sctx Γ Γ' → Γ |- τ → sctx Γ (τ :: Γ')
     add1 Θ e i0 = e
     add1 Θ e (iS i) = Θ i
-
-    q : ∀ {Γ τ} → Γ |- τ → sctx Γ (τ :: Γ)
-    q e = add1 ids e
-
-    svar : ∀ {Γ1 Γ2 τ} → sctx Γ1 Γ2 → τ ∈ Γ2 → Γ1 |- τ
-    svar Θ i = q (Θ i) i0
 
     subst1 : ∀ {Γ τ τ'} → Γ |- τ' → (τ' :: Γ) |- τ → Γ |- τ
     subst1 e0 e = subst e (add1 ids e0)
@@ -145,19 +159,15 @@ module STLC where
     -- a well-typed expression e evals to k if k is a value and
     -- there is some sequence of eval steps from e to k
     -- type \d
-    _⇣_ : {τ : Tp} → [] |- τ → [] |- τ → Set
-    e ⇣ k = val k × e ↦* k
+    _⇓_ : {τ : Tp} → [] |- τ → [] |- τ → Set
+    e ⇓ k = val k × e ↦* k
 
     -- classical notion of strong normalization:
     -- e is strongly normalizing if there is no infinite
     -- reduction sequence e → e' → e'' → ...
     -- i.e. there's some value k which e eventually evaluates to
-    _⇣ : {τ : Tp} → [] |- τ → Set
-    e ⇣ = Σ (λ k → e ⇣ k)
-
-    -- can i represent strong normalization like this instead?
-    _* : {τ : Tp} → [] |- τ → Set
-    e * = Σ (λ k → val k × e ↦* k)
+    _⇓ : {τ : Tp} → [] |- τ → Set
+    e ⇓ = Σ (λ k → e ⇓ k)
 
   module StrongNormalization where
     open OpSem
@@ -167,14 +177,18 @@ module STLC where
     -- if e is a well-typed term, then e is strongly normalizing
     SN : (τ : Tp) → [] |- τ → Set
     -- SN_b(e) iff e ⇣
-    SN b e = e ⇣
+    SN b e = e ⇓
     -- SN_(t1->t2)(e) iff e ⇣ and ∀ e', SN_t1(e') -> SN_t2(app e e')
-    SN (t1 ⇒ t2) e = e ⇣ × Σ (λ e' → SN t1 e' → SN t2 (app e e'))
+    SN (t1 ⇒ t2) e = e ⇓ × Σ (λ e' → SN t1 e' → SN t2 (app e e'))
 
     -- how to describe?
     SNc : (Γ : Ctx) → sctx [] Γ → Set
     SNc [] Θ = Unit
     SNc (τ :: Γ) Θ = SNc Γ (throw Θ) × SN τ (Θ i0)
+
+    -- need a new definition for γ|=Γ. can i do it without induction on Γ?
+    SNc2 : (Γ : Ctx) → sctx [] Γ → Set
+    SNc2 Γ Θ = Σ (λ x → x ∈ Γ × SN x (Θ {!!}))
 
     -- step relation is closed under head expansion
     head-expand : (τ : Tp) {e e' : [] |- τ} → e ↦ e' → SN τ e' → SN τ e
@@ -211,26 +225,5 @@ module STLC where
     fund (app e1 e2) snc with fund e1 snc
     ... | (v1 , v1-isval , e1↦*v1) , v2 , IH = head-expand* (Step' (Step/app* e1↦*v1) {!Step/β!}) {!!}
 
-
--------------- using alternate definition
-
-    -- SN with alternative definition of strong normalization
-    SN2 : (τ : Tp) → [] |- τ → Set
-    SN2 b e = e *
-    SN2 (t1 ⇒ t2) e = e * × Σ (λ e' → SN2 t1 e' → SN2 t2 (app e e'))
-
-    head-expand2 : (τ : Tp) {e e' : [] |- τ} → e ↦ e' → SN2 τ e' → SN2 τ e
-    head-expand2 b e↦e' (k , k-isval , e'↦*k) = k , (k-isval , (Step e↦e' e'↦*k))
-    head-expand2 (t ⇒ t₁) e↦e' ((body , body-isval , e'↦*body) , k , snd) =
-      (body , (body-isval , (Step e↦e' e'↦*body))) , k , (λ x → head-expand2 _ (Step/app e↦e') (snd x))
-{-
-    -- step relation is closed under head expansion
-    head-expand : (τ : Tp) {e e' : [] |- τ} → e ↦ e' → SN τ e' → SN τ e
-    head-expand b e↦e' (e₁ , e₁-isval , e'↦*e₁) = e₁ , (e₁-isval , Step e↦e' e'↦*e₁)
-    head-expand (e ⇒ e₁) e↦e' ((body , body-isval , e'↦*body) , k , sn) =
-                   (body , (body-isval , Step e↦e' e'↦*body)) , (k , (λ x → head-expand _ (Step/app e↦e') (sn x)))
-
-    -- refl/trans closure of step relation is closed under head expansion
-    head-expand* : {τ : Tp} {e e' : [] |- τ} → e ↦* e' → SN τ e' → SN τ e
-    head-expand* Done sn = sn
-    head-expand* (Step x steps) sn = head-expand _ x (head-expand* steps sn)-}
+    corollary : {τ : Tp} → (e : [] |- τ) → e ⇓
+    corollary e = transport (λ e' → e' ⇓) (! (subst-id e)) {!!}
