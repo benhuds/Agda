@@ -181,14 +181,9 @@ module STLC where
     -- SN_(t1->t2)(e) iff e ⇣ and ∀ e', SN_t1(e') -> SN_t2(app e e')
     SN (t1 ⇒ t2) e = e ⇓ × Σ (λ e' → SN t1 e' → SN t2 (app e e'))
 
-    -- how to describe?
     SNc : (Γ : Ctx) → sctx [] Γ → Set
     SNc [] Θ = Unit
     SNc (τ :: Γ) Θ = SNc Γ (throw Θ) × SN τ (Θ i0)
-
-    -- need a new definition for γ|=Γ. can i do it without induction on Γ?
-    SNc2 : (Γ : Ctx) → sctx [] Γ → Set
-    SNc2 Γ Θ = Σ (λ x → x ∈ Γ × SN x (Θ {!!}))
 
     -- step relation is closed under head expansion
     head-expand : (τ : Tp) {e e' : [] |- τ} → e ↦ e' → SN τ e' → SN τ e
@@ -222,8 +217,8 @@ module STLC where
     fund (v i0) snc = snd snc
     fund (v (iS x)) snc = fund (v x) (fst snc)
     fund {_} {τ1 ⇒ τ2} {Θ} (lam e) snc = (subst (lam e) Θ , (lam-isval , Done)) , ({!!} , {!!})
-    fund (app e1 e2) snc with fund e1 snc
-    ... | (v1 , v1-isval , e1↦*v1) , v2 , IH = head-expand* (Step' (Step/app* e1↦*v1) {!Step/β!}) {!!}
+    fund {_} {_} {Θ} (app e1 e2) snc with fund e1 snc
+    ... | (v1 , v1-isval , e1↦*v1) , v2 , IH = head-expand* {_} {_} {{!!}} (Step' (Step/app* e1↦*v1) {!Step/β!}) (IH {!!})
 
     corollary : {τ : Tp} → (e : [] |- τ) → e ⇓
-    corollary e = transport (λ e' → e' ⇓) (! (subst-id e)) {!!}
+    corollary e = transport (λ e' → e' ⇓) (! (subst-id e)) (e , {!!} , {!fund e <>!})
