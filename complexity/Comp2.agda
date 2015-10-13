@@ -67,7 +67,7 @@ module Comp2 where
            → Γ |- (τ1 ×c τ2)
            → Γ |- τ2
     nil : ∀ {Γ τ} → Γ |- list τ
-    _::s_ : ∀ {Γ τ} → Γ |- τ → Γ |- list τ → Γ |- list τ
+    _::c_ : ∀ {Γ τ} → Γ |- τ → Γ |- list τ → Γ |- list τ
     listrec : ∀ {Γ τ τ'} → Γ |- list τ → Γ |- τ' → (τ :: (list τ :: (τ' :: Γ))) |- τ' → Γ |- τ'
     true : ∀ {Γ} → Γ |- bool
     false : ∀ {Γ} → Γ |- bool
@@ -134,7 +134,7 @@ module Comp2 where
       ren (l-proj e) ρ = l-proj (ren e ρ)
       ren (r-proj e) ρ = r-proj (ren e ρ)
       ren nil ρ = nil
-      ren (x ::s xs) ρ = ren x ρ ::s ren xs ρ
+      ren (x ::c xs) ρ = ren x ρ ::c ren xs ρ
       ren true ρ = true
       ren false ρ = false
       ren (listrec e e₁ e₂) ρ = listrec (ren e ρ) (ren e₁ ρ) (ren e₂ (r-extend (r-extend (r-extend ρ))))
@@ -167,7 +167,7 @@ module Comp2 where
       ren-comp ρ1 ρ2 (l-proj e) = ap l-proj (ren-comp ρ1 ρ2 e)
       ren-comp ρ1 ρ2 (r-proj e) = ap r-proj (ren-comp ρ1 ρ2 e)
       ren-comp ρ1 ρ2 nil = Refl
-      ren-comp ρ1 ρ2 (e ::s e₁) = ap2 _::s_ (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
+      ren-comp ρ1 ρ2 (e ::c e₁) = ap2 _::c_ (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
       ren-comp ρ1 ρ2 (listrec e e₁ e₂) = ap3 listrec (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
                                            (ap (ren e₂) (ap r-extend (ap r-extend (extend-ren-comp ρ1 ρ2)) ∘
                                            (ap r-extend (extend-ren-comp (r-extend ρ1) (r-extend ρ2)) ∘
@@ -231,7 +231,7 @@ module Comp2 where
     subst (l-proj e) Θ = l-proj (subst e Θ)
     subst (r-proj e) Θ = r-proj (subst e Θ)
     subst nil Θ = nil
-    subst (x ::s xs) Θ = subst x Θ ::s subst xs Θ
+    subst (x ::c xs) Θ = subst x Θ ::c subst xs Θ
     subst true Θ = true
     subst false Θ = false
     subst (listrec e e₁ e₂) Θ = listrec (subst e Θ) (subst e₁ Θ) (subst e₂ (s-extend (s-extend (s-extend Θ))))
@@ -294,7 +294,7 @@ module Comp2 where
     subst-id (l-proj e) = ap l-proj (subst-id e)
     subst-id (r-proj e) = ap r-proj (subst-id e)
     subst-id nil = Refl
-    subst-id (e ::s e₁) = ap2 _::s_ (subst-id e) (subst-id e₁)
+    subst-id (e ::c e₁) = ap2 _::c_ (subst-id e) (subst-id e₁)
     subst-id true = Refl
     subst-id false = Refl
     subst-id (listrec e e₁ e₂) = ap3 listrec (subst-id e) (subst-id e₁) (ap (subst e₂) (ap s-extend (ap s-extend extend-id-once) ∘ extend-id-twice) ∘ subst-id e₂)
@@ -332,7 +332,7 @@ module Comp2 where
     subst-rs ρ Θ (l-proj e) = ap l-proj (subst-rs ρ Θ e)
     subst-rs ρ Θ (r-proj e) = ap r-proj (subst-rs ρ Θ e)
     subst-rs ρ Θ nil = Refl
-    subst-rs ρ Θ (e ::s e₁) = ap2 _::s_ (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
+    subst-rs ρ Θ (e ::c e₁) = ap2 _::c_ (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
     subst-rs ρ Θ true = Refl
     subst-rs ρ Θ false = Refl
     subst-rs ρ Θ (listrec e e₁ e₂) = ap3 listrec (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
@@ -357,7 +357,7 @@ module Comp2 where
     rs-comp ρ Θ (l-proj e) = ap l-proj (rs-comp ρ Θ e)
     rs-comp ρ Θ (r-proj e) = ap r-proj (rs-comp ρ Θ e)
     rs-comp ρ Θ nil = Refl
-    rs-comp ρ Θ (e ::s e₁) = ap2 _::s_ (rs-comp ρ Θ e) (rs-comp ρ Θ e₁)
+    rs-comp ρ Θ (e ::c e₁) = ap2 _::c_ (rs-comp ρ Θ e) (rs-comp ρ Θ e₁)
     rs-comp ρ Θ (listrec e e₁ e₂) = ap3 listrec (rs-comp ρ Θ e) (rs-comp ρ Θ e₁) 
                                       (ap (subst e₂) (ap s-extend (ap s-extend (extend-rs-once ρ Θ)) ∘
                                       extend-rs-twice (r-extend ρ) (s-extend Θ)) ∘
@@ -399,7 +399,7 @@ module Comp2 where
     sr-comp Θ ρ (l-proj e) = ap l-proj (sr-comp Θ ρ e)
     sr-comp Θ ρ (r-proj e) = ap r-proj (sr-comp Θ ρ e)
     sr-comp Θ ρ nil = Refl
-    sr-comp Θ ρ (e ::s e₁) = ap2 _::s_ (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
+    sr-comp Θ ρ (e ::c e₁) = ap2 _::c_ (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
     sr-comp Θ ρ (listrec e e₁ e₂) = ap3 listrec (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
                                                 (ap (subst e₂) (ap s-extend (ap s-extend (extend-sr-once Θ ρ)) ∘
                                                 extend-sr-twice (s-extend Θ) (r-extend ρ)) ∘
@@ -439,7 +439,7 @@ module Comp2 where
     subst-ss Θ1 Θ2 (l-proj e) = ap l-proj (subst-ss Θ1 Θ2 e)
     subst-ss Θ1 Θ2 (r-proj e) = ap r-proj (subst-ss Θ1 Θ2 e)
     subst-ss Θ1 Θ2 nil = Refl
-    subst-ss Θ1 Θ2 (e ::s e₁) = ap2 _::s_ (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
+    subst-ss Θ1 Θ2 (e ::c e₁) = ap2 _::c_ (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
     subst-ss Θ1 Θ2 true = Refl
     subst-ss Θ1 Θ2 false = Refl
     subst-ss Θ1 Θ2 (listrec e e₁ e₂) = ap3 listrec (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
@@ -508,7 +508,7 @@ module Comp2 where
     subst-compose4 Θ v' r e2 = ap (subst e2) (subst-compose2-lemma v' r e2 Θ) ∘
                              ! (subst-ss (lem4 v' r) (s-extend (s-extend Θ)) e2)
 
-  open RenSubst
+  open RenSubst public
 {-
   postulate
     subst-compose3 : ∀ {Γ Γ' τ τ1 τ2} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ' |- τ1) (v2 : Γ' |- τ2)

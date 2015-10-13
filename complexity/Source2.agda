@@ -508,18 +508,14 @@ module Source2 where
     true-isval : val true
     false-isval : val false
 
-  module Costs where
+  data Cost : Set where
+    0c : Cost
+    1c : Cost
+    _+c_ : Cost → Cost → Cost
 
-    data Cost : Set where
-      0c : Cost
-      1c : Cost
-      _+c_ : Cost → Cost → Cost
-
-    data Equals0c : Cost → Set where
-      Eq0-0c : Equals0c 0c
-      Eq0-+c : ∀ {c c'} → Equals0c c → Equals0c c' → Equals0c (c +c c')
-
-  open Costs
+  data Equals0c : Cost → Set where
+    Eq0-0c : Equals0c 0c
+    Eq0-+c : ∀ {c c'} → Equals0c c → Equals0c c' → Equals0c (c +c c')
 
   mutual
     -- define evals (e : source exp) (v : value) (c : nat)
@@ -612,3 +608,4 @@ module Source2 where
     IH2 = val-evals-inversion vxs D₁
   val-evals-inversion true-isval true-evals = Refl , Eq0-0c
   val-evals-inversion false-isval false-evals = Refl , Eq0-0c
+
