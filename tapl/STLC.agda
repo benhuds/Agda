@@ -97,13 +97,21 @@ module STLC where
     subst (lam e) Θ = lam (subst e (s-extend Θ))
     subst (app e e₁) Θ = app (subst e Θ) (subst e₁ Θ)
 
+    extend-id-once-lemma : ∀ {Γ τ τ'} → (x : τ ∈ τ' :: Γ) → _==_ {_} {τ' :: Γ |- τ}
+                         (ids {τ' :: Γ} {τ} x) (s-extend {Γ} {Γ} {τ'} (ids {Γ}) {τ} x)
+    extend-id-once-lemma i0 = Refl
+    extend-id-once-lemma (iS x) = Refl
+
+    extend-id-once : ∀ {Γ τ} → Id {_} {sctx (τ :: Γ) (τ :: Γ)} (ids {τ :: Γ}) (s-extend ids)
+    extend-id-once = λ=i (λ τ → λ= (λ x → extend-id-once-lemma x))
+
     svar-id : ∀ {Γ τ} → (x : τ ∈ Γ) → v x == svar ids x
     svar-id = λ x → Refl
 
     subst-id : ∀ {Γ τ} (e : Γ |- τ) → e == subst e ids
     subst-id c = Refl
     subst-id (v x) = svar-id x
-    subst-id (lam e) = ap lam {!!}
+    subst-id (lam e) = ap lam (ap (subst e) extend-id-once ∘ subst-id e)
     subst-id (app e e₁) = ap2 app (subst-id e) (subst-id e₁)
 
     add1 : ∀ {Γ Γ' τ} → sctx Γ Γ' → Γ |- τ → sctx Γ (τ :: Γ')
@@ -195,8 +203,8 @@ module STLC where
     fund (v i0) snc = snd snc
     fund (v (iS x)) snc = fund (v x) (fst snc)
     fund {Γ} {τ1 ⇒ τ2} {Θ} (lam e) snc =
-      (lam (subst e (s-extend Θ)) , lam-isval , Done) ,
-        ({!!} , (λ sn → head-expand τ2 Step/β (transport (SN τ2) {!!} IH)))
+       (lam (subst e (s-extend Θ)) , lam-isval , Done) , 
+         ({!!} , (λ sn → head-expand τ2 Step/β (transport (SN τ2) {!!} IH)))
       where
         IH = fund e (snc , {!!})
       --(subst (lam e) Θ , lam-isval , Done) , {!!} , {!!}

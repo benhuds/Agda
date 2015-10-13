@@ -32,7 +32,7 @@
 
 \section{Introduction}
 
-We present a formalized proof of strong normalization for the simply-typed $\lambda$-calculus in Agda, a dependently-typed programming language and proof assistant.  Our approach is inspired by the Edward Yang’s Agda proof of weak normalization for STLC (\url{https://github.com/ezyang/lr-agda/blob/master/STLC-CBN.agda}), which in turn was an exercise from Dan Licata’s `Dependently-Typed Programming in Agda’ course at OPLSS 2013.
+We present a formalized proof of strong normalization for the simply-typed $\lambda$-calculus in Agda, a dependently-typed programming language and proof assistant.  Our approach is inspired by the Edward Yang’s Agda proof of weak normalization for STLC (\url{https://github.com/ezyang/lr-agda/blob/master/STLC-CBN.agda}), which in turn was an exercise from Dan Licata’s `Dependently-Typed Programming in Agda’ course at OPLSS 2013.  Our approach is also inspired by Amal Ahmed’s lecture slides on logical relations from OPLSS 2013 (\url{https://www.cs.uoregon.edu/research/summerschool/summer13/lectures/ahmed-1.pdf}).
 
 \section{Formalization of STLC}
 
@@ -80,13 +80,12 @@ data _↦_ : {τ : Tp} → [] |- τ → [] |- τ → Set where
   Step/β : {τ1 τ2 : Tp} {e : τ1 :: [] |- τ2} {e1 : [] |- τ1}
          → app (lam e) e1 ↦ subst1 e1 e
 
-  data _↦*_ : {τ : Tp} → [] |- τ → [] |- τ → Set where
-    Done : {τ : Tp} {e : [] |- τ} → e ↦* e
-    Step : {τ : Tp} {e1 e2 e3 : [] |- τ} 
-         → e1 ↦ e2  →  e2 ↦* e3
-         → e1 ↦* e3
+data _↦*_ : {τ : Tp} → [] |- τ → [] |- τ → Set where
+  Done : {τ : Tp} {e : [] |- τ} → e ↦* e
+  Step : {τ : Tp} {e1 e2 e3 : [] |- τ} 
+       → e1 ↦ e2  →  e2 ↦* e3
+       → e1 ↦* e3
 \end{code}
-
 
 where $\mapsto*$ is the reflexive/transitive closure of the step relation $\mapsto$.
 
@@ -128,15 +127,48 @@ SNc [] Θ = Unit
 SNc (τ :: Γ) Θ = SNc Γ (throw Θ) × SN τ (Θ i0)
 \end{code}
 
-This leads us to the fundamental theorem of logical relations that we would like to prove:
+This leads us to the fundamental lemma that we would like to prove:
+
+\begin{lemma}[Fundamental lemma]
+If $e : \Gamma \vdash \tau$ and substitutions $\Theta$ on contexts $\Gamma$ preserve $SN_\tau$, then $SN_\tau(\Theta\ e)$.
+\end{lemma}
+
+\begin{proof}
+We begin by stating the lemma in Agda:
 
 \begin{code}
 fund : {Γ : Ctx} {τ : Tp} {Θ : sctx [] Γ} 
      → (e : Γ |- τ)
      → SNc Γ Θ
      → SN τ (subst e Θ)
+fund e snc = ?
 \end{code}
 
-This says that all well-typed terms $e : \tau$ hold for the logical relation $SN_\tau$ which we have just defined.  We proceed by pattern matching on $e$, which corresponds to term induction on $e$.
+\begin{comment}This says that all well-typed terms $e : \tau$ hold for the logical relation $SN_\tau$ which we have just defined.
+\end{comment}
+We proceed by pattern matching on $e$, which corresponds to term induction on $e$:
+
+\begin{code}
+fund c snc = ? c , (c-isval , Done)
+fund (v x) snc = ? fund (v x) (fst snc)
+fund (lam e) snc = ?
+fund (app e1 e2) snc = ?
+\end{code}
+
+The formalized proof proceeds in a similar fashion to a traditional proof on paper:
+
+Case: $e$ is a constant $c$ of the base type $b$.  By definition, $SN_b(\Theta(c))$ iff $\Theta(c) \Downarrow$.  However, we know that $\Theta(c) = c$, so all we are really showing in this case is $c \Downarrow$, i.e. there is a $v$ such that $v$ is a value and $c \mapsto*v$.  If we let $v$ be the $c$ itself, the result follows trivially - we know all constants of the base type are values (\texttt{c-isval}), and $e \mapsto*e$ for all $e : \Gamma\vdash\tau$ (\texttt{Done}).  We can fill in the proof in Agda as follows:
+
+\begin{code}
+fund c snc = c , (c-isval , Done)
+\end{code}
+
+Case: $e$ is a variable $x$ in the context $\Gamma$.  We want to show $SN_\tau(\Theta(x))$, where $\Theta$ maps variables to closed values.
+
+Case: $e$ is an abstraction $\lambda x.e$.
+
+Case: $e$ is an application $e1\ e2$, where $e1$ and $e2$ are terms.  We want to show $SN_{\tau2}(\Theta(e1\ e2))$.  By IH, we know $SN_{\tau1\to\tau2}(\Theta(e1))$ and $SN_{\tau1}(\Theta(e2))$.  We know that the IH on $e1$, $SN_{\tau1\to\tau2}(\Theta(e1))$, iff $e1 \Downarrow$ and for all $e’$ such that $SN_{\tau1}e’$, we can conclude $SN_{\tau1}((\Theta\ e)\ e’)$.  However, we know by the IH on $e2$ that $SN_{\tau1}(\Theta(e2))$, so we can apply this to the IH on $e1$ to obtain our result.
+
+\end{proof}
 
 \end{document}
