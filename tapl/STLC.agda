@@ -207,7 +207,6 @@ module STLC where
          ({!!} , (λ sn → head-expand τ2 Step/β (transport (SN τ2) {!!} IH)))
       where
         IH = fund e (snc , {!!})
-      --(subst (lam e) Θ , lam-isval , Done) , {!!} , {!!}
     fund {_} {τ} {Θ} (app e1 e2) snc with fund e1 snc | fund e2 snc
     ... | (v1 , v1-isval , e1↦*v1) , k2 , IH1 | IH2 = {!!}
 

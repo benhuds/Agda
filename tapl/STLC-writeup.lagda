@@ -163,9 +163,9 @@ Case: $e$ is a constant $c$ of the base type $b$.  By definition, $SN_b(\Theta(c
 fund c snc = c , (c-isval , Done)
 \end{code}
 
-Case: $e$ is a variable $x$ in the context $\Gamma$.  We want to show $SN_\tau(\Theta(x))$, where $\Theta$ maps variables to closed values.
+Case: $e$ is a variable $x$ in the context $\Gamma$.  We want to show $SN_\tau(\Theta(x))$, where $\Theta$ maps variables to closed values.  Since $\Theta$ maps variables to closed values, we know $\Theta(x) = v$, where $v$ is some closed value, but $SN_\tau(v)$ by definition, so this case holds trivially.
 
-Case: $e$ is an abstraction $\lambda x.e$.
+Case: $e$ is an abstraction $\lambda x.e$.  We want to show $SN_{\tau1\to\tau2}(\Theta(\lambda x.e))$.
 
 Case: $e$ is an application $e1\ e2$, where $e1$ and $e2$ are terms.  We want to show $SN_{\tau2}(\Theta(e1\ e2))$.  By IH, we know $SN_{\tau1\to\tau2}(\Theta(e1))$ and $SN_{\tau1}(\Theta(e2))$.  We know that the IH on $e1$, $SN_{\tau1\to\tau2}(\Theta(e1))$, iff $e1 \Downarrow$ and for all $e’$ such that $SN_{\tau1}e’$, we can conclude $SN_{\tau1}((\Theta\ e)\ e’)$.  However, we know by the IH on $e2$ that $SN_{\tau1}(\Theta(e2))$, so we can apply this to the IH on $e1$ to obtain our result.
 
