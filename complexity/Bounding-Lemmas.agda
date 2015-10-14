@@ -9,19 +9,19 @@ module Bounding-Lemmas where
 
   mutual
     valBound : ∀{τ} → (e : [] Source.|- τ) → val e → [] Complexity.|- ⟨⟨ τ ⟩⟩ → Set
-    valBound .z z-isval c = z ≤s c
-    valBound .(suc e) (suc-isval e v) c = Σ (λ c' → valBound e v c' × suc c' ≤s c)
-    valBound .(prod e1 e2) (pair-isval e1 e2 v1 v2) c = valBound e1 v1 (l-proj c) × valBound e2 v2 (r-proj c)
-    valBound {τ1 ->s τ2} .(lam e) (lam-isval e) c = (v₁ : [] Source.|- τ1) (vv : val v₁)
-                                                    (c1 : [] Complexity.|- ⟨⟨ τ1 ⟩⟩) →
-                                                    valBound v₁ vv c1 →
-                                                    expBound (Source.subst e (Source.q v₁)) (app c c1)
-    valBound .unit unit-isval c = Unit
-    valBound .(delay e) (delay-isval e) c = expBound e c
-    valBound .nil nil-isval c = nil ≤s c
-    valBound .(x ::s xs) (cons-isval x xs v v₁) c = {!!}
-    valBound .true true-isval c = Unit
-    valBound .false false-isval c = Unit
+    valBound .z z-isval E = z ≤s E
+    valBound .(suc e) (suc-isval e v) E = Σ (λ E' → valBound e v E' × suc E' ≤s E)
+    valBound .(prod e1 e2) (pair-isval e1 e2 v1 v2) E = valBound e1 v1 (l-proj E) × valBound e2 v2 (r-proj E)
+    valBound {τ1 ->s τ2} .(lam e) (lam-isval e) E = (v₁ : [] Source.|- τ1) (vv : val v₁)
+                                                    (E1 : [] Complexity.|- ⟨⟨ τ1 ⟩⟩) →
+                                                    valBound v₁ vv E1 →
+                                                    expBound (Source.subst e (Source.q v₁)) (app E E1)
+    valBound .unit unit-isval E = Unit
+    valBound .(delay e) (delay-isval e) E = expBound e E
+    valBound .nil nil-isval E = nil ≤s E
+    valBound .(x ::s xs) (cons-isval x xs v v₁) E = Σ (λ E' → (valBound x v (l-proj E') × valBound xs v₁ (r-proj E')) × (l-proj E' ::c r-proj E') ≤s E)
+    valBound .true true-isval E = Unit
+    valBound .false false-isval E = Unit
 
     expBound : ∀{τ} → [] Source.|- τ → [] Complexity.|- || τ || → Set
     expBound {τ} e b = (v₁ : [] Source.|- τ) (vv : val v₁) (n : Cost) →
@@ -46,7 +46,7 @@ module Bounding-Lemmas where
                     weakeningVal e1 vv1 (l-proj E) (l-proj E') (fst vb) (cong-lproj e≤e') ,
                     weakeningVal e2 vv2 (r-proj E) (r-proj E') (snd vb) (cong-rproj e≤e')
     weakeningVal {list τ} .nil nil-isval E E' vb e≤e' = trans-s vb e≤e'
-    weakeningVal {list τ} .(x ::s xs) (cons-isval x xs vv vv₁) E E' vb e≤e' = {!!}
+    weakeningVal {list τ} .(x ::s xs) (cons-isval x xs vv vv₁) E E' (l , ((hvb , tvb) , b)) e≤e' = l , ((hvb , tvb) , trans-s b e≤e')
     weakeningVal {bool} .true true-isval E E' vb e≤e' = <>
     weakeningVal {bool} .false false-isval E E' vb e≤e' = <>
 
