@@ -6,7 +6,7 @@
 
 open import Preliminaries
 
-module Preorder-withmax where
+module Preorder-Max where
 
   {- Doing the same thing as we did in Preorder.agda but this
      time we want to keep our end goal in mind and extend the

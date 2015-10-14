@@ -1,9 +1,9 @@
---NEW COMPLEXITY LANGUAGE FILE
+{- COMPLEXITY LANGUAGE -}
 
 open import Preliminaries
-open import Preorder-withmax
+open import Preorder-Max
 
-module Comp2 where
+module Complexity where
 
   data CTp : Set where
     unit : CTp
@@ -76,439 +76,434 @@ module Comp2 where
   c +C e = prod (plusC c (l-proj e)) (r-proj e)
 
 ------weakening and substitution lemmas
-  module RenSubst where
 
       -- renaming = variable for variable substitution
       --functional view:
       --avoids induction,
       --some associativity/unit properties for free
-    module Ren where
 
-      -- read: you can rename Γ' as Γ
-      rctx : Ctx → Ctx → Set
-      rctx Γ Γ' = ∀ {τ} → τ ∈ Γ' → τ ∈ Γ
+  -- read: you can rename Γ' as Γ
+  rctx : Ctx → Ctx → Set
+  rctx Γ Γ' = ∀ {τ} → τ ∈ Γ' → τ ∈ Γ
 
-      rename-var : ∀ {Γ Γ' τ} → rctx Γ Γ' → τ ∈ Γ' → τ ∈ Γ
-      rename-var ρ a = ρ a
+  rename-var : ∀ {Γ Γ' τ} → rctx Γ Γ' → τ ∈ Γ' → τ ∈ Γ
+  rename-var ρ a = ρ a
 
-      idr : ∀ {Γ} → rctx Γ Γ
-      idr x = x
+  idr : ∀ {Γ} → rctx Γ Γ
+  idr x = x
 
-      -- weakening with renaming
-      p∙ : ∀ {Γ Γ' τ} → rctx Γ Γ' → rctx (τ :: Γ) Γ'
-      p∙ ρ = λ x → iS (ρ x)
+  -- weakening with renaming
+  p∙ : ∀ {Γ Γ' τ} → rctx Γ Γ' → rctx (τ :: Γ) Γ'
+  p∙ ρ = λ x → iS (ρ x)
 
-      p : ∀ {Γ τ} → rctx (τ :: Γ) Γ
-      p = p∙ idr
+  p : ∀ {Γ τ} → rctx (τ :: Γ) Γ
+  p = p∙ idr
 
-      _∙rr_ : ∀ {A B C} → rctx A B → rctx B C → rctx A C
-      ρ1 ∙rr ρ2 = ρ1 o ρ2
+  _∙rr_ : ∀ {A B C} → rctx A B → rctx B C → rctx A C
+  ρ1 ∙rr ρ2 = ρ1 o ρ2
 
-      -- free stuff
-      rename-var-ident : ∀ {Γ τ} → (x : τ ∈ Γ) → rename-var idr x == x
-      rename-var-ident _ = Refl
+  -- free stuff
+  rename-var-ident : ∀ {Γ τ} → (x : τ ∈ Γ) → rename-var idr x == x
+  rename-var-ident _ = Refl
 
-      rename-var-∙ : ∀ {A B C τ} → (r1 : rctx A B) (r2 : rctx B C) (x : τ ∈ C)
-                  → rename-var r1 (rename-var r2 x) == rename-var (r1 ∙rr r2) x
-      rename-var-∙ _ _ _ = Refl
+  rename-var-∙ : ∀ {A B C τ} → (r1 : rctx A B) (r2 : rctx B C) (x : τ ∈ C)
+              → rename-var r1 (rename-var r2 x) == rename-var (r1 ∙rr r2) x
+  rename-var-∙ _ _ _ = Refl
 
-      ∙rr-assoc : ∀ {A B C D} → (r1 : rctx A B) (r2 : rctx B C) (r3 : rctx C D) → _==_ {_} {rctx A D} (r1 ∙rr (r2 ∙rr r3)) ((r1 ∙rr r2) ∙rr r3)
-      ∙rr-assoc r1 r2 r3 = Refl
+  ∙rr-assoc : ∀ {A B C D} → (r1 : rctx A B) (r2 : rctx B C) (r3 : rctx C D) → _==_ {_} {rctx A D} (r1 ∙rr (r2 ∙rr r3)) ((r1 ∙rr r2) ∙rr r3)
+  ∙rr-assoc r1 r2 r3 = Refl
 
-      r-extend : ∀ {Γ Γ' τ} → rctx Γ Γ' → rctx (τ :: Γ) (τ :: Γ')
-      r-extend ρ i0 = i0
-      r-extend ρ (iS x) = iS (ρ x)
+  r-extend : ∀ {Γ Γ' τ} → rctx Γ Γ' → rctx (τ :: Γ) (τ :: Γ')
+  r-extend ρ i0 = i0
+  r-extend ρ (iS x) = iS (ρ x)
 
-      ren : ∀ {Γ Γ' τ} → Γ' |- τ → rctx Γ Γ' → Γ |- τ
-      ren unit ρ = unit
-      ren 0C ρ = 0C
-      ren 1C ρ = 1C
-      ren (plusC e e₁) ρ = plusC (ren e ρ) (ren e₁ ρ)
-      ren (var x) ρ = var (ρ x)
-      ren z ρ = z
-      ren (suc e) ρ = suc (ren e ρ)
-      ren (rec e e₁ e₂) ρ = rec (ren e ρ) (ren e₁ ρ) (ren e₂ (r-extend (r-extend ρ)))
-      ren (lam e) ρ = lam (ren e (r-extend ρ))
-      ren (app e e₁) ρ = app (ren e ρ) (ren e₁ ρ)
-      ren (prod e1 e2) ρ = prod (ren e1 ρ) (ren e2 ρ)
-      ren (l-proj e) ρ = l-proj (ren e ρ)
-      ren (r-proj e) ρ = r-proj (ren e ρ)
-      ren nil ρ = nil
-      ren (x ::c xs) ρ = ren x ρ ::c ren xs ρ
-      ren true ρ = true
-      ren false ρ = false
-      ren (listrec e e₁ e₂) ρ = listrec (ren e ρ) (ren e₁ ρ) (ren e₂ (r-extend (r-extend (r-extend ρ))))
+  ren : ∀ {Γ Γ' τ} → Γ' |- τ → rctx Γ Γ' → Γ |- τ
+  ren unit ρ = unit
+  ren 0C ρ = 0C
+  ren 1C ρ = 1C
+  ren (plusC e e₁) ρ = plusC (ren e ρ) (ren e₁ ρ)
+  ren (var x) ρ = var (ρ x)
+  ren z ρ = z
+  ren (suc e) ρ = suc (ren e ρ)
+  ren (rec e e₁ e₂) ρ = rec (ren e ρ) (ren e₁ ρ) (ren e₂ (r-extend (r-extend ρ)))
+  ren (lam e) ρ = lam (ren e (r-extend ρ))
+  ren (app e e₁) ρ = app (ren e ρ) (ren e₁ ρ)
+  ren (prod e1 e2) ρ = prod (ren e1 ρ) (ren e2 ρ)
+  ren (l-proj e) ρ = l-proj (ren e ρ)
+  ren (r-proj e) ρ = r-proj (ren e ρ)
+  ren nil ρ = nil
+  ren (x ::c xs) ρ = ren x ρ ::c ren xs ρ
+  ren true ρ = true
+  ren false ρ = false
+  ren (listrec e e₁ e₂) ρ = listrec (ren e ρ) (ren e₁ ρ) (ren e₂ (r-extend (r-extend (r-extend ρ))))
 
-      extend-ren-comp-lemma : ∀ {Γ Γ' Γ'' τ τ'} → (x : τ ∈ τ' :: Γ'') (ρ1 : rctx Γ Γ') (ρ2 : rctx Γ' Γ'')
-                            → Id {_} {_} ((r-extend ρ1 ∙rr r-extend ρ2) x) (r-extend (ρ1 ∙rr ρ2) x)
-      extend-ren-comp-lemma i0 ρ1 ρ2 = Refl
-      extend-ren-comp-lemma (iS x) ρ1 ρ2 = Refl
+  extend-ren-comp-lemma : ∀ {Γ Γ' Γ'' τ τ'} → (x : τ ∈ τ' :: Γ'') (ρ1 : rctx Γ Γ') (ρ2 : rctx Γ' Γ'')
+                        → Id {_} {_} ((r-extend ρ1 ∙rr r-extend ρ2) x) (r-extend (ρ1 ∙rr ρ2) x)
+  extend-ren-comp-lemma i0 ρ1 ρ2 = Refl
+  extend-ren-comp-lemma (iS x) ρ1 ρ2 = Refl
 
-      extend-ren-comp : ∀ {Γ Γ' Γ'' τ} → (ρ1 : rctx Γ Γ') → (ρ2 : rctx Γ' Γ'')
-                      → Id {_} {rctx (τ :: Γ) (τ :: Γ'')} (r-extend ρ1 ∙rr r-extend ρ2) (r-extend (ρ1 ∙rr ρ2))
-      extend-ren-comp ρ1 ρ2 = λ=i (λ τ → λ= (λ x → extend-ren-comp-lemma x ρ1 ρ2))
+  extend-ren-comp : ∀ {Γ Γ' Γ'' τ} → (ρ1 : rctx Γ Γ') → (ρ2 : rctx Γ' Γ'')
+                  → Id {_} {rctx (τ :: Γ) (τ :: Γ'')} (r-extend ρ1 ∙rr r-extend ρ2) (r-extend (ρ1 ∙rr ρ2))
+  extend-ren-comp ρ1 ρ2 = λ=i (λ τ → λ= (λ x → extend-ren-comp-lemma x ρ1 ρ2))
 
-      ren-comp : ∀ {Γ Γ' Γ'' τ} → (ρ1 : rctx Γ Γ') → (ρ2 : rctx Γ' Γ'') → (e : Γ'' |- τ)
-               → (ren (ren e ρ2) ρ1) == (ren e (ρ1 ∙rr ρ2))
-      ren-comp ρ1 ρ2 unit = Refl
-      ren-comp ρ1 ρ2 0C = Refl
-      ren-comp ρ1 ρ2 1C = Refl
-      ren-comp ρ1 ρ2 (plusC e e₁) = ap2 plusC (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
-      ren-comp ρ1 ρ2 (var x) = ap var (rename-var-∙ ρ1 ρ2 x)
-      ren-comp ρ1 ρ2 z = Refl
-      ren-comp ρ1 ρ2 (suc e) = ap suc (ren-comp ρ1 ρ2 e)
-      ren-comp ρ1 ρ2 (rec e e₁ e₂) = ap3 rec (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
-                                         (ap (ren e₂) (ap r-extend (extend-ren-comp ρ1 ρ2) ∘
-                                           extend-ren-comp (r-extend ρ1) (r-extend ρ2)) ∘
-                                           ren-comp (r-extend (r-extend ρ1)) (r-extend (r-extend ρ2)) e₂)
-      ren-comp ρ1 ρ2 (lam e) = ap lam ((ap (ren e) (extend-ren-comp ρ1 ρ2)) ∘ ren-comp (r-extend ρ1) (r-extend ρ2) e)
-      ren-comp ρ1 ρ2 (app e e₁) = ap2 app (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
-      ren-comp ρ1 ρ2 (prod e e₁) = ap2 prod (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
-      ren-comp ρ1 ρ2 (l-proj e) = ap l-proj (ren-comp ρ1 ρ2 e)
-      ren-comp ρ1 ρ2 (r-proj e) = ap r-proj (ren-comp ρ1 ρ2 e)
-      ren-comp ρ1 ρ2 nil = Refl
-      ren-comp ρ1 ρ2 (e ::c e₁) = ap2 _::c_ (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
-      ren-comp ρ1 ρ2 (listrec e e₁ e₂) = ap3 listrec (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
-                                           (ap (ren e₂) (ap r-extend (ap r-extend (extend-ren-comp ρ1 ρ2)) ∘
-                                           (ap r-extend (extend-ren-comp (r-extend ρ1) (r-extend ρ2)) ∘
-                                           extend-ren-comp (r-extend (r-extend ρ1)) (r-extend (r-extend ρ2)))) ∘
-                                           ren-comp (r-extend (r-extend (r-extend ρ1)))
-                                                    (r-extend (r-extend (r-extend ρ2))) e₂)
-      ren-comp ρ1 ρ2 true = Refl
-      ren-comp ρ1 ρ2 false = Refl
+  ren-comp : ∀ {Γ Γ' Γ'' τ} → (ρ1 : rctx Γ Γ') → (ρ2 : rctx Γ' Γ'') → (e : Γ'' |- τ)
+           → (ren (ren e ρ2) ρ1) == (ren e (ρ1 ∙rr ρ2))
+  ren-comp ρ1 ρ2 unit = Refl
+  ren-comp ρ1 ρ2 0C = Refl
+  ren-comp ρ1 ρ2 1C = Refl
+  ren-comp ρ1 ρ2 (plusC e e₁) = ap2 plusC (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
+  ren-comp ρ1 ρ2 (var x) = ap var (rename-var-∙ ρ1 ρ2 x)
+  ren-comp ρ1 ρ2 z = Refl
+  ren-comp ρ1 ρ2 (suc e) = ap suc (ren-comp ρ1 ρ2 e)
+  ren-comp ρ1 ρ2 (rec e e₁ e₂) = ap3 rec (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
+                                     (ap (ren e₂) (ap r-extend (extend-ren-comp ρ1 ρ2) ∘
+                                       extend-ren-comp (r-extend ρ1) (r-extend ρ2)) ∘
+                                       ren-comp (r-extend (r-extend ρ1)) (r-extend (r-extend ρ2)) e₂)
+  ren-comp ρ1 ρ2 (lam e) = ap lam ((ap (ren e) (extend-ren-comp ρ1 ρ2)) ∘ ren-comp (r-extend ρ1) (r-extend ρ2) e)
+  ren-comp ρ1 ρ2 (app e e₁) = ap2 app (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
+  ren-comp ρ1 ρ2 (prod e e₁) = ap2 prod (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
+  ren-comp ρ1 ρ2 (l-proj e) = ap l-proj (ren-comp ρ1 ρ2 e)
+  ren-comp ρ1 ρ2 (r-proj e) = ap r-proj (ren-comp ρ1 ρ2 e)
+  ren-comp ρ1 ρ2 nil = Refl
+  ren-comp ρ1 ρ2 (e ::c e₁) = ap2 _::c_ (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
+  ren-comp ρ1 ρ2 (listrec e e₁ e₂) = ap3 listrec (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
+                                       (ap (ren e₂) (ap r-extend (ap r-extend (extend-ren-comp ρ1 ρ2)) ∘
+                                       (ap r-extend (extend-ren-comp (r-extend ρ1) (r-extend ρ2)) ∘
+                                       extend-ren-comp (r-extend (r-extend ρ1)) (r-extend (r-extend ρ2)))) ∘
+                                       ren-comp (r-extend (r-extend (r-extend ρ1)))
+                                                (r-extend (r-extend (r-extend ρ2))) e₂)
+  ren-comp ρ1 ρ2 true = Refl
+  ren-comp ρ1 ρ2 false = Refl
 
-      -- weakening a context
-      wkn : ∀ {Γ τ1 τ2} → Γ |- τ2 → (τ1 :: Γ) |- τ2
-      wkn e = ren e iS
+  -- weakening a context
+  wkn : ∀ {Γ τ1 τ2} → Γ |- τ2 → (τ1 :: Γ) |- τ2
+  wkn e = ren e iS
 
-    open Ren
+  sctx : Ctx → Ctx → Set
+  sctx Γ Γ' = ∀ {τ} → τ ∈ Γ' → Γ |- τ
 
-    sctx : Ctx → Ctx → Set
-    sctx Γ Γ' = ∀ {τ} → τ ∈ Γ' → Γ |- τ
+  --lem2 (addvar)
+  s-extend : ∀ {Γ Γ' τ} → sctx Γ Γ' → sctx (τ :: Γ) (τ :: Γ')
+  s-extend Θ i0 = var i0
+  s-extend Θ (iS x) = wkn (Θ x)
 
-    --lem2 (addvar)
-    s-extend : ∀ {Γ Γ' τ} → sctx Γ Γ' → sctx (τ :: Γ) (τ :: Γ')
-    s-extend Θ i0 = var i0
-    s-extend Θ (iS x) = wkn (Θ x)
+  ids : ∀ {Γ} → sctx Γ Γ
+  ids x = var x
 
-    ids : ∀ {Γ} → sctx Γ Γ
-    ids x = var x
+    -- weakening with substitution
+  q∙ : ∀ {Γ Γ' τ} → sctx Γ Γ' → sctx (τ :: Γ) Γ'
+  q∙ Θ = λ x → wkn (Θ x)
 
-      -- weakening with substitution
-    q∙ : ∀ {Γ Γ' τ} → sctx Γ Γ' → sctx (τ :: Γ) Γ'
-    q∙ Θ = λ x → wkn (Θ x)
+  lem3' : ∀ {Γ Γ' τ} → sctx Γ Γ' → Γ |- τ → sctx Γ (τ :: Γ')
+  lem3' Θ e i0 = e
+  lem3' Θ e (iS i) = Θ i
 
-    lem3' : ∀ {Γ Γ' τ} → sctx Γ Γ' → Γ |- τ → sctx Γ (τ :: Γ')
-    lem3' Θ e i0 = e
-    lem3' Θ e (iS i) = Θ i
+    --lem3
+  q : ∀ {Γ τ} → Γ |- τ → sctx Γ (τ :: Γ)
+  q e = lem3' ids e
 
-      --lem3
-    q : ∀ {Γ τ} → Γ |- τ → sctx Γ (τ :: Γ)
-    q e = lem3' ids e
+  -- subst-var
+  svar : ∀ {Γ1 Γ2 τ} → sctx Γ1 Γ2 → τ ∈ Γ2 → Γ1 |- τ
+  svar Θ i = q (Θ i) i0
 
-    -- subst-var
-    svar : ∀ {Γ1 Γ2 τ} → sctx Γ1 Γ2 → τ ∈ Γ2 → Γ1 |- τ
-    svar Θ i = q (Θ i) i0
+  lem4' : ∀ {Γ Γ' τ1 τ2} → sctx Γ Γ' → Γ |- τ1 → Γ |- τ2 → sctx Γ (τ1 :: (τ2 :: Γ'))
+  lem4' Θ a b = lem3' (lem3' Θ b) a
 
-    lem4' : ∀ {Γ Γ' τ1 τ2} → sctx Γ Γ' → Γ |- τ1 → Γ |- τ2 → sctx Γ (τ1 :: (τ2 :: Γ'))
-    lem4' Θ a b = lem3' (lem3' Θ b) a
+  lem4 : ∀ {Γ τ1 τ2} → Γ |- τ1 → Γ |- τ2 → sctx Γ (τ1 :: (τ2 :: Γ))
+  lem4 e1 e2 = lem4' ids e1 e2
 
-    lem4 : ∀ {Γ τ1 τ2} → Γ |- τ1 → Γ |- τ2 → sctx Γ (τ1 :: (τ2 :: Γ))
-    lem4 e1 e2 = lem4' ids e1 e2
+  subst : ∀ {Γ Γ' τ} → Γ' |- τ → sctx Γ Γ' → Γ |- τ
+  subst unit Θ = unit
+  subst 0C Θ = 0C
+  subst 1C Θ = 1C
+  subst (plusC e e₁) Θ = plusC (subst e Θ) (subst e₁ Θ)
+  subst (var x) Θ = Θ x
+  subst z Θ = z
+  subst (suc e) Θ = suc (subst e Θ)
+  subst (rec e e₁ e₂) Θ = rec (subst e Θ) (subst e₁ Θ) (subst e₂ (s-extend (s-extend Θ)))
+  subst (lam e) Θ = lam (subst e (s-extend Θ))
+  subst (app e e₁) Θ = app (subst e Θ) (subst e₁ Θ)
+  subst (prod e1 e2) Θ = prod (subst e1 Θ) (subst e2 Θ)
+  subst (l-proj e) Θ = l-proj (subst e Θ)
+  subst (r-proj e) Θ = r-proj (subst e Θ)
+  subst nil Θ = nil
+  subst (x ::c xs) Θ = subst x Θ ::c subst xs Θ
+  subst true Θ = true
+  subst false Θ = false
+  subst (listrec e e₁ e₂) Θ = listrec (subst e Θ) (subst e₁ Θ) (subst e₂ (s-extend (s-extend (s-extend Θ))))
 
-    subst : ∀ {Γ Γ' τ} → Γ' |- τ → sctx Γ Γ' → Γ |- τ
-    subst unit Θ = unit
-    subst 0C Θ = 0C
-    subst 1C Θ = 1C
-    subst (plusC e e₁) Θ = plusC (subst e Θ) (subst e₁ Θ)
-    subst (var x) Θ = Θ x
-    subst z Θ = z
-    subst (suc e) Θ = suc (subst e Θ)
-    subst (rec e e₁ e₂) Θ = rec (subst e Θ) (subst e₁ Θ) (subst e₂ (s-extend (s-extend Θ)))
-    subst (lam e) Θ = lam (subst e (s-extend Θ))
-    subst (app e e₁) Θ = app (subst e Θ) (subst e₁ Θ)
-    subst (prod e1 e2) Θ = prod (subst e1 Θ) (subst e2 Θ)
-    subst (l-proj e) Θ = l-proj (subst e Θ)
-    subst (r-proj e) Θ = r-proj (subst e Θ)
-    subst nil Θ = nil
-    subst (x ::c xs) Θ = subst x Θ ::c subst xs Θ
-    subst true Θ = true
-    subst false Θ = false
-    subst (listrec e e₁ e₂) Θ = listrec (subst e Θ) (subst e₁ Θ) (subst e₂ (s-extend (s-extend (s-extend Θ))))
+  subst1 : ∀ {Γ τ τ1} → Γ |- τ1 → (τ1 :: Γ) |- τ → Γ |- τ
+  subst1 e e' = subst e' (q e)
 
-    subst1 : ∀ {Γ τ τ1} → Γ |- τ1 → (τ1 :: Γ) |- τ → Γ |- τ
-    subst1 e e' = subst e' (q e)
+  _rs_ : ∀ {A B C} → rctx A B → sctx B C → sctx A C
+  _rs_ ρ Θ x = ren (subst (var x) Θ) ρ
 
-    _rs_ : ∀ {A B C} → rctx A B → sctx B C → sctx A C
-    _rs_ ρ Θ x = ren (subst (var x) Θ) ρ
+  _ss_ : ∀ {A B C} → sctx A B → sctx B C → sctx A C
+  _ss_ Θ1 Θ2 x = subst (subst (var x) Θ2) Θ1
 
-    _ss_ : ∀ {A B C} → sctx A B → sctx B C → sctx A C
-    _ss_ Θ1 Θ2 x = subst (subst (var x) Θ2) Θ1
+  _sr_ : ∀ {A B C} → sctx A B → rctx B C → sctx A C
+  _sr_ Θ ρ x = subst (ren (var x) ρ) Θ
 
-    _sr_ : ∀ {A B C} → sctx A B → rctx B C → sctx A C
-    _sr_ Θ ρ x = subst (ren (var x) ρ) Θ
+  --free stuff
+  svar-rs : ∀ {A B C τ} (ρ : rctx A B) (Θ : sctx B C) (x : τ ∈ C)
+          → svar (ρ rs Θ) x == ren (svar Θ x) ρ
+  svar-rs = λ ρ Θ x → Refl
 
-    --free stuff
-    svar-rs : ∀ {A B C τ} (ρ : rctx A B) (Θ : sctx B C) (x : τ ∈ C)
-            → svar (ρ rs Θ) x == ren (svar Θ x) ρ
-    svar-rs = λ ρ Θ x → Refl
+  svar-ss : ∀ {A B C τ} (Θ1 : sctx A B) (Θ2 : sctx B C) (x : τ ∈ C)
+          → svar (Θ1 ss Θ2) x == subst (svar Θ2 x) Θ1
+  svar-ss = λ Θ1 Θ2 x → Refl
 
-    svar-ss : ∀ {A B C τ} (Θ1 : sctx A B) (Θ2 : sctx B C) (x : τ ∈ C)
-            → svar (Θ1 ss Θ2) x == subst (svar Θ2 x) Θ1
-    svar-ss = λ Θ1 Θ2 x → Refl
+  svar-sr : ∀ {A B C τ} (Θ : sctx A B) (ρ : rctx B C) (x : τ ∈ C)
+          → svar Θ (rename-var ρ x) == svar (Θ sr ρ) x
+  svar-sr = λ Θ ρ x → Refl
 
-    svar-sr : ∀ {A B C τ} (Θ : sctx A B) (ρ : rctx B C) (x : τ ∈ C)
-            → svar Θ (rename-var ρ x) == svar (Θ sr ρ) x
-    svar-sr = λ Θ ρ x → Refl
+  svar-id : ∀ {Γ τ} → (x : τ ∈ Γ) → var x == svar ids x
+  svar-id = λ x → Refl
 
-    svar-id : ∀ {Γ τ} → (x : τ ∈ Γ) → var x == svar ids x
-    svar-id = λ x → Refl
+  rsr-assoc : ∀ {A B C D} → (ρ1 : rctx A B) (Θ : sctx B C) (ρ2 : rctx C D)
+            → Id {_} {sctx A D} ((ρ1 rs Θ) sr ρ2) (ρ1 rs (Θ sr ρ2))
+  rsr-assoc = λ ρ1 Θ ρ2 → Refl
 
-    rsr-assoc : ∀ {A B C D} → (ρ1 : rctx A B) (Θ : sctx B C) (ρ2 : rctx C D)
-              → Id {_} {sctx A D} ((ρ1 rs Θ) sr ρ2) (ρ1 rs (Θ sr ρ2))
-    rsr-assoc = λ ρ1 Θ ρ2 → Refl
+  extend-id-once-lemma : ∀ {Γ τ τ'} → (x : τ ∈ τ' :: Γ) → _==_ {_} {τ' :: Γ |- τ}
+                       (ids {τ' :: Γ} {τ} x) (s-extend {Γ} {Γ} {τ'} (ids {Γ}) {τ} x)
+  extend-id-once-lemma i0 = Refl
+  extend-id-once-lemma (iS x) = Refl
 
-    extend-id-once-lemma : ∀ {Γ τ τ'} → (x : τ ∈ τ' :: Γ) → _==_ {_} {τ' :: Γ |- τ}
-                         (ids {τ' :: Γ} {τ} x) (s-extend {Γ} {Γ} {τ'} (ids {Γ}) {τ} x)
-    extend-id-once-lemma i0 = Refl
-    extend-id-once-lemma (iS x) = Refl
+  extend-id-once : ∀ {Γ τ} → Id {_} {sctx (τ :: Γ) (τ :: Γ)} (ids {τ :: Γ}) (s-extend ids)
+  extend-id-once = λ=i (λ τ → λ= (λ x → extend-id-once-lemma x))
 
-    extend-id-once : ∀ {Γ τ} → Id {_} {sctx (τ :: Γ) (τ :: Γ)} (ids {τ :: Γ}) (s-extend ids)
-    extend-id-once = λ=i (λ τ → λ= (λ x → extend-id-once-lemma x))
+  extend-id-twice : ∀ {Γ τ1 τ2} → Id {_} {sctx (τ1 :: τ2 :: Γ) (τ1 :: τ2 :: Γ)} (ids {τ1 :: τ2 :: Γ}) (s-extend (s-extend ids))
+  extend-id-twice = ap s-extend extend-id-once ∘ extend-id-once
 
-    extend-id-twice : ∀ {Γ τ1 τ2} → Id {_} {sctx (τ1 :: τ2 :: Γ) (τ1 :: τ2 :: Γ)} (ids {τ1 :: τ2 :: Γ}) (s-extend (s-extend ids))
-    extend-id-twice = ap s-extend extend-id-once ∘ extend-id-once
+  subst-id : ∀ {Γ τ} (e : Γ |- τ) → e == subst e ids
+  subst-id unit = Refl
+  subst-id 0C = Refl
+  subst-id 1C = Refl
+  subst-id (plusC e e₁) = ap2 plusC (subst-id e) (subst-id e₁)
+  subst-id (var x) = svar-id x
+  subst-id z = Refl
+  subst-id (suc e) = ap suc (subst-id e)
+  subst-id (rec e e₁ e₂) = ap3 rec (subst-id e) (subst-id e₁) (ap (subst e₂) extend-id-twice ∘ subst-id e₂)
+  subst-id (lam e) = ap lam (ap (subst e) extend-id-once ∘ subst-id e)
+  subst-id (app e e₁) = ap2 app (subst-id e) (subst-id e₁)
+  subst-id (prod e e₁) = ap2 prod (subst-id e) (subst-id e₁)
+  subst-id (l-proj e) = ap l-proj (subst-id e)
+  subst-id (r-proj e) = ap r-proj (subst-id e)
+  subst-id nil = Refl
+  subst-id (e ::c e₁) = ap2 _::c_ (subst-id e) (subst-id e₁)
+  subst-id true = Refl
+  subst-id false = Refl
+  subst-id (listrec e e₁ e₂) = ap3 listrec (subst-id e) (subst-id e₁) (ap (subst e₂) (ap s-extend (ap s-extend extend-id-once) ∘ extend-id-twice) ∘ subst-id e₂)
 
-    subst-id : ∀ {Γ τ} (e : Γ |- τ) → e == subst e ids
-    subst-id unit = Refl
-    subst-id 0C = Refl
-    subst-id 1C = Refl
-    subst-id (plusC e e₁) = ap2 plusC (subst-id e) (subst-id e₁)
-    subst-id (var x) = svar-id x
-    subst-id z = Refl
-    subst-id (suc e) = ap suc (subst-id e)
-    subst-id (rec e e₁ e₂) = ap3 rec (subst-id e) (subst-id e₁) (ap (subst e₂) extend-id-twice ∘ subst-id e₂)
-    subst-id (lam e) = ap lam (ap (subst e) extend-id-once ∘ subst-id e)
-    subst-id (app e e₁) = ap2 app (subst-id e) (subst-id e₁)
-    subst-id (prod e e₁) = ap2 prod (subst-id e) (subst-id e₁)
-    subst-id (l-proj e) = ap l-proj (subst-id e)
-    subst-id (r-proj e) = ap r-proj (subst-id e)
-    subst-id nil = Refl
-    subst-id (e ::c e₁) = ap2 _::c_ (subst-id e) (subst-id e₁)
-    subst-id true = Refl
-    subst-id false = Refl
-    subst-id (listrec e e₁ e₂) = ap3 listrec (subst-id e) (subst-id e₁) (ap (subst e₂) (ap s-extend (ap s-extend extend-id-once) ∘ extend-id-twice) ∘ subst-id e₂)
+  extend-rs-once-lemma : ∀ {A B C τ τ'} → (x : τ ∈ τ' :: B) (ρ : rctx C A) (Θ : sctx A B) → _==_ {_} {τ' :: C |- τ}
+                       (_rs_ {τ' :: C} {τ' :: A} {τ' :: B} (r-extend {C} {A} {τ'} ρ)
+                         (s-extend {A} {B} {τ'} Θ) {τ} x)
+                         (s-extend {C} {B} {τ'} (_rs_ {C} {A} {B} ρ Θ) {τ} x)
+  extend-rs-once-lemma i0 ρ Θ = Refl
+  extend-rs-once-lemma (iS x) ρ Θ = ! (ren-comp iS ρ (Θ x)) ∘ ren-comp (r-extend ρ) iS (Θ x)
 
-    extend-rs-once-lemma : ∀ {A B C τ τ'} → (x : τ ∈ τ' :: B) (ρ : rctx C A) (Θ : sctx A B) → _==_ {_} {τ' :: C |- τ}
-                         (_rs_ {τ' :: C} {τ' :: A} {τ' :: B} (r-extend {C} {A} {τ'} ρ)
-                           (s-extend {A} {B} {τ'} Θ) {τ} x)
-                           (s-extend {C} {B} {τ'} (_rs_ {C} {A} {B} ρ Θ) {τ} x)
-    extend-rs-once-lemma i0 ρ Θ = Refl
-    extend-rs-once-lemma (iS x) ρ Θ = ! (ren-comp iS ρ (Θ x)) ∘ ren-comp (r-extend ρ) iS (Θ x)
+  extend-rs-once : ∀ {A B C τ} → (ρ : rctx C A) (Θ : sctx A B)
+                 → Id {_} {sctx (τ :: C) (τ :: B)} (r-extend ρ rs s-extend Θ) (s-extend (ρ rs Θ))
+  extend-rs-once ρ Θ = λ=i (λ τ → λ= (λ x → extend-rs-once-lemma x ρ Θ))
 
-    extend-rs-once : ∀ {A B C τ} → (ρ : rctx C A) (Θ : sctx A B)
-                   → Id {_} {sctx (τ :: C) (τ :: B)} (r-extend ρ rs s-extend Θ) (s-extend (ρ rs Θ))
-    extend-rs-once ρ Θ = λ=i (λ τ → λ= (λ x → extend-rs-once-lemma x ρ Θ))
+  extend-rs-twice : ∀ {A B C τ τ'} → (ρ : rctx C A) (Θ : sctx A B)
+                  → Id {_} {sctx (τ :: τ' :: C) (τ :: τ' :: B)} ((r-extend (r-extend ρ)) rs (s-extend (s-extend Θ))) ((s-extend (s-extend (ρ rs Θ))))
+  extend-rs-twice ρ Θ = ap s-extend (extend-rs-once ρ Θ) ∘ extend-rs-once (r-extend ρ) (s-extend Θ)
 
-    extend-rs-twice : ∀ {A B C τ τ'} → (ρ : rctx C A) (Θ : sctx A B)
-                    → Id {_} {sctx (τ :: τ' :: C) (τ :: τ' :: B)} ((r-extend (r-extend ρ)) rs (s-extend (s-extend Θ))) ((s-extend (s-extend (ρ rs Θ))))
-    extend-rs-twice ρ Θ = ap s-extend (extend-rs-once ρ Θ) ∘ extend-rs-once (r-extend ρ) (s-extend Θ)
+  subst-rs : ∀ {A B C τ} → (ρ : rctx C A) (Θ : sctx A B) (e : B |- τ)
+           → ren (subst e Θ) ρ == subst e (ρ rs Θ)
+  subst-rs ρ Θ unit = Refl
+  subst-rs ρ Θ 0C = Refl
+  subst-rs ρ Θ 1C = Refl
+  subst-rs ρ Θ (plusC e e₁) = ap2 plusC (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
+  subst-rs ρ Θ (var x) = svar-rs ρ Θ x
+  subst-rs ρ Θ z = Refl
+  subst-rs ρ Θ (suc e) = ap suc (subst-rs ρ Θ e)
+  subst-rs ρ Θ (rec e e₁ e₂) = ap3 rec (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
+                                 (ap (subst e₂) (extend-rs-twice ρ Θ) ∘
+                                 subst-rs (r-extend (r-extend ρ)) (s-extend (s-extend Θ)) e₂)
+  subst-rs ρ Θ (lam e) = ap lam (ap (subst e) (extend-rs-once ρ Θ) ∘ subst-rs (r-extend ρ) (s-extend Θ) e)
+  subst-rs ρ Θ (app e e₁) = ap2 app (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
+  subst-rs ρ Θ (prod e e₁) = ap2 prod (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
+  subst-rs ρ Θ (l-proj e) = ap l-proj (subst-rs ρ Θ e)
+  subst-rs ρ Θ (r-proj e) = ap r-proj (subst-rs ρ Θ e)
+  subst-rs ρ Θ nil = Refl
+  subst-rs ρ Θ (e ::c e₁) = ap2 _::c_ (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
+  subst-rs ρ Θ true = Refl
+  subst-rs ρ Θ false = Refl
+  subst-rs ρ Θ (listrec e e₁ e₂) = ap3 listrec (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
+                                       (ap (subst e₂) (ap s-extend (ap s-extend (extend-rs-once ρ Θ)) ∘
+                                       extend-rs-twice (r-extend ρ) (s-extend Θ)) ∘
+                                       subst-rs (r-extend (r-extend (r-extend ρ))) (s-extend (s-extend (s-extend Θ))) e₂)
 
-    subst-rs : ∀ {A B C τ} → (ρ : rctx C A) (Θ : sctx A B) (e : B |- τ)
-             → ren (subst e Θ) ρ == subst e (ρ rs Θ)
-    subst-rs ρ Θ unit = Refl
-    subst-rs ρ Θ 0C = Refl
-    subst-rs ρ Θ 1C = Refl
-    subst-rs ρ Θ (plusC e e₁) = ap2 plusC (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
-    subst-rs ρ Θ (var x) = svar-rs ρ Θ x
-    subst-rs ρ Θ z = Refl
-    subst-rs ρ Θ (suc e) = ap suc (subst-rs ρ Θ e)
-    subst-rs ρ Θ (rec e e₁ e₂) = ap3 rec (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
-                                   (ap (subst e₂) (extend-rs-twice ρ Θ) ∘
-                                   subst-rs (r-extend (r-extend ρ)) (s-extend (s-extend Θ)) e₂)
-    subst-rs ρ Θ (lam e) = ap lam (ap (subst e) (extend-rs-once ρ Θ) ∘ subst-rs (r-extend ρ) (s-extend Θ) e)
-    subst-rs ρ Θ (app e e₁) = ap2 app (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
-    subst-rs ρ Θ (prod e e₁) = ap2 prod (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
-    subst-rs ρ Θ (l-proj e) = ap l-proj (subst-rs ρ Θ e)
-    subst-rs ρ Θ (r-proj e) = ap r-proj (subst-rs ρ Θ e)
-    subst-rs ρ Θ nil = Refl
-    subst-rs ρ Θ (e ::c e₁) = ap2 _::c_ (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
-    subst-rs ρ Θ true = Refl
-    subst-rs ρ Θ false = Refl
-    subst-rs ρ Θ (listrec e e₁ e₂) = ap3 listrec (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
-                                         (ap (subst e₂) (ap s-extend (ap s-extend (extend-rs-once ρ Θ)) ∘
-                                         extend-rs-twice (r-extend ρ) (s-extend Θ)) ∘
-                                         subst-rs (r-extend (r-extend (r-extend ρ))) (s-extend (s-extend (s-extend Θ))) e₂)
+  rs-comp : ∀ {Γ Γ' Γ'' τ} → (ρ : rctx Γ Γ') → (Θ : sctx Γ' Γ'') → (e : Γ'' |- τ)
+          → (ren (subst e Θ) ρ) == subst e (ρ rs Θ)
+  rs-comp ρ Θ unit = Refl
+  rs-comp ρ Θ 0C = Refl
+  rs-comp ρ Θ 1C = Refl
+  rs-comp ρ Θ (plusC e e₁) = ap2 plusC (rs-comp ρ Θ e) (rs-comp ρ Θ e₁)
+  rs-comp ρ Θ (var x) = svar-rs ρ Θ x
+  rs-comp ρ Θ z = Refl
+  rs-comp ρ Θ (suc e) = ap suc (rs-comp ρ Θ e)
+  rs-comp ρ Θ (rec e e₁ e₂) = ap3 rec (rs-comp ρ Θ e) (rs-comp ρ Θ e₁)
+                              (ap (subst e₂) (extend-rs-twice ρ Θ) ∘ rs-comp (r-extend (r-extend ρ)) (s-extend (s-extend Θ)) e₂)
+  rs-comp ρ Θ (lam e) = ap lam (ap (subst e) (extend-rs-once ρ Θ) ∘ rs-comp (r-extend ρ) (s-extend Θ) e)
+  rs-comp ρ Θ (app e e₁) = ap2 app (rs-comp ρ Θ e) (rs-comp ρ Θ e₁)
+  rs-comp ρ Θ (prod e e₁) = ap2 prod (rs-comp ρ Θ e) (rs-comp ρ Θ e₁)
+  rs-comp ρ Θ (l-proj e) = ap l-proj (rs-comp ρ Θ e)
+  rs-comp ρ Θ (r-proj e) = ap r-proj (rs-comp ρ Θ e)
+  rs-comp ρ Θ nil = Refl
+  rs-comp ρ Θ (e ::c e₁) = ap2 _::c_ (rs-comp ρ Θ e) (rs-comp ρ Θ e₁)
+  rs-comp ρ Θ (listrec e e₁ e₂) = ap3 listrec (rs-comp ρ Θ e) (rs-comp ρ Θ e₁) 
+                                    (ap (subst e₂) (ap s-extend (ap s-extend (extend-rs-once ρ Θ)) ∘
+                                    extend-rs-twice (r-extend ρ) (s-extend Θ)) ∘
+                                    rs-comp (r-extend (r-extend (r-extend ρ)))
+                                    (s-extend (s-extend (s-extend Θ))) e₂)
+  rs-comp ρ Θ true = Refl
+  rs-comp ρ Θ false = Refl
 
-    rs-comp : ∀ {Γ Γ' Γ'' τ} → (ρ : rctx Γ Γ') → (Θ : sctx Γ' Γ'') → (e : Γ'' |- τ)
-            → (ren (subst e Θ) ρ) == subst e (ρ rs Θ)
-    rs-comp ρ Θ unit = Refl
-    rs-comp ρ Θ 0C = Refl
-    rs-comp ρ Θ 1C = Refl
-    rs-comp ρ Θ (plusC e e₁) = ap2 plusC (rs-comp ρ Θ e) (rs-comp ρ Θ e₁)
-    rs-comp ρ Θ (var x) = svar-rs ρ Θ x
-    rs-comp ρ Θ z = Refl
-    rs-comp ρ Θ (suc e) = ap suc (rs-comp ρ Θ e)
-    rs-comp ρ Θ (rec e e₁ e₂) = ap3 rec (rs-comp ρ Θ e) (rs-comp ρ Θ e₁)
-                                (ap (subst e₂) (extend-rs-twice ρ Θ) ∘ rs-comp (r-extend (r-extend ρ)) (s-extend (s-extend Θ)) e₂)
-    rs-comp ρ Θ (lam e) = ap lam (ap (subst e) (extend-rs-once ρ Θ) ∘ rs-comp (r-extend ρ) (s-extend Θ) e)
-    rs-comp ρ Θ (app e e₁) = ap2 app (rs-comp ρ Θ e) (rs-comp ρ Θ e₁)
-    rs-comp ρ Θ (prod e e₁) = ap2 prod (rs-comp ρ Θ e) (rs-comp ρ Θ e₁)
-    rs-comp ρ Θ (l-proj e) = ap l-proj (rs-comp ρ Θ e)
-    rs-comp ρ Θ (r-proj e) = ap r-proj (rs-comp ρ Θ e)
-    rs-comp ρ Θ nil = Refl
-    rs-comp ρ Θ (e ::c e₁) = ap2 _::c_ (rs-comp ρ Θ e) (rs-comp ρ Θ e₁)
-    rs-comp ρ Θ (listrec e e₁ e₂) = ap3 listrec (rs-comp ρ Θ e) (rs-comp ρ Θ e₁) 
-                                      (ap (subst e₂) (ap s-extend (ap s-extend (extend-rs-once ρ Θ)) ∘
-                                      extend-rs-twice (r-extend ρ) (s-extend Θ)) ∘
-                                      rs-comp (r-extend (r-extend (r-extend ρ)))
-                                      (s-extend (s-extend (s-extend Θ))) e₂)
-    rs-comp ρ Θ true = Refl
-    rs-comp ρ Θ false = Refl
+  extend-sr-once-lemma : ∀ {A B C τ τ'} → (Θ : sctx A B) (ρ : rctx B C) (x : τ ∈ τ' :: C)
+                       → _==_ {_} {τ' :: A |- τ} (s-extend (_sr_ Θ ρ) x) (_sr_ (s-extend Θ) (r-extend ρ) x)
+  extend-sr-once-lemma Θ ρ i0 = Refl
+  extend-sr-once-lemma Θ ρ (iS x) = Refl
 
-    extend-sr-once-lemma : ∀ {A B C τ τ'} → (Θ : sctx A B) (ρ : rctx B C) (x : τ ∈ τ' :: C)
-                         → _==_ {_} {τ' :: A |- τ} (s-extend (_sr_ Θ ρ) x) (_sr_ (s-extend Θ) (r-extend ρ) x)
-    extend-sr-once-lemma Θ ρ i0 = Refl
-    extend-sr-once-lemma Θ ρ (iS x) = Refl
+  extend-sr-once : ∀ {A B C τ} → (Θ : sctx A B) (ρ : rctx B C)
+                 → Id {_} {sctx (τ :: A) (τ :: C)} (s-extend Θ sr r-extend ρ) (s-extend (Θ sr ρ))
+  extend-sr-once Θ ρ = λ=i (λ τ → λ= (λ x → ! (extend-sr-once-lemma Θ ρ x)))
 
-    extend-sr-once : ∀ {A B C τ} → (Θ : sctx A B) (ρ : rctx B C)
-                   → Id {_} {sctx (τ :: A) (τ :: C)} (s-extend Θ sr r-extend ρ) (s-extend (Θ sr ρ))
-    extend-sr-once Θ ρ = λ=i (λ τ → λ= (λ x → ! (extend-sr-once-lemma Θ ρ x)))
+  extend-sr-twice : ∀ {A B C τ τ'} → (Θ : sctx A B) (ρ : rctx B C)
+                 → Id {_} {sctx (τ' :: τ :: A) (τ' :: τ :: C)}
+                   (s-extend (s-extend Θ) sr r-extend (r-extend ρ)) (s-extend (s-extend (Θ sr ρ)))
+  extend-sr-twice Θ ρ = ap s-extend (extend-sr-once Θ ρ) ∘ extend-sr-once (s-extend Θ) (r-extend ρ)
 
-    extend-sr-twice : ∀ {A B C τ τ'} → (Θ : sctx A B) (ρ : rctx B C)
-                   → Id {_} {sctx (τ' :: τ :: A) (τ' :: τ :: C)}
-                     (s-extend (s-extend Θ) sr r-extend (r-extend ρ)) (s-extend (s-extend (Θ sr ρ)))
-    extend-sr-twice Θ ρ = ap s-extend (extend-sr-once Θ ρ) ∘ extend-sr-once (s-extend Θ) (r-extend ρ)
+  sr-comp : ∀ {Γ Γ' Γ'' τ} → (Θ : sctx Γ Γ') → (ρ : rctx Γ' Γ'') → (e : Γ'' |- τ)
+          → (subst (ren e ρ) Θ) == subst e (Θ sr ρ)
+  sr-comp Θ ρ unit = Refl
+  sr-comp Θ ρ 0C = Refl
+  sr-comp Θ ρ 1C = Refl
+  sr-comp Θ ρ (plusC e e₁) = ap2 plusC (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
+  sr-comp Θ ρ (var x) = svar-sr Θ ρ x
+  sr-comp Θ ρ z = Refl
+  sr-comp Θ ρ (suc e) = ap suc (sr-comp Θ ρ e)
+  sr-comp Θ ρ (rec e e₁ e₂) = ap3 rec (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
+                                      (ap (subst e₂) (ap s-extend (extend-sr-once Θ ρ) ∘
+                                      extend-sr-once (s-extend Θ) (r-extend ρ)) ∘
+                                      sr-comp (s-extend (s-extend Θ)) (r-extend (r-extend ρ)) e₂)
+  sr-comp Θ ρ (lam e) = ap lam (ap (subst e) (extend-sr-once Θ ρ) ∘ sr-comp (s-extend Θ) (r-extend ρ) e)
+  sr-comp Θ ρ (app e e₁) = ap2 app (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
+  sr-comp Θ ρ (prod e e₁) = ap2 prod (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
+  sr-comp Θ ρ (l-proj e) = ap l-proj (sr-comp Θ ρ e)
+  sr-comp Θ ρ (r-proj e) = ap r-proj (sr-comp Θ ρ e)
+  sr-comp Θ ρ nil = Refl
+  sr-comp Θ ρ (e ::c e₁) = ap2 _::c_ (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
+  sr-comp Θ ρ (listrec e e₁ e₂) = ap3 listrec (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
+                                              (ap (subst e₂) (ap s-extend (ap s-extend (extend-sr-once Θ ρ)) ∘
+                                              extend-sr-twice (s-extend Θ) (r-extend ρ)) ∘
+                                                 sr-comp (s-extend (s-extend (s-extend Θ)))
+                                                 (r-extend (r-extend (r-extend ρ))) e₂)
+                                              
+  sr-comp Θ ρ true = Refl
+  sr-comp Θ ρ false = Refl
 
-    sr-comp : ∀ {Γ Γ' Γ'' τ} → (Θ : sctx Γ Γ') → (ρ : rctx Γ' Γ'') → (e : Γ'' |- τ)
-            → (subst (ren e ρ) Θ) == subst e (Θ sr ρ)
-    sr-comp Θ ρ unit = Refl
-    sr-comp Θ ρ 0C = Refl
-    sr-comp Θ ρ 1C = Refl
-    sr-comp Θ ρ (plusC e e₁) = ap2 plusC (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
-    sr-comp Θ ρ (var x) = svar-sr Θ ρ x
-    sr-comp Θ ρ z = Refl
-    sr-comp Θ ρ (suc e) = ap suc (sr-comp Θ ρ e)
-    sr-comp Θ ρ (rec e e₁ e₂) = ap3 rec (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
-                                        (ap (subst e₂) (ap s-extend (extend-sr-once Θ ρ) ∘
-                                        extend-sr-once (s-extend Θ) (r-extend ρ)) ∘
-                                        sr-comp (s-extend (s-extend Θ)) (r-extend (r-extend ρ)) e₂)
-    sr-comp Θ ρ (lam e) = ap lam (ap (subst e) (extend-sr-once Θ ρ) ∘ sr-comp (s-extend Θ) (r-extend ρ) e)
-    sr-comp Θ ρ (app e e₁) = ap2 app (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
-    sr-comp Θ ρ (prod e e₁) = ap2 prod (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
-    sr-comp Θ ρ (l-proj e) = ap l-proj (sr-comp Θ ρ e)
-    sr-comp Θ ρ (r-proj e) = ap r-proj (sr-comp Θ ρ e)
-    sr-comp Θ ρ nil = Refl
-    sr-comp Θ ρ (e ::c e₁) = ap2 _::c_ (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
-    sr-comp Θ ρ (listrec e e₁ e₂) = ap3 listrec (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
-                                                (ap (subst e₂) (ap s-extend (ap s-extend (extend-sr-once Θ ρ)) ∘
-                                                extend-sr-twice (s-extend Θ) (r-extend ρ)) ∘
-                                                   sr-comp (s-extend (s-extend (s-extend Θ)))
-                                                   (r-extend (r-extend (r-extend ρ))) e₂)
-                                                
-    sr-comp Θ ρ true = Refl
-    sr-comp Θ ρ false = Refl
+  extend-ss-once-lemma : ∀ {A B C τ τ'} → (Θ1 : sctx A B) (Θ2 : sctx B C) (x : τ ∈ τ' :: C)
+                       → _==_ {_} {τ' :: A |- τ} (s-extend (_ss_ Θ1 Θ2) x) (_ss_ (s-extend Θ1) (s-extend Θ2) x)
+  extend-ss-once-lemma Θ1 Θ2 i0 = Refl
+  extend-ss-once-lemma Θ1 Θ2 (iS x) = ! (sr-comp (s-extend Θ1) iS (Θ2 x)) ∘ rs-comp iS Θ1 (Θ2 x)
 
-    extend-ss-once-lemma : ∀ {A B C τ τ'} → (Θ1 : sctx A B) (Θ2 : sctx B C) (x : τ ∈ τ' :: C)
-                         → _==_ {_} {τ' :: A |- τ} (s-extend (_ss_ Θ1 Θ2) x) (_ss_ (s-extend Θ1) (s-extend Θ2) x)
-    extend-ss-once-lemma Θ1 Θ2 i0 = Refl
-    extend-ss-once-lemma Θ1 Θ2 (iS x) = ! (sr-comp (s-extend Θ1) iS (Θ2 x)) ∘ rs-comp iS Θ1 (Θ2 x)
+  extend-ss-once : ∀ {A B C τ} → (Θ1 : sctx A B) (Θ2 : sctx B C)
+              → _==_ {_} {sctx (τ :: A) (τ :: C)} (s-extend (Θ1 ss Θ2))
+              ((s-extend Θ1) ss
+              (s-extend Θ2))
+  extend-ss-once Θ1 Θ2 = λ=i (λ τ → λ= (λ x → extend-ss-once-lemma Θ1 Θ2 x))
 
-    extend-ss-once : ∀ {A B C τ} → (Θ1 : sctx A B) (Θ2 : sctx B C)
-                → _==_ {_} {sctx (τ :: A) (τ :: C)} (s-extend (Θ1 ss Θ2))
-                ((s-extend Θ1) ss
-                (s-extend Θ2))
-    extend-ss-once Θ1 Θ2 = λ=i (λ τ → λ= (λ x → extend-ss-once-lemma Θ1 Θ2 x))
+  subst-ss : ∀ {A B C τ} → (Θ1 : sctx A B) (Θ2 : sctx B C) (e : C |- τ)
+           → subst e (Θ1 ss Θ2) == subst (subst e Θ2) Θ1
+  subst-ss Θ1 Θ2 unit = Refl
+  subst-ss Θ1 Θ2 0C = Refl
+  subst-ss Θ1 Θ2 1C = Refl
+  subst-ss Θ1 Θ2 (plusC e e₁) = ap2 plusC (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
+  subst-ss Θ1 Θ2 (var x) = svar-ss Θ1 Θ2 x
+  subst-ss Θ1 Θ2 z = Refl
+  subst-ss Θ1 Θ2 (suc e) = ap suc (subst-ss Θ1 Θ2 e)
+  subst-ss Θ1 Θ2 (rec e e₁ e₂) = ap3 rec (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
+                                 (subst-ss (s-extend (s-extend Θ1)) (s-extend (s-extend Θ2)) e₂ ∘
+                                 ap (subst e₂) (extend-ss-once (s-extend Θ1) (s-extend Θ2) ∘
+                                 ap s-extend (extend-ss-once Θ1 Θ2)))
+  subst-ss Θ1 Θ2 (lam e) = ap lam (subst-ss (s-extend Θ1) (s-extend Θ2) e ∘ ap (subst e) (extend-ss-once Θ1 Θ2))
+  subst-ss Θ1 Θ2 (app e e₁) = ap2 app (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
+  subst-ss Θ1 Θ2 (prod e e₁) = ap2 prod (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
+  subst-ss Θ1 Θ2 (l-proj e) = ap l-proj (subst-ss Θ1 Θ2 e)
+  subst-ss Θ1 Θ2 (r-proj e) = ap r-proj (subst-ss Θ1 Θ2 e)
+  subst-ss Θ1 Θ2 nil = Refl
+  subst-ss Θ1 Θ2 (e ::c e₁) = ap2 _::c_ (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
+  subst-ss Θ1 Θ2 true = Refl
+  subst-ss Θ1 Θ2 false = Refl
+  subst-ss Θ1 Θ2 (listrec e e₁ e₂) = ap3 listrec (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
+                                     (subst-ss (s-extend (s-extend (s-extend Θ1))) (s-extend (s-extend (s-extend Θ2))) e₂ ∘
+                                     ap (subst e₂) (extend-ss-once (s-extend (s-extend Θ1)) (s-extend (s-extend Θ2)) ∘
+                                     ap s-extend (extend-ss-once (s-extend Θ1) (s-extend Θ2) ∘
+                                     ap s-extend (extend-ss-once Θ1 Θ2))))
 
-    subst-ss : ∀ {A B C τ} → (Θ1 : sctx A B) (Θ2 : sctx B C) (e : C |- τ)
-             → subst e (Θ1 ss Θ2) == subst (subst e Θ2) Θ1
-    subst-ss Θ1 Θ2 unit = Refl
-    subst-ss Θ1 Θ2 0C = Refl
-    subst-ss Θ1 Θ2 1C = Refl
-    subst-ss Θ1 Θ2 (plusC e e₁) = ap2 plusC (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
-    subst-ss Θ1 Θ2 (var x) = svar-ss Θ1 Θ2 x
-    subst-ss Θ1 Θ2 z = Refl
-    subst-ss Θ1 Θ2 (suc e) = ap suc (subst-ss Θ1 Θ2 e)
-    subst-ss Θ1 Θ2 (rec e e₁ e₂) = ap3 rec (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
-                                   (subst-ss (s-extend (s-extend Θ1)) (s-extend (s-extend Θ2)) e₂ ∘
-                                   ap (subst e₂) (extend-ss-once (s-extend Θ1) (s-extend Θ2) ∘
-                                   ap s-extend (extend-ss-once Θ1 Θ2)))
-    subst-ss Θ1 Θ2 (lam e) = ap lam (subst-ss (s-extend Θ1) (s-extend Θ2) e ∘ ap (subst e) (extend-ss-once Θ1 Θ2))
-    subst-ss Θ1 Θ2 (app e e₁) = ap2 app (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
-    subst-ss Θ1 Θ2 (prod e e₁) = ap2 prod (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
-    subst-ss Θ1 Θ2 (l-proj e) = ap l-proj (subst-ss Θ1 Θ2 e)
-    subst-ss Θ1 Θ2 (r-proj e) = ap r-proj (subst-ss Θ1 Θ2 e)
-    subst-ss Θ1 Θ2 nil = Refl
-    subst-ss Θ1 Θ2 (e ::c e₁) = ap2 _::c_ (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
-    subst-ss Θ1 Θ2 true = Refl
-    subst-ss Θ1 Θ2 false = Refl
-    subst-ss Θ1 Θ2 (listrec e e₁ e₂) = ap3 listrec (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
-                                       (subst-ss (s-extend (s-extend (s-extend Θ1))) (s-extend (s-extend (s-extend Θ2))) e₂ ∘
-                                       ap (subst e₂) (extend-ss-once (s-extend (s-extend Θ1)) (s-extend (s-extend Θ2)) ∘
-                                       ap s-extend (extend-ss-once (s-extend Θ1) (s-extend Θ2) ∘
-                                       ap s-extend (extend-ss-once Θ1 Θ2))))
+  throw : ∀ {Γ Γ' τ} → sctx Γ (τ :: Γ') → sctx Γ Γ'
+  throw Θ x = Θ (iS x)
 
-    throw : ∀ {Γ Γ' τ} → sctx Γ (τ :: Γ') → sctx Γ Γ'
-    throw Θ x = Θ (iS x)
+  fuse1 : ∀ {Γ Γ' τ τ'} (v : Γ |- τ') (Θ : sctx Γ Γ') (x : τ ∈ Γ') → (q v ss q∙ Θ) x == Θ x
+  fuse1 v Θ x = subst (ren (Θ x) iS) (q v) =⟨ sr-comp (q v) iS (Θ x) ⟩
+             subst (Θ x) (q v sr iS) =⟨ Refl ⟩
+             subst (Θ x) ids =⟨ ! (subst-id (Θ x)) ⟩
+             (Θ x ∎)
 
-    fuse1 : ∀ {Γ Γ' τ τ'} (v : Γ |- τ') (Θ : sctx Γ Γ') (x : τ ∈ Γ') → (q v ss q∙ Θ) x == Θ x
-    fuse1 v Θ x = subst (ren (Θ x) iS) (q v) =⟨ sr-comp (q v) iS (Θ x) ⟩
-               subst (Θ x) (q v sr iS) =⟨ Refl ⟩
-               subst (Θ x) ids =⟨ ! (subst-id (Θ x)) ⟩
-               (Θ x ∎)
+  subst-compose-lemma-lemma : ∀ {Γ Γ' τ τ'} (v : Γ |- τ') (Θ : sctx Γ Γ') (x : τ ∈ τ' :: Γ')
+                            → _==_ {_} {Γ |- τ} (_ss_ (q v) (s-extend Θ) x) (lem3' Θ v x)
+  subst-compose-lemma-lemma v Θ i0 = Refl
+  subst-compose-lemma-lemma v Θ (iS x) = subst (wkn (subst (var x) Θ)) (lem3' ids v) =⟨ subst-ss (q v) (q∙ Θ) (var x) ⟩
+                                         subst (var x) (q v ss q∙ Θ) =⟨ fuse1 v Θ x ⟩
+                                         subst (var x) Θ =⟨ Refl ⟩
+                                         Θ x ∎
 
-    subst-compose-lemma-lemma : ∀ {Γ Γ' τ τ'} (v : Γ |- τ') (Θ : sctx Γ Γ') (x : τ ∈ τ' :: Γ')
-                              → _==_ {_} {Γ |- τ} (_ss_ (q v) (s-extend Θ) x) (lem3' Θ v x)
-    subst-compose-lemma-lemma v Θ i0 = Refl
-    subst-compose-lemma-lemma v Θ (iS x) = subst (wkn (subst (var x) Θ)) (lem3' ids v) =⟨ subst-ss (q v) (q∙ Θ) (var x) ⟩
-                                           subst (var x) (q v ss q∙ Θ) =⟨ fuse1 v Θ x ⟩
-                                           subst (var x) Θ =⟨ Refl ⟩
-                                           Θ x ∎
+  fuse2 : ∀ {Γ Γ' τ τ1 τ2} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (Θ : sctx Γ Γ') (x : τ ∈ τ2 :: Γ')
+      → (lem4 v1 v2 ss throw (s-extend (s-extend Θ))) x == (lem3' Θ v2) x
+  fuse2 v1 v2 Θ x = subst (ren (s-extend Θ x) iS) (lem4 v1 v2) =⟨ sr-comp (lem4 v1 v2) iS (s-extend Θ x) ⟩
+                    subst (s-extend Θ x) (lem4 v1 v2 sr iS) =⟨ Refl ⟩
+                    subst (s-extend Θ x) (lem3' ids v2) =⟨ subst-compose-lemma-lemma v2 Θ x ⟩
+                    (lem3' Θ v2 x ∎)
 
-    fuse2 : ∀ {Γ Γ' τ τ1 τ2} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (Θ : sctx Γ Γ') (x : τ ∈ τ2 :: Γ')
-        → (lem4 v1 v2 ss throw (s-extend (s-extend Θ))) x == (lem3' Θ v2) x
-    fuse2 v1 v2 Θ x = subst (ren (s-extend Θ x) iS) (lem4 v1 v2) =⟨ sr-comp (lem4 v1 v2) iS (s-extend Θ x) ⟩
-                      subst (s-extend Θ x) (lem4 v1 v2 sr iS) =⟨ Refl ⟩
-                      subst (s-extend Θ x) (lem3' ids v2) =⟨ subst-compose-lemma-lemma v2 Θ x ⟩
-                      (lem3' Θ v2 x ∎)
+  subst-compose-lemma : ∀ {Γ Γ' τ} (v : Γ |- τ) (Θ : sctx Γ Γ')
+                      → _==_ {_} {sctx Γ (τ :: Γ')} ((q v) ss (s-extend Θ)) (lem3' Θ v)
+  subst-compose-lemma v Θ = λ=i (λ τ → λ= (λ x → subst-compose-lemma-lemma v Θ x))
 
-    subst-compose-lemma : ∀ {Γ Γ' τ} (v : Γ |- τ) (Θ : sctx Γ Γ')
-                        → _==_ {_} {sctx Γ (τ :: Γ')} ((q v) ss (s-extend Θ)) (lem3' Θ v)
-    subst-compose-lemma v Θ = λ=i (λ τ → λ= (λ x → subst-compose-lemma-lemma v Θ x))
+  subst-compose : ∀ {Γ Γ' τ τ1} (Θ : sctx Γ Γ') (v : Γ |- τ) (e : (τ :: Γ' |- τ1) )
+                → subst (subst e (s-extend Θ)) (q v) == subst e (lem3' Θ v)
+  subst-compose Θ v e = ap (subst e) (subst-compose-lemma v Θ) ∘ (! (subst-ss (q v) (s-extend Θ) e))
 
-    subst-compose : ∀ {Γ Γ' τ τ1} (Θ : sctx Γ Γ') (v : Γ |- τ) (e : (τ :: Γ' |- τ1) )
-                  → subst (subst e (s-extend Θ)) (q v) == subst e (lem3' Θ v)
-    subst-compose Θ v e = ap (subst e) (subst-compose-lemma v Θ) ∘ (! (subst-ss (q v) (s-extend Θ) e))
+  subst-compose2-lemma-lemma : ∀ {Γ Γ' τ τ1 τ2 τ'} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (e1 : τ1 :: τ2 :: Γ' |- τ) (Θ : sctx Γ Γ') (x : τ' ∈ τ1 :: τ2 :: Γ')
+                             → _==_ {_} {_} ((lem4 v1 v2 ss s-extend (s-extend Θ)) x) (lem4' Θ v1 v2 x)
+  subst-compose2-lemma-lemma v1 v2 e1 Θ i0 = Refl
+  subst-compose2-lemma-lemma v1 v2 e1 Θ (iS x) = subst (wkn (s-extend Θ x)) (lem4 v1 v2) =⟨ Refl ⟩
+                                                 subst (var x) (lem4 v1 v2 ss throw (s-extend (s-extend Θ))) =⟨ fuse2 v1 v2 Θ x ⟩
+                                                 subst (var x) (lem3' Θ v2) =⟨ Refl ⟩
+                                                 (lem3' Θ v2 x ∎)
 
-    subst-compose2-lemma-lemma : ∀ {Γ Γ' τ τ1 τ2 τ'} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (e1 : τ1 :: τ2 :: Γ' |- τ) (Θ : sctx Γ Γ') (x : τ' ∈ τ1 :: τ2 :: Γ')
-                               → _==_ {_} {_} ((lem4 v1 v2 ss s-extend (s-extend Θ)) x) (lem4' Θ v1 v2 x)
-    subst-compose2-lemma-lemma v1 v2 e1 Θ i0 = Refl
-    subst-compose2-lemma-lemma v1 v2 e1 Θ (iS x) = subst (wkn (s-extend Θ x)) (lem4 v1 v2) =⟨ Refl ⟩
-                                                   subst (var x) (lem4 v1 v2 ss throw (s-extend (s-extend Θ))) =⟨ fuse2 v1 v2 Θ x ⟩
-                                                   subst (var x) (lem3' Θ v2) =⟨ Refl ⟩
-                                                   (lem3' Θ v2 x ∎)
+  subst-compose2-lemma : ∀ {Γ Γ' τ τ1 τ2} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (e1 : τ1 :: τ2 :: Γ' |- τ) (Θ : sctx Γ Γ')
+                       → _==_ {_} {sctx Γ (τ1 :: τ2 :: Γ')} (lem4 v1 v2 ss s-extend (s-extend Θ)) (lem4' Θ v1 v2)
+  subst-compose2-lemma v1 v2 e1 Θ = λ=i (λ τ → λ= (λ x → subst-compose2-lemma-lemma v1 v2 e1 Θ x))
 
-    subst-compose2-lemma : ∀ {Γ Γ' τ τ1 τ2} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (e1 : τ1 :: τ2 :: Γ' |- τ) (Θ : sctx Γ Γ')
-                         → _==_ {_} {sctx Γ (τ1 :: τ2 :: Γ')} (lem4 v1 v2 ss s-extend (s-extend Θ)) (lem4' Θ v1 v2)
-    subst-compose2-lemma v1 v2 e1 Θ = λ=i (λ τ → λ= (λ x → subst-compose2-lemma-lemma v1 v2 e1 Θ x))
+  subst-compose2 : ∀ {Γ Γ' τ} (Θ : sctx Γ Γ') (n : Γ |- nat) (e1 : Γ' |- τ) (e2 : (nat :: (τ :: Γ')) |- τ)
+                →  subst (subst e2 (s-extend (s-extend Θ))) (lem4 n ((rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ)))))) ==
+                   subst e2 (lem4' Θ n ((rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ))))))
+  subst-compose2 Θ n e1 e2 = ap (subst e2) (subst-compose2-lemma n ((rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ))))) e2 Θ) ∘
+                             ! (subst-ss (lem4 n ((rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ)))))) (s-extend (s-extend Θ)) e2)
 
-    subst-compose2 : ∀ {Γ Γ' τ} (Θ : sctx Γ Γ') (n : Γ |- nat) (e1 : Γ' |- τ) (e2 : (nat :: (τ :: Γ')) |- τ)
-                  →  subst (subst e2 (s-extend (s-extend Θ))) (lem4 n ((rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ)))))) ==
-                     subst e2 (lem4' Θ n ((rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ))))))
-    subst-compose2 Θ n e1 e2 = ap (subst e2) (subst-compose2-lemma n ((rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ))))) e2 Θ) ∘
-                               ! (subst-ss (lem4 n ((rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ)))))) (s-extend (s-extend Θ)) e2)
+  subst-compose3 : ∀ {Γ Γ' τ τ1 τ2} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ |- τ1) (v2 : Γ |- τ2)
+                 → subst (subst e1 (s-extend (s-extend Θ))) (lem4 v1 v2) == subst e1 (lem4' Θ v1 v2)
+  subst-compose3 Θ e1 v1 v2 = ap (subst e1) (subst-compose2-lemma v1 v2 e1 Θ) ∘
+                              ! (subst-ss (lem4 v1 v2) (s-extend (s-extend Θ)) e1)
 
-    subst-compose3 : ∀ {Γ Γ' τ τ1 τ2} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ |- τ1) (v2 : Γ |- τ2)
-                   → subst (subst e1 (s-extend (s-extend Θ))) (lem4 v1 v2) == subst e1 (lem4' Θ v1 v2)
-    subst-compose3 Θ e1 v1 v2 = ap (subst e1) (subst-compose2-lemma v1 v2 e1 Θ) ∘
-                                ! (subst-ss (lem4 v1 v2) (s-extend (s-extend Θ)) e1)
+  subst-compose4 : ∀ {Γ Γ' τ} (Θ : sctx Γ Γ') (v' : Γ |- nat) (r : Γ |- τ) (e2 : (nat :: (τ :: Γ')) |- τ)
+                 → subst (subst e2 (s-extend (s-extend Θ))) (lem4 v' r) == subst e2 (lem4' Θ v' r)
+  subst-compose4 Θ v' r e2 = ap (subst e2) (subst-compose2-lemma v' r e2 Θ) ∘
+                           ! (subst-ss (lem4 v' r) (s-extend (s-extend Θ)) e2)
 
-    subst-compose4 : ∀ {Γ Γ' τ} (Θ : sctx Γ Γ') (v' : Γ |- nat) (r : Γ |- τ) (e2 : (nat :: (τ :: Γ')) |- τ)
-                   → subst (subst e2 (s-extend (s-extend Θ))) (lem4 v' r) == subst e2 (lem4' Θ v' r)
-    subst-compose4 Θ v' r e2 = ap (subst e2) (subst-compose2-lemma v' r e2 Θ) ∘
-                             ! (subst-ss (lem4 v' r) (s-extend (s-extend Θ)) e2)
-
-  open RenSubst public
 {-
   postulate
     subst-compose3 : ∀ {Γ Γ' τ τ1 τ2} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ' |- τ1) (v2 : Γ' |- τ2)
