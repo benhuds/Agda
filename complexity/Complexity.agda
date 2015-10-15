@@ -493,22 +493,24 @@ module Complexity where
                    subst e2 (lem4' Θ n ((rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ))))))
   subst-compose2 Θ n e1 e2 = ap (subst e2) (subst-compose2-lemma n ((rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ))))) e2 Θ) ∘
                              ! (subst-ss (lem4 n ((rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ)))))) (s-extend (s-extend Θ)) e2)
-
+{-didn't need this from source
   subst-compose3 : ∀ {Γ Γ' τ τ1 τ2} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ |- τ1) (v2 : Γ |- τ2)
                  → subst (subst e1 (s-extend (s-extend Θ))) (lem4 v1 v2) == subst e1 (lem4' Θ v1 v2)
   subst-compose3 Θ e1 v1 v2 = ap (subst e1) (subst-compose2-lemma v1 v2 e1 Θ) ∘
                               ! (subst-ss (lem4 v1 v2) (s-extend (s-extend Θ)) e1)
-
+-}
   subst-compose4 : ∀ {Γ Γ' τ} (Θ : sctx Γ Γ') (v' : Γ |- nat) (r : Γ |- τ) (e2 : (nat :: (τ :: Γ')) |- τ)
                  → subst (subst e2 (s-extend (s-extend Θ))) (lem4 v' r) == subst e2 (lem4' Θ v' r)
   subst-compose4 Θ v' r e2 = ap (subst e2) (subst-compose2-lemma v' r e2 Θ) ∘
-                           ! (subst-ss (lem4 v' r) (s-extend (s-extend Θ)) e2)
+                           {!!} --! (subst-ss (lem4 v' r) (s-extend (s-extend Θ)) e2)
 
-{-
-  postulate
-    subst-compose3 : ∀ {Γ Γ' τ τ1 τ2} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ' |- τ1) (v2 : Γ' |- τ2)
-                   → subst Θ (subst (lem4 v1 v2) e1) == subst (lem4' Θ (subst Θ v1) (subst Θ v2)) e1
--}
+  subst-compose3 : ∀ {Γ Γ' τ τ1 τ2} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ' |- τ1) (v2 : Γ' |- τ2)
+                 → subst (subst e1 (lem4 v1 v2)) Θ == subst e1 (lem4' Θ (subst v1 Θ) (subst v2 Θ))
+  subst-compose3 Θ e1 v1 v2 = ap (subst e1) (subst-compose2-lemma (subst v1 Θ) (subst v2 Θ) e1 Θ) ∘
+                          ! ({!!} ∘
+                               subst-ss (lem4 (subst v1 Θ) (subst v2 Θ)) (s-extend (s-extend Θ))
+                               e1)
+
 -------
 
   -- define 'stepping' as a datatype (fig. 1 of proof)
