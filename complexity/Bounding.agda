@@ -122,3 +122,5 @@ module Bounding where
   bounding (listrec e e₁ e₂) Θ a Θ' sb v vv c evals = {!!}
   bounding true Θ a Θ' sb .true true-isval .0c true-evals = l-proj-s , <>
   bounding false Θ a Θ' sb .false false-isval .0c false-evals = l-proj-s , <>
+  bounding (hd l) = {!!}
+  bounding (tl l) = {!!}

@@ -46,7 +46,6 @@ module Translation where
   || prod e1 e2 ||e = prod (plusC (l-proj (|| e1 ||e)) (l-proj (|| e2 ||e))) (prod (r-proj (|| e1 ||e)) (r-proj (|| e2 ||e)))
   || delay e ||e = prod 0C (|| e ||e)
   || force e ||e = prod (plusC (l-proj (|| e ||e)) (l-proj (r-proj || e ||e))) (r-proj (r-proj (|| e ||e)))
-
   || split e0 e1 ||e = prod (plusC (l-proj (|| e0 ||e)) (l-proj E1)) (r-proj E1)
     where E1 = (Complexity.subst || e1 ||e (Complexity.lem4 (l-proj (r-proj || e0 ||e)) (r-proj (r-proj || e0 ||e))))
   || nil ||e = prod 0C nil
@@ -54,3 +53,5 @@ module Translation where
   || listrec e e₁ e₂ ||e = l-proj || e ||e +C listrec (r-proj || e ||e) (1C +C || e₁ ||e) (1C +C || e₂ ||e)
   || true ||e = prod 0C true
   || false ||e = prod 0C false
+  || hd l ||e = prod (l-proj || l ||e) (hd (r-proj || l ||e))
+  || tl l ||e = prod (l-proj || l ||e) (tl (r-proj || l ||e))
