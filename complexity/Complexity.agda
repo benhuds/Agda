@@ -449,24 +449,14 @@ module Complexity where
 
   fuse1 : ∀ {Γ Γ' τ τ'} (v : Γ |- τ') (Θ : sctx Γ Γ') (x : τ ∈ Γ') → (q v ss q∙ Θ) x == Θ x
   fuse1 v Θ x = subst (ren (Θ x) iS) (q v) =⟨ sr-comp (q v) iS (Θ x) ⟩
-             subst (Θ x) (q v sr iS) =⟨ Refl ⟩
-             subst (Θ x) ids =⟨ ! (subst-id (Θ x)) ⟩
-             (Θ x ∎)
+                subst (Θ x) (q v sr iS) =⟨ Refl ⟩
+                subst (Θ x) ids =⟨ ! (subst-id (Θ x)) ⟩
+                (Θ x ∎)
 
   subst-compose-lemma-lemma : ∀ {Γ Γ' τ τ'} (v : Γ |- τ') (Θ : sctx Γ Γ') (x : τ ∈ τ' :: Γ')
                             → _==_ {_} {Γ |- τ} (_ss_ (q v) (s-extend Θ) x) (lem3' Θ v x)
   subst-compose-lemma-lemma v Θ i0 = Refl
-  subst-compose-lemma-lemma v Θ (iS x) = subst (wkn (subst (var x) Θ)) (lem3' ids v) =⟨ subst-ss (q v) (q∙ Θ) (var x) ⟩
-                                         subst (var x) (q v ss q∙ Θ) =⟨ fuse1 v Θ x ⟩
-                                         subst (var x) Θ =⟨ Refl ⟩
-                                         Θ x ∎
-
-  fuse2 : ∀ {Γ Γ' τ τ1 τ2} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (Θ : sctx Γ Γ') (x : τ ∈ τ2 :: Γ')
-      → (lem4 v1 v2 ss throw (s-extend (s-extend Θ))) x == (lem3' Θ v2) x
-  fuse2 v1 v2 Θ x = subst (ren (s-extend Θ x) iS) (lem4 v1 v2) =⟨ sr-comp (lem4 v1 v2) iS (s-extend Θ x) ⟩
-                    subst (s-extend Θ x) (lem4 v1 v2 sr iS) =⟨ Refl ⟩
-                    subst (s-extend Θ x) (lem3' ids v2) =⟨ subst-compose-lemma-lemma v2 Θ x ⟩
-                    (lem3' Θ v2 x ∎)
+  subst-compose-lemma-lemma v Θ (iS x) = fuse1 v Θ x
 
   subst-compose-lemma : ∀ {Γ Γ' τ} (v : Γ |- τ) (Θ : sctx Γ Γ')
                       → _==_ {_} {sctx Γ (τ :: Γ')} ((q v) ss (s-extend Θ)) (lem3' Θ v)
@@ -476,40 +466,61 @@ module Complexity where
                 → subst (subst e (s-extend Θ)) (q v) == subst e (lem3' Θ v)
   subst-compose Θ v e = ap (subst e) (subst-compose-lemma v Θ) ∘ (! (subst-ss (q v) (s-extend Θ) e))
 
+  fuse2 : ∀ {Γ Γ' τ τ1 τ2} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (Θ : sctx Γ Γ') (x : τ ∈ τ2 :: Γ')
+        → (lem4 v1 v2 ss throw (s-extend (s-extend Θ))) x == (lem3' Θ v2) x
+  fuse2 v1 v2 Θ x = subst (ren (s-extend Θ x) iS) (lem4 v1 v2) =⟨ sr-comp (lem4 v1 v2) iS (s-extend Θ x) ⟩
+                    subst (s-extend Θ x) (lem4 v1 v2 sr iS) =⟨ Refl ⟩
+                    subst (s-extend Θ x) (lem3' ids v2) =⟨ subst-compose-lemma-lemma v2 Θ x ⟩
+                    (lem3' Θ v2 x ∎)
+
   subst-compose2-lemma-lemma : ∀ {Γ Γ' τ τ1 τ2 τ'} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (e1 : τ1 :: τ2 :: Γ' |- τ) (Θ : sctx Γ Γ') (x : τ' ∈ τ1 :: τ2 :: Γ')
                              → _==_ {_} {_} ((lem4 v1 v2 ss s-extend (s-extend Θ)) x) (lem4' Θ v1 v2 x)
   subst-compose2-lemma-lemma v1 v2 e1 Θ i0 = Refl
-  subst-compose2-lemma-lemma v1 v2 e1 Θ (iS x) = subst (wkn (s-extend Θ x)) (lem4 v1 v2) =⟨ Refl ⟩
-                                                 subst (var x) (lem4 v1 v2 ss throw (s-extend (s-extend Θ))) =⟨ fuse2 v1 v2 Θ x ⟩
-                                                 subst (var x) (lem3' Θ v2) =⟨ Refl ⟩
-                                                 (lem3' Θ v2 x ∎)
+  subst-compose2-lemma-lemma v1 v2 e1 Θ (iS x) = fuse2 v1 v2 Θ x
 
   subst-compose2-lemma : ∀ {Γ Γ' τ τ1 τ2} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (e1 : τ1 :: τ2 :: Γ' |- τ) (Θ : sctx Γ Γ')
                        → _==_ {_} {sctx Γ (τ1 :: τ2 :: Γ')} (lem4 v1 v2 ss s-extend (s-extend Θ)) (lem4' Θ v1 v2)
   subst-compose2-lemma v1 v2 e1 Θ = λ=i (λ τ → λ= (λ x → subst-compose2-lemma-lemma v1 v2 e1 Θ x))
 
+  postulate
+    fuse3 : ∀ {Γ Γ' τ1 τ2 τ'} (Θ : sctx Γ Γ') (v1 : Γ' |- τ1) (v2 : Γ' |- τ2) (x : τ' ∈ τ2 :: Γ')
+          → subst (lem3' ids v2 x) Θ == lem3' Θ (subst v2 Θ) x
+  {-fuse3 Θ v1 v2 x = (Θ ss lem3' ids v2) x =⟨ Refl ⟩
+                    (Θ ss q v2) x =⟨ {!!} ⟩
+                    {!!} =⟨ {!!} ⟩
+                    (q (subst v2 Θ) ss s-extend Θ) x =⟨ subst-compose-lemma-lemma (subst v2 Θ) Θ x ⟩
+                    (lem3' Θ (subst v2 Θ) x ∎)
+                    -- subst (lem3' ids v2 x) Θ =⟨ {!!} ⟩ --fuse2 (subst v1 Θ) (subst v2 Θ) Θ x ⟩ --subst-ss ids (lem3' Θ (subst v2 Θ)) {!var x!} ⟩
+                    --(lem4 (subst v1 Θ) (subst v2 Θ) ss throw (s-extend (s-extend Θ))) x =⟨ fuse2 (subst v1 Θ) (subst v2 Θ) Θ x ⟩
+                    --(lem3' Θ (subst v2 Θ) x ∎)-}
+
+  subst-compose3-lemma-lemma : ∀ {Γ Γ' τ τ1 τ2 τ'} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ' |- τ1) (v2 : Γ' |- τ2) (x : τ' ∈ τ1 :: τ2 :: Γ')
+                             → _==_ {_} {_} ((Θ ss lem4 v1 v2) x) (lem4' Θ (subst v1 Θ) (subst v2 Θ) x)
+  subst-compose3-lemma-lemma Θ e1 v1 v2 i0 = Refl
+  subst-compose3-lemma-lemma Θ e1 v1 v2 (iS x) = fuse3 Θ v1 v2 x
+
+  subst-compose3-lemma : ∀ {Γ Γ' τ τ1 τ2} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ' |- τ1) (v2 : Γ' |- τ2)
+                      → _==_ {_} {sctx Γ (τ1 :: τ2 :: Γ')} (Θ ss lem4 v1 v2) (lem4' Θ (subst v1 Θ) (subst v2 Θ))
+  subst-compose3-lemma Θ e1 v1 v2 = λ=i (λ τ → λ= (λ x → subst-compose3-lemma-lemma Θ e1 v1 v2 x))
+
+  subst-compose2 : ∀ {Γ Γ' τ τ1 τ2} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ |- τ1) (v2 : Γ |- τ2)
+                 → subst (subst e1 (s-extend (s-extend Θ))) (lem4 v1 v2) == subst e1 (lem4' Θ v1 v2)
+  subst-compose2 Θ e1 v1 v2 = ap (subst e1) (subst-compose2-lemma v1 v2 e1 Θ) ∘
+                           ! (subst-ss (lem4 v1 v2) (s-extend (s-extend Θ)) e1)
+{-
   subst-compose2 : ∀ {Γ Γ' τ} (Θ : sctx Γ Γ') (n : Γ |- nat) (e1 : Γ' |- τ) (e2 : (nat :: (τ :: Γ')) |- τ)
                 →  subst (subst e2 (s-extend (s-extend Θ))) (lem4 n ((rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ)))))) ==
                    subst e2 (lem4' Θ n ((rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ))))))
   subst-compose2 Θ n e1 e2 = ap (subst e2) (subst-compose2-lemma n ((rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ))))) e2 Θ) ∘
                              ! (subst-ss (lem4 n ((rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ)))))) (s-extend (s-extend Θ)) e2)
-{-didn't need this from source
-  subst-compose3 : ∀ {Γ Γ' τ τ1 τ2} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ |- τ1) (v2 : Γ |- τ2)
-                 → subst (subst e1 (s-extend (s-extend Θ))) (lem4 v1 v2) == subst e1 (lem4' Θ v1 v2)
-  subst-compose3 Θ e1 v1 v2 = ap (subst e1) (subst-compose2-lemma v1 v2 e1 Θ) ∘
-                              ! (subst-ss (lem4 v1 v2) (s-extend (s-extend Θ)) e1)
 -}
-  subst-compose4 : ∀ {Γ Γ' τ} (Θ : sctx Γ Γ') (v' : Γ |- nat) (r : Γ |- τ) (e2 : (nat :: (τ :: Γ')) |- τ)
-                 → subst (subst e2 (s-extend (s-extend Θ))) (lem4 v' r) == subst e2 (lem4' Θ v' r)
-  subst-compose4 Θ v' r e2 = ap (subst e2) (subst-compose2-lemma v' r e2 Θ) ∘
-                           {!!} --! (subst-ss (lem4 v' r) (s-extend (s-extend Θ)) e2)
-
   subst-compose3 : ∀ {Γ Γ' τ τ1 τ2} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ' |- τ1) (v2 : Γ' |- τ2)
                  → subst (subst e1 (lem4 v1 v2)) Θ == subst e1 (lem4' Θ (subst v1 Θ) (subst v2 Θ))
-  subst-compose3 Θ e1 v1 v2 = ap (subst e1) (subst-compose2-lemma (subst v1 Θ) (subst v2 Θ) e1 Θ) ∘
-                          ! ({!!} ∘
-                               subst-ss (lem4 (subst v1 Θ) (subst v2 Θ)) (s-extend (s-extend Θ))
-                               e1)
+  subst-compose3 Θ e1 v1 v2 = ap (subst e1) (subst-compose3-lemma Θ e1 v1 v2) ∘ ! (subst-ss Θ (lem4 v1 v2) e1)
+
+  subst-compose4 : ∀ {Γ Γ' τ} (Θ : sctx Γ Γ') (v' : Γ |- nat) (r : Γ |- τ) (e2 : (nat :: (τ :: Γ')) |- τ)
+                 → subst (subst e2 (s-extend (s-extend Θ))) (lem4 v' r) == subst e2 (lem4' Θ v' r)
+  subst-compose4 Θ v' r e2 = subst-compose2 Θ e2 v' r
 
 -------
 

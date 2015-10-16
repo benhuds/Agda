@@ -54,20 +54,7 @@ module Bounding where
     fst IH trans l-proj-s ,
     (r-proj (Complexity.subst || e ||e Θ')) , (snd IH) , r-proj-s
     where
-    IH = (bounding e Θ a Θ' sb _ vv _ evals)
-  bounding (rec e e₁ e₂) Θ a Θ' sb v vv c evals = {!!}
-  bounding (lam e) Θ a Θ' sb v vv c evals = {!!}
-  bounding (app e e₁) Θ a Θ' sb v vv c evals = {!!}
-  bounding (prod e e₁) Θ a Θ' sb v vv c evals = {!!}
-  bounding (delay e) Θ a Θ' sb v vv c evals = {!!}
-  bounding (force e) Θ a Θ' sb v vv c evals = {!!}
-  bounding (split e e₁) Θ a Θ' sb v vv c evals = {!!}
-  bounding nil Θ a Θ' sb .nil nil-isval .0c nil-evals = l-proj-s , r-proj-s
-  bounding (e ::s e₁) Θ a Θ' sb v vv c evals = {!!}
-  bounding (listrec e e₁ e₂) Θ a Θ' sb v vv c evals = {!!}
-  bounding true Θ a Θ' sb .true true-isval .0c true-evals = l-proj-s , <>
-  bounding false Θ a Θ' sb .false false-isval .0c false-evals = l-proj-s , <>
-{-
+      IH = (bounding e Θ a Θ' sb _ vv _ evals)
   bounding (rec e e₁ e₂) Θ a Θ' sb e' val-e' ._ (rec-evals {v = v} arg-evals branch-evals) = cong-+ (fst IH1) (fst lemma) trans l-proj-s , weakeningVal' val-e' (snd lemma) r-proj-s where
     IH1 = bounding e Θ a Θ' sb _ (evals-val arg-evals) _ arg-evals
     lemma = boundingRec v (evals-val arg-evals) _ 
@@ -108,10 +95,11 @@ module Bounding where
                  in 
                  fst IH trans cong-lproj (r-proj-s trans refl-s) ,
                  weakeningVal' vv (snd IH) (cong-rproj r-proj-s))
-  bounding (force e) Θ a Θ' sb v val-v .(n1 +c n2) (force-evals {n1} {n2} {τ} {e'} {.v} {.(Source.subst e Θ)} evals-in-c evals-in-c₁)
-           = cong-+ (fst IH) (fst (snd IH v val-v n2 evals-in-c₁)) trans l-proj-s ,
-             weakeningVal' val-v (snd (snd IH v val-v n2 evals-in-c₁)) r-proj-s where
-           IH = (bounding e Θ a Θ' sb _ (delay-isval e') n1 evals-in-c)
+  bounding (force e) Θ a Θ' sb v vv ._ (force-evals {n1} {n2} {τ} {e'} {.v} {.(Source.subst e Θ)} evals evals₁) =
+    (cong-+ (fst IH) (fst (snd IH v vv n2 evals₁)) trans l-proj-s) ,
+    weakeningVal' vv (snd (snd IH v vv n2 evals₁)) r-proj-s
+    where
+      IH = (bounding e Θ a Θ' sb _ (delay-isval e') n1 evals)
   bounding {Γ} {τ} (split e0 e1) Θ a Θ' sb e' val-e' .(n1 +c n2) (split-evals {n1} {n2} {.τ} {τ1} {τ2} {.(Source.subst e0 Θ)} {v1} {v2} evals-in-c0 evals-in-c1) with evals-val evals-in-c0 | (bounding e0 Θ a Θ' sb (prod v1 v2) (evals-val evals-in-c0) _ evals-in-c0)
   ... | pair-isval ._ ._ val-v1 val-v2 | (IH11 , vb1 , vb2)
            = cong-+ IH11 (fst IH2) trans
@@ -124,4 +112,8 @@ module Bounding where
                             (Complexity.lem4' Θ' (l-proj (r-proj (Complexity.subst || e0 ||e Θ'))) (r-proj (r-proj (Complexity.subst || e0 ||e Θ'))))
                             (extend-substBound2 sb vb1 vb2)
                               e' val-e' n2 (transport (λ x → evals x e' n2) (Source.subst-compose3 Θ e1 v1 v2) evals-in-c1)
--}
+  bounding nil Θ a Θ' sb .nil nil-isval .0c nil-evals = l-proj-s , r-proj-s
+  bounding (e ::s e₁) Θ a Θ' sb v vv c evals = {!!}
+  bounding (listrec e e₁ e₂) Θ a Θ' sb v vv c evals = {!!}
+  bounding true Θ a Θ' sb .true true-isval .0c true-evals = l-proj-s , <>
+  bounding false Θ a Θ' sb .false false-isval .0c false-evals = l-proj-s , <>
