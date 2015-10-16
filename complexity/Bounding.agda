@@ -113,7 +113,12 @@ module Bounding where
                             (extend-substBound2 sb vb1 vb2)
                               e' val-e' n2 (transport (λ x → evals x e' n2) (Source.subst-compose3 Θ e1 v1 v2) evals-in-c1)
   bounding nil Θ a Θ' sb .nil nil-isval .0c nil-evals = l-proj-s , r-proj-s
-  bounding (e ::s e₁) Θ a Θ' sb v vv c evals = {!!}
+  bounding (e ::s e₁) Θ a Θ' sb .(x ::s xs) (cons-isval x xs vv vv₁) ._ (cons-evals evals evals₁) =
+           (cong-+ (fst IH1) (fst IH2) trans l-proj-s) ,
+             ({!!}) , {!!}
+    where
+      IH1 = (bounding e Θ a Θ' sb _ vv _ evals) 
+      IH2 = (bounding e₁ Θ a Θ' sb _ vv₁ _ evals₁) 
   bounding (listrec e e₁ e₂) Θ a Θ' sb v vv c evals = {!!}
   bounding true Θ a Θ' sb .true true-isval .0c true-evals = l-proj-s , <>
   bounding false Θ a Θ' sb .false false-isval .0c false-evals = l-proj-s , <>

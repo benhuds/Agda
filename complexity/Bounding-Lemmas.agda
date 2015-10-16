@@ -19,7 +19,7 @@ module Bounding-Lemmas where
     valBound .unit unit-isval E = Unit
     valBound .(delay e) (delay-isval e) E = expBound e E
     valBound .nil nil-isval E = nil ≤s E
-    valBound .(x ::s xs) (cons-isval x xs v v₁) E = Σ (λ E' → (valBound x v (l-proj E') × valBound xs v₁ (r-proj E')) × (l-proj E' ::c r-proj E') ≤s E)
+    valBound .(x ::s xs) (cons-isval x xs v v₁) E = Σ (λ E' → (valBound x v (l-proj E') × valBound xs v₁ (r-proj E')) × (l-proj E' ::c {!r-proj E'!}) ≤s E)
     valBound .true true-isval E = Unit
     valBound .false false-isval E = Unit
 
