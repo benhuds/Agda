@@ -19,7 +19,8 @@ module Bounding-Lemmas where
     valBound .unit unit-isval E = Unit
     valBound .(delay e) (delay-isval e) E = expBound e E
     valBound .nil nil-isval E = nil ≤s E
-    valBound .(x ::s xs) (cons-isval x xs v v₁) E = Σ (λ E' → (valBound x v (hd E') × valBound xs v₁ (tl E')) × (hd E' ::c tl E') ≤s E)
+    valBound .(x ::s xs) (cons-isval x xs v v₁) E = Σ (λ E' → Σ (λ E'' → (valBound x v E' × valBound xs v₁ E'') × (E' ::c E'') ≤s E))
+    --Σ (λ E' → (valBound x v (hd E') × valBound xs v₁ (tl E')) × (hd E' ::c tl E') ≤s E)
     valBound .true true-isval E = Unit
     valBound .false false-isval E = Unit
 
@@ -46,7 +47,7 @@ module Bounding-Lemmas where
                     weakeningVal e1 vv1 (l-proj E) (l-proj E') (fst vb) (cong-lproj e≤e') ,
                     weakeningVal e2 vv2 (r-proj E) (r-proj E') (snd vb) (cong-rproj e≤e')
     weakeningVal {list τ} .nil nil-isval E E' vb e≤e' = trans-s vb e≤e'
-    weakeningVal {list τ} .(x ::s xs) (cons-isval x xs vv vv₁) E E' (l , ((hvb , tvb) , b)) e≤e' = l , ((hvb , tvb) , trans-s b e≤e')
+    weakeningVal {list τ} .(x ::s xs) (cons-isval x xs vv vv₁) E E' (h , t , (hvb , tvb) , steps) e≤e' = h , (t , ((hvb , tvb) , (steps trans e≤e')))
     weakeningVal {bool} .true true-isval E E' vb e≤e' = <>
     weakeningVal {bool} .false false-isval E E' vb e≤e' = <>
 

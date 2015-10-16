@@ -52,8 +52,6 @@ module Source where
     nil : ∀ {Γ τ} → Γ |- list τ
     _::s_ : ∀ {Γ τ} → Γ |- τ → Γ |- list τ → Γ |- list τ
     listrec : ∀ {Γ τ τ'} → Γ |- list τ → Γ |- τ' → (τ :: (list τ :: (susp τ' :: Γ))) |- τ' → Γ |- τ'
-    hd : ∀ {Γ τ} → Γ |- list τ → Γ |- τ
-    tl : ∀ {Γ τ} → Γ |- list τ → Γ |- list τ
     true : ∀ {Γ} → Γ |- bool
     false : ∀ {Γ} → Γ |- bool
 
@@ -114,8 +112,6 @@ module Source where
   ren true ρ = true
   ren false ρ = false
   ren (listrec e e₁ e₂) ρ = listrec (ren e ρ) (ren e₁ ρ) (ren e₂ (r-extend (r-extend (r-extend ρ))))
-  ren (hd l) ρ = hd (ren l ρ)
-  ren (tl l) ρ = tl (ren l ρ)
 
   extend-ren-comp-lemma : ∀ {Γ Γ' Γ'' τ τ'} → (x : τ ∈ τ' :: Γ'') (ρ1 : rctx Γ Γ') (ρ2 : rctx Γ' Γ'')
                         → Id {_} {_} ((r-extend ρ1 ∙rr r-extend ρ2) x) (r-extend (ρ1 ∙rr ρ2) x)
@@ -155,8 +151,6 @@ module Source where
                                                 (r-extend (r-extend (r-extend ρ2))) e₂)
   ren-comp ρ1 ρ2 true = Refl
   ren-comp ρ1 ρ2 false = Refl
-  ren-comp ρ1 ρ2 (hd l) = ap hd (ren-comp ρ1 ρ2 l)
-  ren-comp ρ1 ρ2 (tl l) = ap tl (ren-comp ρ1 ρ2 l)
 
   -- weakening a context
   wkn : ∀ {Γ τ1 τ2} → Γ |- τ2 → (τ1 :: Γ) |- τ2
@@ -196,6 +190,12 @@ module Source where
   lem4 : ∀ {Γ τ1 τ2} → Γ |- τ1 → Γ |- τ2 → sctx Γ (τ1 :: (τ2 :: Γ))
   lem4 e1 e2 = lem4' ids e1 e2
 
+  lem5' : ∀ {Γ Γ' τ1 τ2 τ3} → sctx Γ Γ' → Γ |- τ1 → Γ |- τ2 → Γ |- τ3 → sctx Γ (τ1 :: (τ2 :: (τ3 :: Γ')))
+  lem5' Θ a b c = lem3' (lem3' (lem3' Θ c) b) a
+
+  lem5 : ∀ {Γ τ1 τ2 τ3} → Γ |- τ1 → Γ |- τ2 → Γ |- τ3 → sctx Γ (τ1 :: (τ2 :: (τ3 :: Γ)))
+  lem5 e1 e2 e3 = lem5' ids e1 e2 e3
+
   subst : ∀ {Γ Γ' τ} → Γ' |- τ → sctx Γ Γ' → Γ |- τ
   subst unit Θ = unit
   subst (var x) Θ = Θ x
@@ -214,8 +214,6 @@ module Source where
   subst true Θ = true
   subst false Θ = false
   subst (listrec e e₁ e₂) Θ = listrec (subst e Θ) (subst e₁ Θ) (subst e₂ (s-extend (s-extend (s-extend Θ))))
-  subst (hd l) Θ = hd (subst l Θ)
-  subst (tl l) Θ = tl (subst l Θ)
 
   subst1 : ∀ {Γ τ τ1} → Γ |- τ1 → (τ1 :: Γ) |- τ → Γ |- τ
   subst1 e e' = subst e' (q e)
@@ -277,8 +275,6 @@ module Source where
   subst-id true = Refl
   subst-id false = Refl
   subst-id (listrec e e₁ e₂) = ap3 listrec (subst-id e) (subst-id e₁) (ap (subst e₂) (ap s-extend (ap s-extend extend-id-once) ∘ extend-id-twice) ∘ subst-id e₂)
-  subst-id (hd l) = ap hd (subst-id l)
-  subst-id (tl l) = ap tl (subst-id l)
 
   extend-rs-once-lemma : ∀ {A B C τ τ'} → (x : τ ∈ τ' :: B) (ρ : rctx C A) (Θ : sctx A B) → _==_ {_} {τ' :: C |- τ}
                        (_rs_ {τ' :: C} {τ' :: A} {τ' :: B} (r-extend {C} {A} {τ'} ρ)
@@ -320,8 +316,6 @@ module Source where
                                        (ap (subst e₂) (ap s-extend (ap s-extend (extend-rs-once ρ Θ)) ∘
                                        extend-rs-twice (r-extend ρ) (s-extend Θ)) ∘
                                        subst-rs (r-extend (r-extend (r-extend ρ))) (s-extend (s-extend (s-extend Θ))) e₂)
-  subst-rs ρ Θ (hd l) = ap hd (subst-rs ρ Θ l)
-  subst-rs ρ Θ (tl l) = ap tl (subst-rs ρ Θ l)
 
   rs-comp : ∀ {Γ Γ' Γ'' τ} → (ρ : rctx Γ Γ') → (Θ : sctx Γ' Γ'') → (e : Γ'' |- τ)
           → (ren (subst e Θ) ρ) == subst e (ρ rs Θ)
@@ -346,8 +340,6 @@ module Source where
                                     (s-extend (s-extend (s-extend Θ))) e₂)
   rs-comp ρ Θ true = Refl
   rs-comp ρ Θ false = Refl
-  rs-comp ρ Θ (hd l) = ap hd (rs-comp ρ Θ l)
-  rs-comp ρ Θ (tl l) = ap tl (rs-comp ρ Θ l)
 
   extend-sr-once-lemma : ∀ {A B C τ τ'} → (Θ : sctx A B) (ρ : rctx B C) (x : τ ∈ τ' :: C)
                        → _==_ {_} {τ' :: A |- τ} (s-extend (_sr_ Θ ρ) x) (_sr_ (s-extend Θ) (r-extend ρ) x)
@@ -391,8 +383,6 @@ module Source where
                                               
   sr-comp Θ ρ true = Refl
   sr-comp Θ ρ false = Refl
-  sr-comp Θ ρ (hd l) = ap hd (sr-comp Θ ρ l)
-  sr-comp Θ ρ (tl l) = ap tl (sr-comp Θ ρ l)
 
   extend-ss-once-lemma : ∀ {A B C τ τ'} → (Θ1 : sctx A B) (Θ2 : sctx B C) (x : τ ∈ τ' :: C)
                        → _==_ {_} {τ' :: A |- τ} (s-extend (_ss_ Θ1 Θ2) x) (_ss_ (s-extend Θ1) (s-extend Θ2) x)
@@ -433,8 +423,6 @@ module Source where
                                      ap (subst e₂) (extend-ss-once (s-extend (s-extend Θ1)) (s-extend (s-extend Θ2)) ∘
                                      ap s-extend (extend-ss-once (s-extend Θ1) (s-extend Θ2) ∘
                                      ap s-extend (extend-ss-once Θ1 Θ2))))
-  subst-ss Θ1 Θ2 (hd l) = ap hd (subst-ss Θ1 Θ2 l)
-  subst-ss Θ1 Θ2 (tl l) = ap tl (subst-ss Θ1 Θ2 l)
 
   throw : ∀ {Γ Γ' τ} → sctx Γ (τ :: Γ') → sctx Γ Γ'
   throw Θ x = Θ (iS x)
@@ -571,6 +559,11 @@ module Source where
                  → evals x v n1
                  → evals xs vs n2
                  → evals (x ::s xs) (v ::s vs) (n1 +c n2)
+      listrec-evals : ∀ {n1 n2}
+                    → {τ τ' : Tp} {e v : [] |- list τ} {e0 v' : [] |- τ'} {e1 : (τ :: (list τ :: (susp τ' :: []))) |- τ'}
+                    → evals e v n1
+                    → evals-listrec-branch e0 e1 v v' n2
+                    → evals (listrec e e0 e1) v' (n1 +c (1c +c n2))
       true-evals : evals true true 0c
       false-evals : evals false false 0c
 
@@ -579,7 +572,12 @@ module Source where
     data evals-rec-branch {τ : Tp} (e0 : [] |- τ) (e1 : (nat :: (susp τ :: [])) |- τ) : (e : [] |- nat) (v : [] |- τ) → Cost → Set where
          evals-rec-z : ∀ {v n} → evals e0 v n → evals-rec-branch e0 e1 z v n 
          evals-rec-s : ∀ {v v' n} → evals (subst e1 (lem4 v (delay (rec v e0 e1)))) v' n
-                               → evals-rec-branch e0 e1 (suc v) v' n 
+                                  → evals-rec-branch e0 e1 (suc v) v' n 
+    -- i hope i got this right
+    data evals-listrec-branch {τ τ' : Tp} (e0 : [] |- τ') (e1 : (τ :: (list τ :: (susp τ' :: []))) |- τ') : (e : [] |- list τ) (v : [] |- τ') → Cost → Set where
+         evals-listrec-nil : ∀ {n v} → evals e0 v n → evals-listrec-branch e0 e1 nil v n
+         evals-listrec-cons : ∀ {h t v' n} → evals (subst e1 (lem5 h t (delay (listrec t e0 e1)))) v' n
+                                           → evals-listrec-branch e0 e1 (h ::s t) v' n
 
   evals-val : {τ : Tp} {e : [] |- τ} {v : [] |- τ} {n : Cost} → evals e v n → val v
   evals-val (pair-evals D D₁) = pair-isval _ _ (evals-val D) (evals-val D₁)
@@ -597,6 +595,8 @@ module Source where
   evals-val (cons-evals D D₁) = cons-isval _ _ (evals-val D) (evals-val D₁)
   evals-val true-evals = true-isval
   evals-val false-evals = false-isval
+  evals-val (listrec-evals x (evals-listrec-nil D)) = evals-val D
+  evals-val (listrec-evals x (evals-listrec-cons D)) = evals-val D
 
   -- lemma 2 from ICFP paper
   val-evals-inversion : {τ : Tp} {v v' : [] |- τ} {n : Cost} → val v → evals v v' n → (v == v') × Equals0c n

@@ -115,7 +115,7 @@ module Bounding where
   bounding nil Θ a Θ' sb .nil nil-isval .0c nil-evals = l-proj-s , r-proj-s
   bounding (e ::s e₁) Θ a Θ' sb .(x ::s xs) (cons-isval x xs vv vv₁) ._ (cons-evals evals evals₁) =
            (cong-+ (fst IH1) (fst IH2) trans l-proj-s) ,
-             ({!!}) , {!!}
+             (r-proj (Complexity.subst || e ||e Θ')) , r-proj (Complexity.subst || e₁ ||e Θ') , ((snd IH1 , snd IH2) , r-proj-s)
     where
       IH1 = (bounding e Θ a Θ' sb _ vv _ evals) 
       IH2 = (bounding e₁ Θ a Θ' sb _ vv₁ _ evals₁) 
