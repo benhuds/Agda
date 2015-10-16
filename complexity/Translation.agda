@@ -30,8 +30,9 @@ module Translation where
   interp-Cost 1c = 1C
   interp-Cost (m +c n) = plusC (interp-Cost m) (interp-Cost n)
 
-  -- need to fill this out
-  postulate lookup : ∀{Γ τ} → τ Source.∈ Γ → ⟨⟨ τ ⟩⟩ Complexity.∈ ⟨⟨ Γ ⟩⟩c
+  lookup : ∀{Γ τ} → τ Source.∈ Γ → ⟨⟨ τ ⟩⟩ Complexity.∈ ⟨⟨ Γ ⟩⟩c
+  lookup i0 = i0
+  lookup (iS x) = iS (lookup x)
 
   -- translation from source expressions to complexity expressions
   ||_||e : ∀{Γ τ} → Γ Source.|- τ → ⟨⟨ Γ ⟩⟩c Complexity.|- || τ ||
@@ -53,5 +54,3 @@ module Translation where
   || listrec e e₁ e₂ ||e = l-proj || e ||e +C listrec (r-proj || e ||e) (1C +C || e₁ ||e) (1C +C || e₂ ||e)
   || true ||e = prod 0C true
   || false ||e = prod 0C false
-  || hd l ||e = prod (l-proj || l ||e) (hd (r-proj || l ||e))
-  || tl l ||e = prod (l-proj || l ||e) (tl (r-proj || l ||e))
