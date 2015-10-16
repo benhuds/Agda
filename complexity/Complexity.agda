@@ -596,20 +596,3 @@ module Complexity where
             → e ≤s e''
   _trans_ = trans-s
   infixr 10 _trans_
-
--------
-
-  -- interpret complexity types as preorders
-  [_]t : CTp → PREORDER
-  [ unit ]t = unit-p
-  [ nat ]t = Nat , nat-p
-  [ A ->c B ]t = [ A ]t ->p [ B ]t
-  [ A ×c B ]t = [ A ]t ×p [ B ]t
-  [ list A ]t = Nat , nat-p
-  [ bool ]t = unit-p
-  [ C ]t = Nat , nat-p
-  
-  -- interpret contexts as preorders
-  [_]c : Ctx → PREORDER
-  [ [] ]c = unit-p
-  [ τ :: Γ ]c = [ τ ]t ×p [ Γ ]c
