@@ -48,8 +48,6 @@ module Interpretation where
   interpE nil = {!!}
   interpE (e ::c e₁) = {!!}
   interpE (listrec e e₁ e₂) = {!!}
-  interpE (hd e) = {!!}
-  interpE (tl e) = {!!}
   interpE true = {!!}
   interpE false = {!!}
 

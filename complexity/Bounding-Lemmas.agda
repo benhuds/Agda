@@ -20,8 +20,7 @@ module Bounding-Lemmas where
     valBound .(delay e) (delay-isval e) E = expBound e E
     valBound .nil nil-isval E = nil ≤s E
     valBound .(x ::s xs) (cons-isval x xs v v₁) E = Σ (λ E' → Σ (λ E'' → (valBound x v E' × valBound xs v₁ E'') × (E' ::c E'') ≤s E))
-    --Σ (λ E' → (valBound x v (hd E') × valBound xs v₁ (tl E')) × (hd E' ::c tl E') ≤s E)
-    valBound .true true-isval E = Unit
+    valBound .true true-isval E = Unit --fix
     valBound .false false-isval E = Unit
 
     expBound : ∀{τ} → [] Source.|- τ → [] Complexity.|- || τ || → Set
