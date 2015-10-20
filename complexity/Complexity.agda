@@ -487,23 +487,11 @@ module Complexity where
   subst-compose2-lemma : ∀ {Γ Γ' τ τ1 τ2} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (e1 : τ1 :: τ2 :: Γ' |- τ) (Θ : sctx Γ Γ')
                        → _==_ {_} {sctx Γ (τ1 :: τ2 :: Γ')} (lem4 v1 v2 ss s-extend (s-extend Θ)) (lem4' Θ v1 v2)
   subst-compose2-lemma v1 v2 e1 Θ = λ=i (λ τ → λ= (λ x → subst-compose2-lemma-lemma v1 v2 e1 Θ x))
---subst-ss : subst e (Θ1 ss Θ2) == subst (subst e Θ2) Θ1
---  _ss_ : ∀ {A B C} → sctx A B → sctx B C → sctx A C
---  _ss_ Θ1 Θ2 x = subst (subst (var x) Θ2) Θ1
-{-
-  fuse1 : ∀ {Γ Γ' τ τ'} (v : Γ |- τ') (Θ : sctx Γ Γ') (x : τ ∈ Γ') → (q v ss q∙ Θ) x == Θ x
-  fuse1 v Θ x = subst (ren (Θ x) iS) (q v) =⟨ sr-comp (q v) iS (Θ x) ⟩
-                subst (Θ x) (q v sr iS) =⟨ Refl ⟩
-                subst (Θ x) ids =⟨ ! (subst-id (Θ x)) ⟩
-                (Θ x ∎)
--}
+
   fuse3 : ∀ {Γ Γ' τ1 τ2 τ'} (Θ : sctx Γ Γ') (v1 : Γ' |- τ1) (v2 : Γ' |- τ2) (x : τ' ∈ τ2 :: Γ')
           → subst (lem3' ids v2 x) Θ == lem3' Θ (subst v2 Θ) x
-  fuse3 Θ v1 v2 x = subst (lem3' ids v2 x) Θ =⟨ Refl ⟩
-                    subst (q v2 x) Θ =⟨ {!subst-id!} ⟩
-                    subst (var x) (q (subst v2 Θ) ss s-extend Θ) =⟨ subst-ss (q (subst v2 Θ)) (s-extend Θ) (var x) ⟩
-                    (q (subst v2 Θ) ss s-extend Θ) x =⟨ subst-compose-lemma-lemma (subst v2 Θ) Θ x ⟩
-                    (lem3' Θ (subst v2 Θ) x ∎)
+  fuse3 Θ v1 v2 i0 = Refl
+  fuse3 Θ v1 v2 (iS x) = Refl
 
   subst-compose3-lemma-lemma : ∀ {Γ Γ' τ τ1 τ2 τ'} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ' |- τ1) (v2 : Γ' |- τ2) (x : τ' ∈ τ1 :: τ2 :: Γ')
                              → _==_ {_} {_} ((Θ ss lem4 v1 v2) x) (lem4' Θ (subst v1 Θ) (subst v2 Θ) x)
