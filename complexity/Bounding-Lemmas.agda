@@ -20,8 +20,8 @@ module Bounding-Lemmas where
     valBound .(delay e) (delay-isval e) E = expBound e E
     valBound .nil nil-isval E = nil ≤s E
     valBound .(x ::s xs) (cons-isval x xs v v₁) E = Σ (λ E' → Σ (λ E'' → (valBound x v E' × valBound xs v₁ E'') × (E' ::c E'') ≤s E))
-    valBound .true true-isval E = Unit --fix
-    valBound .false false-isval E = Unit
+    valBound .true true-isval E = true ≤s E
+    valBound .false false-isval E = false ≤s E
 
     expBound : ∀{τ} → [] Source.|- τ → [] Complexity.|- || τ || → Set
     expBound {τ} e b = (v₁ : [] Source.|- τ) (vv : val v₁) (n : Cost) →
@@ -34,7 +34,7 @@ module Bounding-Lemmas where
 
     weakeningVal : ∀{τ} → (v : [] Source.|- τ) → (vv : val v) → (E E' : [] Complexity.|- ⟨⟨ τ ⟩⟩) → valBound v vv E → E ≤s E' → valBound v vv E'
     weakeningVal {unit} unit unit-isval E E' vb e≤e' = <>
-    weakeningVal {nat} .z z-isval E E' vb e≤e' = trans-s vb e≤e'
+    weakeningVal {nat} .z z-isval E E' vb e≤e' = vb trans e≤e'
     weakeningVal {nat} .(suc e) (suc-isval e vv) E E' (i , vbi , si≤se) e≤e' = i , (vbi , (trans-s si≤se e≤e'))
     weakeningVal {susp τ} .(delay e) (delay-isval e) E E' vb e≤e' v₁ vv n x = weakeningExp e _ E' vb e≤e' v₁ vv n x
     weakeningVal {τ ->s τ₁} .(lam e) (lam-isval e) E E' vb e≤e' v₁ vv c1 x v₂ vv₁ n x₁ = (λ a va a' vba b b' n₁ x₂ →
@@ -45,10 +45,10 @@ module Bounding-Lemmas where
     weakeningVal {τ ×s τ₁} .(prod e1 e2) (pair-isval e1 e2 vv1 vv2) E E' vb e≤e' =
                     weakeningVal e1 vv1 (l-proj E) (l-proj E') (fst vb) (cong-lproj e≤e') ,
                     weakeningVal e2 vv2 (r-proj E) (r-proj E') (snd vb) (cong-rproj e≤e')
-    weakeningVal {list τ} .nil nil-isval E E' vb e≤e' = trans-s vb e≤e'
+    weakeningVal {list τ} .nil nil-isval E E' vb e≤e' = vb trans e≤e'
     weakeningVal {list τ} .(x ::s xs) (cons-isval x xs vv vv₁) E E' (h , t , (hvb , tvb) , steps) e≤e' = h , (t , ((hvb , tvb) , (steps trans e≤e')))
-    weakeningVal {bool} .true true-isval E E' vb e≤e' = <>
-    weakeningVal {bool} .false false-isval E E' vb e≤e' = <>
+    weakeningVal {bool} .true true-isval E E' vb e≤e' = vb trans e≤e'
+    weakeningVal {bool} .false false-isval E E' vb e≤e' = vb trans e≤e'
 
   weakeningExp' : ∀{τ} {e : [] Source.|- τ} {E E' : [] Complexity.|- || τ ||} → expBound e E → E ≤s E' → expBound e E'
   weakeningExp' eb e≤ = weakeningExp _ _ _ eb e≤
@@ -83,20 +83,23 @@ module Bounding-Lemmas where
   substBound : ∀{Γ} → (Θ : Source.sctx [] Γ) → substVal Θ → (Θ' : Complexity.sctx [] ⟨⟨ Γ ⟩⟩c) → Set
   substBound {Γ} Θ vΘ Θ' = {τ : _} (x : τ Source.∈ Γ) → valBound (Θ x) (vΘ x) (Θ' (lookup x))
 
-  postulate
-    extend-substBound : ∀{Γ τ} → {Θ : Source.sctx [] Γ} {vΘ : substVal Θ} {Θ' : Complexity.sctx [] ⟨⟨ Γ ⟩⟩c}
+  extend-substBound : ∀{Γ τ} → {Θ : Source.sctx [] Γ} {vΘ : substVal Θ} {Θ' : Complexity.sctx [] ⟨⟨ Γ ⟩⟩c}
                     → {e : [] Source.|- τ} {ve : val e} {E : [] Complexity.|- ⟨⟨ τ ⟩⟩} 
                     → substBound Θ vΘ Θ'
                     → valBound e ve E
                     → substBound (Source.lem3' Θ e) (extend-substVal vΘ ve) (Complexity.lem3' Θ' E)
+  extend-substBound sb vb i0 = vb
+  extend-substBound sb vb (iS x) = sb x
 
-  postulate
-    extend-substBound2 : ∀{Γ τ1 τ2} → {Θ : Source.sctx [] Γ} {vΘ : substVal Θ} {Θ' : Complexity.sctx [] ⟨⟨ Γ ⟩⟩c}
-                       → {e : [] Source.|- τ1} {ve : val e} {e' : [] Source.|- τ2} {ve' : val e'}
-                         {E : [] Complexity.|- ⟨⟨ τ1 ⟩⟩} {E' : [] Complexity.|- ⟨⟨ τ2 ⟩⟩}
-                       → substBound Θ vΘ Θ'
-                       → valBound e ve E → valBound e' ve' E'
-                       → substBound (Source.lem4' Θ e e') (extend-substVal2 vΘ ve ve') (Complexity.lem4' Θ' E E') --(Comp-lang.lem3' (Comp-lang.lem3' Θ' E') E)
+  extend-substBound2 : ∀{Γ τ1 τ2} → {Θ : Source.sctx [] Γ} {vΘ : substVal Θ} {Θ' : Complexity.sctx [] ⟨⟨ Γ ⟩⟩c}
+                     → {e : [] Source.|- τ1} {ve : val e} {e' : [] Source.|- τ2} {ve' : val e'}
+                       {E : [] Complexity.|- ⟨⟨ τ1 ⟩⟩} {E' : [] Complexity.|- ⟨⟨ τ2 ⟩⟩}
+                     → substBound Θ vΘ Θ'
+                     → valBound e ve E → valBound e' ve' E'
+                     → substBound (Source.lem4' Θ e e') (extend-substVal2 vΘ ve ve') (Complexity.lem4' Θ' E E') --(Comp-lang.lem3' (Comp-lang.lem3' Θ' E') E)
+  extend-substBound2 sb vbE vbE' i0 = vbE
+  extend-substBound2 sb vbE vbE' (iS i0) = vbE'
+  extend-substBound2 sb vbE vbE' (iS (iS x)) = sb x
 
   -- inversion lemma
   inv1 : ∀ {τ} {v v' : [] Source.|- τ} {n : Cost} → val v → evals v v' n → _≤s_{[]} (interp-Cost n) 0C
