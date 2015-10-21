@@ -38,6 +38,28 @@ module Bounding where
                             in (cong-+ (Eq0C-≤0 (snd (val-evals-inversion val-v' D))) refl-s trans +-unit-l) trans fst useIH , snd useIH} ) 
                          vbranch val-vbranch nbranch evals-branch
 
+  boundingListRec : ∀ {τ τ'} (h : [] Source.|- τ') (vh : val h)
+               (v : [] Source.|- list τ') (vv : val v)
+                             (e0 : [] Source.|- τ)
+                             (e1 : τ' :: list τ' :: susp τ :: [] Source.|- τ)
+                             (E : [] Complexity.|- list ⟨⟨ τ' ⟩⟩)
+                             (E0 : [] Complexity.|- || τ ||)
+                             (E1 : ⟨⟨ τ' ⟩⟩ :: list ⟨⟨ τ' ⟩⟩ :: || τ || :: [] Complexity.|- || τ ||)
+                             → (H : [] Complexity.|- ⟨⟨ τ' ⟩⟩)
+                             → valBound h vh H
+                             → valBound v vv E → expBound e0 E0
+                             → (v' : [] Source.|- list τ') (vv' : val v') (E' : [] Complexity.|- list ⟨⟨ τ' ⟩⟩)
+                             → valBound v' vv' E'
+                             → (r : [] Source.|- susp τ) (vr : val r) (R : [] Complexity.|- || τ ||)
+                             → valBound r vr R
+                             → expBound (Source.subst e1 (Source.lem5 h v r)) (Complexity.subst E1 (Complexity.lem5 H E R))
+                             → (vbranch : [] Source.|- τ)  (vvbranch : val vbranch) (nbranch : Cost)
+                             → evals-listrec-branch e0 e1 v vbranch nbranch
+                             → plusC 1C (interp-Cost nbranch) ≤s l-proj (listrec E (1C +C E0) (1C +C E1))
+                               × valBound vbranch vvbranch (r-proj (listrec E (1C +C E0) (1C +C E1)))
+  boundingListRec h vh .nil nil-isval e0 e1 E E0 E1 H vbh vbv eb v' vv' E' vbv' r vr R vbr eb2 vbranch vvbranch n (evals-listrec-nil x) = {!!}
+  boundingListRec h vh ._ vv e0 e1 E E0 E1 H vbh vbv eb v' vv' E' vbv' r vr R vbr eb2 vbranch vvbranch nbranch (evals-listrec-cons x) = {!!}
+
   bounding : ∀{Γ τ} → (e : Γ Source.|- τ) → (Θ : Source.sctx [] Γ) 
                        → (a : substVal Θ) 
                        → (Θ' : Complexity.sctx [] ⟨⟨ Γ ⟩⟩c) 
@@ -123,69 +145,8 @@ module Bounding where
     where
       IH1 = (bounding e Θ a Θ' sb _ vv _ evals) 
       IH2 = (bounding e₁ Θ a Θ' sb _ vv₁ _ evals₁) 
-  bounding (listrec e e₁ e₂) Θ a Θ' sb v vv ._ (listrec-evals arg-evals branch-evals) = (cong-+ (fst IH1) {!!} trans l-proj-s) , weakeningVal' vv {!!} r-proj-s
+  bounding (listrec e e₁ e₂) Θ a Θ' sb v vv ._ (listrec-evals arg-evals branch-evals) = (cong-+ (fst IH1) {!(r-proj (Complexity.subst || e ||e Θ'))!} trans l-proj-s) , weakeningVal' vv {!!} r-proj-s
     where
       IH1 = bounding e Θ a Θ' sb _ (evals-val arg-evals) _ arg-evals
-  bounding true Θ a Θ' sb .true true-isval .0c true-evals = l-proj-s , <>
-  bounding false Θ a Θ' sb .false false-isval .0c false-evals = l-proj-s , <>
-
-  boundingListRec : ∀ {τ τ₁} (v : [] Source.|- list τ) (vv : val v)
-                             (e₁ : [] Source.|- τ) (e₂ : τ₁ :: list τ₁ :: susp τ :: [] Source.|- τ)
-                             (E : [] Complexity.|- list || τ ||)
-                             (E₁ : [] Complexity.|- || τ ||)
-                             (E₂ : || τ₁ || :: list || τ₁ || :: || τ || :: [] Complexity.|- || τ ||)
-                             --→ valBound v vv E → expBound e₁ E₁
-                             → (vbranch : [] Source.|- τ) (val-vbranch : val vbranch) (nbranch : Cost)
-                             --→ --evals-listrec-branch e₁ e₂ v vbranch nbranch
-                             → plusC 1C (interp-Cost nbranch) ≤s l-proj (listrec E (1C +C E₁) (1C +C E₂))
-                               × valBound vbranch val-vbranch (r-proj (listrec E (1C +C E₁) (1C +C E₂))) 
-                               --plusC 1C (interp-Cost nbranch) ≤s l-proj (listrec E (1C +C E₁) (1C +C E₂))
-                               --× valBound vbranch val-vbranch (r-proj (listrec E (1C +C E₁) (1C +C E₂)))
-  boundingListRec v vv e₁ e₂ E E₁ E₂ vbranch vvbranch nbranch = {!!}
-
-
-{-
-  boundingRec : ∀ {τ} (v : [] Source.|- nat) (val-v : val v)
-                      (e0 : [] Source.|- τ)
-                      (e1 : (nat :: susp τ :: []) Source.|- τ)
-                      (E : [] Complexity.|- nat)
-                      (E0 : [] Complexity.|- || τ ||)
-                      (E1 : (nat :: || τ || :: []) Complexity.|- || τ ||)
-              → valBound v val-v E → expBound e0 E0
-              → ((v' : [] Source.|- nat) (val-v' : val v') (E' :  [] Complexity.|- nat) 
-              → valBound v' val-v' E' → (r : [] Source.|- susp τ) (val-r : val r) (R :  [] Complexity.|- || τ ||)
-              → valBound r val-r R
-              → expBound (Source.subst e1 (Source.lem4 v' r)) (Complexity.subst E1 (Complexity.lem4 E' R)))
-              → ((vbranch : [] Source.|- τ) (val-vbranch : val vbranch) (nbranch : Cost) 
-              → evals-rec-branch e0 e1 v vbranch nbranch
-              → (plusC 1C (interp-Cost nbranch) ≤s l-proj (rec E (1C +C E0) (1C +C E1))
-                × (valBound vbranch val-vbranch (r-proj (rec E (1C +C E0) (1C +C E1))))))
-
-  boundingListRec : ∀ {τ τ'} (v : [] Source.|- τ) (vv : val v)
-                             (e₁ : [] Source.|- τ) (e₂ : τ₁ :: list τ₁ :: susp τ :: [] Source.|- τ)
-                             (E : [] Complexity.|- τ)
-                             (E₁ : [] Complexity.|- || τ ||)
-                             (E₂ : || τ₁ || :: list || τ₁ || :: || τ || :: [] Complexity.|- || τ ||)
-                             → valBound v vv E → expBound e₁ E₁
-                             → expBound (
-                             → ((vbranch : [] Source.|- τ) (val-vbranch : val vbranch) (nbranch : Cost) 
-                             → evals-rec-branch e₁ e₂ v vbranch nbranch
-                             plusC 1C (interp-Cost nbranch) ≤s l-proj (listRec E (1C +C E0) (1C +C E1))
-                             × valBound vbranch val-vbranch (r-proj (rec E (1C +C E0) (1C +C E1)))
-
- plusC 1C (interp-Cost .n2) ≤s
-      l-proj
-      (listrec (r-proj (Complexity.subst || e ||e Θ'))
-       (prod (plusC 1C (l-proj (Complexity.subst || e₁ ||e Θ')))
-        (r-proj (Complexity.subst || e₁ ||e Θ')))
-       (prod
-        (plusC 1C
-         (l-proj
-          (Complexity.subst || e₂ ||e
-           (Complexity.s-extend
-            (Complexity.s-extend (Complexity.s-extend Θ'))))))
-        (r-proj
-         (Complexity.subst || e₂ ||e
-          (Complexity.s-extend
-           (Complexity.s-extend (Complexity.s-extend Θ')))))))
--}
+  bounding true Θ a Θ' sb .true true-isval .0c true-evals = l-proj-s , r-proj-s
+  bounding false Θ a Θ' sb .false false-isval .0c false-evals = l-proj-s , r-proj-s
