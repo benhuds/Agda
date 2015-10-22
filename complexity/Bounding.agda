@@ -16,9 +16,9 @@ module Bounding where
                       (E1 : (nat :: || τ || :: []) Complexity.|- || τ ||)
               → valBound v val-v E → expBound e0 E0
               → ((v' : [] Source.|- nat) (val-v' : val v') (E' :  [] Complexity.|- nat) 
-              → valBound v' val-v' E' → (r : [] Source.|- susp τ) (val-r : val r) (R :  [] Complexity.|- || τ ||)
-              → valBound r val-r R
-              → expBound (Source.subst e1 (Source.lem4 v' r)) (Complexity.subst E1 (Complexity.lem4 E' R)))
+                → valBound v' val-v' E' → (r : [] Source.|- susp τ) (val-r : val r) (R :  [] Complexity.|- || τ ||)
+                → valBound r val-r R
+                → expBound (Source.subst e1 (Source.lem4 v' r)) (Complexity.subst E1 (Complexity.lem4 E' R)))
               → ((vbranch : [] Source.|- τ) (val-vbranch : val vbranch) (nbranch : Cost) 
               → evals-rec-branch e0 e1 v vbranch nbranch
               → (plusC 1C (interp-Cost nbranch) ≤s l-proj (rec E (1C +C E0) (1C +C E1))

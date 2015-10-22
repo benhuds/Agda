@@ -25,6 +25,9 @@ module Pilot where
        → τ ∈ (τ1 :: Γ)
 
   mutual
+    sctx : Ctx → Ctx → Set
+    sctx Γ Γ' = ∀ {τ} → τ ∈ Γ' → Γ |- τ
+
     data _|-_ : Ctx → CTp → Set where
       unit : ∀ {Γ}
          → Γ |- unit
@@ -107,6 +110,7 @@ module Pilot where
       cong-rproj : ∀ {Γ τ τ'} {e e' : Γ |- (τ ×c τ')} → e ≤s e' → (r-proj e) ≤s (r-proj e')
       cong-app   : ∀ {Γ τ τ'} {e e' : Γ |- (τ ->c τ')} {e1 : Γ |- τ} → e ≤s e' → (app e e1) ≤s (app e' e1)
       cong-subst : ∀ {Γ Γ' τ} {e1 e2 : Γ' |- τ} {Θ : sctx Γ Γ'} → e1 ≤s e2 → (subst e1 Θ) ≤s (subst e2 Θ)
+      subst-s : ∀ {Γ Γ' τ} {Θ Θ' : sctx Γ Γ'} {e : Γ' |- τ} → (∀ τ → (x : τ ∈ Γ') → Θ x ≤s Θ' x) → subst e Θ ≤s subst e Θ'
       cong-rec : ∀ {Γ τ} {e e' : Γ |- nat} {e0 : Γ |- τ} {e1 : (nat :: (τ :: Γ)) |- τ}
              → e ≤s e'
              → rec e e0 e1 ≤s rec e' e0 e1
@@ -239,9 +243,6 @@ module Pilot where
     wkn : ∀ {Γ τ1 τ2} → Γ |- τ2 → (τ1 :: Γ) |- τ2
     wkn e = ren e iS
 
-    sctx : Ctx → Ctx → Set
-    sctx Γ Γ' = ∀ {τ} → τ ∈ Γ' → Γ |- τ
-
     --lem2 (addvar)
     s-extend : ∀ {Γ Γ' τ} → sctx Γ Γ' → sctx (τ :: Γ) (τ :: Γ')
     s-extend Θ i0 = var i0
@@ -278,6 +279,7 @@ module Pilot where
     lem5 : ∀ {Γ τ1 τ2 τ3} → Γ |- τ1 → Γ |- τ2 → Γ |- τ3 → sctx Γ (τ1 :: (τ2 :: (τ3 :: Γ)))
     lem5 e1 e2 e3 = lem5' ids e1 e2 e3
 
+    {-# NO_TERMINATION_CHECK #-}
     subst : ∀ {Γ Γ' τ} → Γ' |- τ → sctx Γ Γ' → Γ |- τ
     subst unit Θ = unit
     subst 0C Θ = 0C
@@ -299,7 +301,7 @@ module Pilot where
     subst (listrec e e₁ e₂) Θ = listrec (subst e Θ) (subst e₁ Θ) (subst e₂ (s-extend (s-extend (s-extend Θ))))
     subst z' Θ = z'
     subst (suc' e) Θ = suc' (subst e Θ)
-    subst (rec' e e₁ e₂ p) Θ = rec' (subst e Θ) (subst e₁ Θ) (subst e₂ (s-extend (s-extend Θ))) {!!}
+    subst (rec' e e₁ e₂ p) Θ = rec' (subst e Θ) (subst e₁ Θ) (subst e₂ (s-extend (s-extend Θ))) (transport (λ x → x) {!!} (subst-s {e = e} {!!}))
 
 
 
