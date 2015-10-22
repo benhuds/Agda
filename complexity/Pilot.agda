@@ -301,7 +301,7 @@ module Pilot where
     subst (listrec e e₁ e₂) Θ = listrec (subst e Θ) (subst e₁ Θ) (subst e₂ (s-extend (s-extend (s-extend Θ))))
     subst z' Θ = z'
     subst (suc' e) Θ = suc' (subst e Θ)
-    subst (rec' e e₁ e₂ p) Θ = rec' (subst e Θ) (subst e₁ Θ) (subst e₂ (s-extend (s-extend Θ))) (transport (λ x → x) {!!} (subst-s {e = e} {!!}))
+    subst (rec' e e₁ e₂ p) Θ = rec' (subst e Θ) (subst e₁ Θ) (subst e₂ (s-extend (s-extend Θ))) (transport (λ x → x) {!!} (subst-s {e = e} (λ τ x → {!!})))
 
 
 

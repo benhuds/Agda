@@ -48,17 +48,20 @@ module Bounding where
                              → (H : [] Complexity.|- ⟨⟨ τ' ⟩⟩)
                              → valBound h vh H
                              → valBound v vv E → expBound e0 E0
-                             → (v' : [] Source.|- list τ') (vv' : val v') (E' : [] Complexity.|- list ⟨⟨ τ' ⟩⟩)
-                             → valBound v' vv' E'
-                             → (r : [] Source.|- susp τ) (vr : val r) (R : [] Complexity.|- || τ ||)
-                             → valBound r vr R
-                             → expBound (Source.subst e1 (Source.lem5 h v r)) (Complexity.subst E1 (Complexity.lem5 H E R))
+                             → ((v' : [] Source.|- list τ') (vv' : val v') (E' : [] Complexity.|- list ⟨⟨ τ' ⟩⟩)
+                               → valBound v' vv' E'
+                               → (r : [] Source.|- susp τ) (vr : val r) (R : [] Complexity.|- || τ ||)
+                               → valBound r vr R
+                               → expBound (Source.subst e1 (Source.lem5 h v r)) (Complexity.subst E1 (Complexity.lem5 H E R)))
                              → (vbranch : [] Source.|- τ)  (vvbranch : val vbranch) (nbranch : Cost)
                              → evals-listrec-branch e0 e1 v vbranch nbranch
                              → plusC 1C (interp-Cost nbranch) ≤s l-proj (listrec E (1C +C E0) (1C +C E1))
                                × valBound vbranch vvbranch (r-proj (listrec E (1C +C E0) (1C +C E1)))
-  boundingListRec h vh .nil nil-isval e0 e1 E E0 E1 H vbh vbv eb v' vv' E' vbv' r vr R vbr eb2 vbranch vvbranch n (evals-listrec-nil x) = {!!}
-  boundingListRec h vh ._ vv e0 e1 E E0 E1 H vbh vbv eb v' vv' E' vbv' r vr R vbr eb2 vbranch vvbranch nbranch (evals-listrec-cons x) = {!!}
+  boundingListRec h vh .nil nil-isval e0 e1 E E0 E1 H vbh vbv e0b e1b vbranch vvbranch nbranch (evals-listrec-nil evals-branch) =
+    (cong-+ refl-s (fst usee0bound) trans l-proj-s) trans cong-lproj (listrec-steps-nil trans cong-listrec vbv) ,
+    {!!}
+    where usee0bound = (e0b vbranch vvbranch nbranch evals-branch)
+  boundingListRec h vh ._ vv e0 e1 E E0 E1 H vbh vbv e0b e1b vbranch vvbranch nbranch (evals-listrec-cons x) = {!!}
 
   bounding : ∀{Γ τ} → (e : Γ Source.|- τ) → (Θ : Source.sctx [] Γ) 
                        → (a : substVal Θ) 
