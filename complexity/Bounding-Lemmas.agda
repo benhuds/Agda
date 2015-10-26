@@ -67,8 +67,6 @@ module Bounding-Lemmas where
   extend-substVal sv vv i0 = vv
   extend-substVal sv vv (iS x) = sv x
 
--- {τ₁ : Tp} (x : τ₁ Source-lang.∈ ρ :: .Γ) → val (Source-lang.lem3' (λ {.τ} → Θ) v₁ x)
-
   extend-substVal2 : ∀ {Γ' τ1 τ2} {Θ : Source.sctx [] Γ'} {e : [] Source.|- τ1} {e' : [] Source.|- τ2}
                    → substVal Θ
                    → val e → val e'
@@ -77,8 +75,14 @@ module Bounding-Lemmas where
   extend-substVal2 sv vv vv' (iS i0) = vv'
   extend-substVal2 sv vv vv' (iS (iS x)) = sv x
 
--- {τ₁ : Tp} (x : τ₁ Source-lang.∈ τ1 :: τ2 :: Γ) → val (lem4' (λ {.τ} → Θ) v1 v2 x)
-
+  extend-substVal3 : ∀ {Γ' τ1 τ2 τ3} {Θ : Source.sctx [] Γ'} {e : [] Source.|- τ1} {e' : [] Source.|- τ2} {e'' : [] Source.|- τ3}
+                   → substVal Θ
+                   → val e → val e' → val e''
+                   → substVal (Source.lem5' Θ e e' e'')
+  extend-substVal3 sv vv vv' vv'' i0 = vv
+  extend-substVal3 sv vv vv' vv'' (iS i0) = vv'
+  extend-substVal3 sv vv vv' vv'' (iS (iS i0)) = vv''
+  extend-substVal3 sv vv vv' vv'' (iS (iS (iS x))) = sv x
 
   substBound : ∀{Γ} → (Θ : Source.sctx [] Γ) → substVal Θ → (Θ' : Complexity.sctx [] ⟨⟨ Γ ⟩⟩c) → Set
   substBound {Γ} Θ vΘ Θ' = {τ : _} (x : τ Source.∈ Γ) → valBound (Θ x) (vΘ x) (Θ' (lookup x))
@@ -96,10 +100,21 @@ module Bounding-Lemmas where
                        {E : [] Complexity.|- ⟨⟨ τ1 ⟩⟩} {E' : [] Complexity.|- ⟨⟨ τ2 ⟩⟩}
                      → substBound Θ vΘ Θ'
                      → valBound e ve E → valBound e' ve' E'
-                     → substBound (Source.lem4' Θ e e') (extend-substVal2 vΘ ve ve') (Complexity.lem4' Θ' E E') --(Comp-lang.lem3' (Comp-lang.lem3' Θ' E') E)
+                     → substBound (Source.lem4' Θ e e') (extend-substVal2 vΘ ve ve') (Complexity.lem4' Θ' E E')
   extend-substBound2 sb vbE vbE' i0 = vbE
   extend-substBound2 sb vbE vbE' (iS i0) = vbE'
   extend-substBound2 sb vbE vbE' (iS (iS x)) = sb x
+
+  extend-substBound3 : ∀{Γ τ1 τ2 τ3} → {Θ : Source.sctx [] Γ} {vΘ : substVal Θ} {Θ' : Complexity.sctx [] ⟨⟨ Γ ⟩⟩c}
+                     → {e : [] Source.|- τ1} {ve : val e} {e' : [] Source.|- τ2} {ve' : val e'} {e'' : [] Source.|- τ3} {ve'' : val e''}
+                       {E : [] Complexity.|- ⟨⟨ τ1 ⟩⟩} {E' : [] Complexity.|- ⟨⟨ τ2 ⟩⟩} {E'' : [] Complexity.|- ⟨⟨ τ3 ⟩⟩}
+                     → substBound Θ vΘ Θ'
+                     → valBound e ve E → valBound e' ve' E' → valBound e'' ve'' E''
+                     → substBound (Source.lem5' Θ e e' e'') (extend-substVal3 vΘ ve ve' ve'') (Complexity.lem5' Θ' E E' E'')
+  extend-substBound3 sb vbE vbE' vbE'' i0 = vbE
+  extend-substBound3 sb vbE vbE' vbE'' (iS i0) = vbE'
+  extend-substBound3 sb vbE vbE' vbE'' (iS (iS i0)) = vbE''
+  extend-substBound3 sb vbE vbE' vbE'' (iS (iS (iS x))) = sb x
 
   -- inversion lemma
   inv1 : ∀ {τ} {v v' : [] Source.|- τ} {n : Cost} → val v → evals v v' n → _≤s_{[]} (interp-Cost n) 0C

@@ -8,7 +8,7 @@ open import Bounding-Lemmas
 
 module Bounding where
 
-  boundingRec : ∀ {τ} (v : [] Source.|- nat) (val-v : val v)
+{-  boundingRec : ∀ {τ} (v : [] Source.|- nat) (val-v : val v)
                       (e0 : [] Source.|- τ)
                       (e1 : (nat :: susp τ :: []) Source.|- τ)
                       (E : [] Complexity.|- nat)
@@ -36,7 +36,7 @@ module Bounding where
                            let useIH = IH vr vvr n2 (transport (λ H → evals-rec-branch e0 e1 H vr n2) (! (fst (val-evals-inversion val-v' D))) D') 
                             in (cong-+ (Eq0C-≤0 (snd (val-evals-inversion val-v' D))) refl-s trans +-unit-l) trans fst useIH , snd useIH } )
                          vbranch val-vbranch nbranch evals-branch
-
+-}
   boundingListRec : ∀ {τ τ'} (v : [] Source.|- list τ') (vv : val v)
                              (e0 : [] Source.|- τ)
                              (e1 : τ' :: list τ' :: susp τ :: [] Source.|- τ)
@@ -45,6 +45,7 @@ module Bounding where
                              (E1 : ⟨⟨ τ' ⟩⟩ :: list ⟨⟨ τ' ⟩⟩ :: || τ || :: [] Complexity.|- || τ ||)
                              → valBound v vv E → expBound e0 E0
                              → ((h' : []  Source.|- τ') (vh' : val h') (H' : [] Complexity.|- ⟨⟨ τ' ⟩⟩)
+                               → valBound h' vh' H'
                                → (v' : [] Source.|- list τ') (vv' : val v') (V' : [] Complexity.|- list ⟨⟨ τ' ⟩⟩)
                                → valBound v' vv' V'
                                → (r : [] Source.|- susp τ) (vr : val r) (R : [] Complexity.|- || τ ||)
@@ -60,24 +61,23 @@ module Bounding where
     where usee0bound = e0b vbranch vvbranch n evals-branch
   boundingListRec .(x ::s xs) (cons-isval x xs vv vv₁) e0 e1 E E0 E1 (h' , t' , (vbxh' , vbxst') , h'::t'≤sE)
     e0b e1b vbranch vvbranch nbranch (evals-listrec-cons evals-branch) =
-    (cong-+ refl-s (fst usee1bound) trans l-proj-s) trans cong-lproj (listrec-steps-cons trans cong-listrec h'::t'≤sE) ,
-    weakeningVal' vvbranch (snd usee1bound) (r-proj-s trans cong-rproj (listrec-steps-cons trans cong-listrec h'::t'≤sE))
-    where
-      IH = boundingListRec xs vv₁ e0 e1 t' E0 E1 vbxst' e0b e1b
-      usee1bound = e1b x vv h' xs vv₁ t' vbxst'
-                   (delay (listrec xs e0 e1)) (delay-isval _) (listrec t' (1C +C E0) (1C +C E1))
-                   (λ { vr vvr ._ (listrec-evals {_} {n2} D D') →
-                   let useIH = IH vr vvr n2 (transport (λ H → evals-listrec-branch e0 e1 H vr n2) (! (fst (val-evals-inversion vv₁ D))) D')
-                   in (cong-+ (Eq0C-≤0 (snd (val-evals-inversion vv₁ D))) refl-s trans +-unit-l) trans fst useIH , snd useIH } )
-                   vbranch vvbranch nbranch evals-branch
-      
+      (cong-+ refl-s (fst usee1bound) trans l-proj-s) trans cong-lproj (listrec-steps-cons trans cong-listrec h'::t'≤sE) ,
+      weakeningVal' vvbranch (snd usee1bound) (r-proj-s trans cong-rproj (listrec-steps-cons trans cong-listrec h'::t'≤sE))
+      where
+        IH = boundingListRec xs vv₁ e0 e1 t' E0 E1 vbxst' e0b e1b
+        usee1bound = e1b x vv h' vbxh' xs vv₁ t' vbxst'
+                     (delay (listrec xs e0 e1)) (delay-isval _) (listrec t' (1C +C E0) (1C +C E1))
+                     (λ { vr vvr ._ (listrec-evals {_} {n2} D D') →
+                     let useIH = IH vr vvr n2 (transport (λ H → evals-listrec-branch e0 e1 H vr n2) (! (fst (val-evals-inversion vv₁ D))) D')
+                     in (cong-+ (Eq0C-≤0 (snd (val-evals-inversion vv₁ D))) refl-s trans +-unit-l) trans fst useIH , snd useIH } )
+                     vbranch vvbranch nbranch evals-branch
 
   bounding : ∀{Γ τ} → (e : Γ Source.|- τ) → (Θ : Source.sctx [] Γ) 
                        → (a : substVal Θ) 
                        → (Θ' : Complexity.sctx [] ⟨⟨ Γ ⟩⟩c) 
                        → substBound Θ a Θ' 
                        → expBound (Source.subst e Θ) (Complexity.subst || e ||e Θ')
-  bounding unit Θ a Θ' sb unit unit-isval 0c unit-evals = l-proj-s , <>
+{-  bounding unit Θ a Θ' sb unit unit-isval 0c unit-evals = l-proj-s , <>
   bounding (var x) Θ a Θ' sb v vv c evals =
     inv1 (a x) evals trans l-proj-s ,
     weakeningVal' vv (transport-valBound (inv2 (a x) evals) (val-hprop (transport val (inv2 (a x) evals) (a x)) vv) _ (sb x)) r-proj-s
@@ -156,7 +156,8 @@ module Bounding where
              (r-proj (Complexity.subst || e ||e Θ')) , r-proj (Complexity.subst || e₁ ||e Θ') , ((snd IH1 , snd IH2) , r-proj-s)
     where
       IH1 = (bounding e Θ a Θ' sb _ vv _ evals) 
-      IH2 = (bounding e₁ Θ a Θ' sb _ vv₁ _ evals₁) 
+      IH2 = (bounding e₁ Θ a Θ' sb _ vv₁ _ evals₁)
+-}
 {-  bounding (rec e e₁ e₂) Θ a Θ' sb e' val-e' ._ (rec-evals {v = v} arg-evals branch-evals) =
     cong-+ (fst IH1) (fst lemma) trans l-proj-s , weakeningVal' val-e' (snd lemma) r-proj-s
     where
@@ -181,9 +182,14 @@ module Bounding where
               (Complexity.subst || e₂ ||e (Complexity.s-extend (Complexity.s-extend (Complexity.s-extend Θ'))))
               (snd IH1)
               (bounding e₁ Θ a Θ' sb)
-              (λ h' vh' H' v' vv' V' x r vr R x₁ v₁ vv₁ n x₂ →
-              let IH3 = bounding e₂ (Source.lem5' Θ h' v' r) {!!} {!!} {!!} {!!} {!!} {!!}
-              in {!!})
+              (λ h' vh' H' vbh'H' v' vv' V' vbv'V' r vr R vbrR v₁ vv₁ n x₂ →
+              let IH3 = bounding e₂ (Source.lem5' Θ h' v' r) (extend-substVal3 a vh' vv' vr) (Complexity.lem5' Θ' H' V' R)
+                        (extend-substBound3 sb vbh'H' vbv'V' vbrR) v₁ vv₁ n
+                        (transport (λ x → evals x v₁ n) {!!} x₂)
+              in
+              {!!} ,
+              {!!})
               v vv _ branch-evals
-  bounding true Θ a Θ' sb .true true-isval .0c true-evals = l-proj-s , r-proj-s
-  bounding false Θ a Θ' sb .false false-isval .0c false-evals = l-proj-s , r-proj-s
+{-  bounding true Θ a Θ' sb .true true-isval .0c true-evals = l-proj-s , r-proj-s
+  bounding false Θ a Θ' sb .false false-isval .0c false-evals = l-proj-s , r-proj-s-}
+  bounding _ = {!!}
