@@ -484,6 +484,10 @@ module Source where
   subst-compose4 Θ v' r e2 = ap (subst e2) (subst-compose2-lemma v' r e2 Θ) ∘
                            ! (subst-ss (lem4 v' r) (s-extend (s-extend Θ)) e2)
 
+  postulate
+    subst-compose5 : ∀ {Γ Γ' τ τ1 τ2 τ3} (Θ : sctx Γ Γ') (e : (τ1 :: (τ2 :: (τ3 :: Γ'))) |- τ) (v1 : Γ |- τ1) (v2 : Γ |- τ2) (v3 : Γ |- τ3)
+                 → subst (subst e (s-extend (s-extend (s-extend (Θ))))) (lem5 v1 v2 v3) == subst e (lem5' Θ v1 v2 v3)
+
   --closed values of the source language
   data val : ∀ {τ} → [] |- τ → Set where
     z-isval : val z

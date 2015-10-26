@@ -8,7 +8,7 @@ open import Bounding-Lemmas
 
 module Bounding where
 
-{-  boundingRec : ∀ {τ} (v : [] Source.|- nat) (val-v : val v)
+  boundingRec : ∀ {τ} (v : [] Source.|- nat) (val-v : val v)
                       (e0 : [] Source.|- τ)
                       (e1 : (nat :: susp τ :: []) Source.|- τ)
                       (E : [] Complexity.|- nat)
@@ -36,7 +36,7 @@ module Bounding where
                            let useIH = IH vr vvr n2 (transport (λ H → evals-rec-branch e0 e1 H vr n2) (! (fst (val-evals-inversion val-v' D))) D') 
                             in (cong-+ (Eq0C-≤0 (snd (val-evals-inversion val-v' D))) refl-s trans +-unit-l) trans fst useIH , snd useIH } )
                          vbranch val-vbranch nbranch evals-branch
--}
+
   boundingListRec : ∀ {τ τ'} (v : [] Source.|- list τ') (vv : val v)
                              (e0 : [] Source.|- τ)
                              (e1 : τ' :: list τ' :: susp τ :: [] Source.|- τ)
@@ -77,7 +77,7 @@ module Bounding where
                        → (Θ' : Complexity.sctx [] ⟨⟨ Γ ⟩⟩c) 
                        → substBound Θ a Θ' 
                        → expBound (Source.subst e Θ) (Complexity.subst || e ||e Θ')
-{-  bounding unit Θ a Θ' sb unit unit-isval 0c unit-evals = l-proj-s , <>
+  bounding unit Θ a Θ' sb unit unit-isval 0c unit-evals = l-proj-s , <>
   bounding (var x) Θ a Θ' sb v vv c evals =
     inv1 (a x) evals trans l-proj-s ,
     weakeningVal' vv (transport-valBound (inv2 (a x) evals) (val-hprop (transport val (inv2 (a x) evals) (a x)) vv) _ (sb x)) r-proj-s
@@ -157,22 +157,6 @@ module Bounding where
     where
       IH1 = (bounding e Θ a Θ' sb _ vv _ evals) 
       IH2 = (bounding e₁ Θ a Θ' sb _ vv₁ _ evals₁)
--}
-{-  bounding (rec e e₁ e₂) Θ a Θ' sb e' val-e' ._ (rec-evals {v = v} arg-evals branch-evals) =
-    cong-+ (fst IH1) (fst lemma) trans l-proj-s , weakeningVal' val-e' (snd lemma) r-proj-s
-    where
-      IH1 = bounding e Θ a Θ' sb _ (evals-val arg-evals) _ arg-evals
-      lemma = boundingRec v (evals-val arg-evals) _ 
-              (Source.subst e₂ (Source.s-extend (Source.s-extend Θ))) _ _ (Complexity.subst || e₂ ||e (Complexity.s-extend (Complexity.s-extend Θ')))
-              (snd IH1)
-              (bounding e₁ Θ a Θ' sb )
-              (λ v' valv' E' valBoundv' r valr R valBoundR v'' valv'' c'' evals-rec →
-              let IH3 = (bounding e₂ (Source.lem4' Θ v' r) (extend-substVal2 a valv' valr) (Complexity.lem4' Θ' E' R)
-                        (extend-substBound2 sb valBoundv' valBoundR) v'' valv'' c'' (transport (λ x → evals x v'' c'')
-                        (Source.subst-compose4 Θ v' r e₂) evals-rec))
-              in (fst IH3 trans cong-refl (ap l-proj (! (Complexity.subst-compose4 Θ' E' R || e₂ ||e))) ,
-                 weakeningVal' valv'' (snd IH3) (cong-rproj (cong-refl (! (Complexity.subst-compose4 Θ' E' R || e₂ ||e))))))
-                 e' val-e' _ branch-evals-}
   bounding (listrec e e₁ e₂) Θ a Θ' sb v vv ._ (listrec-evals {v = k} arg-evals branch-evals) =
     (cong-+ (fst IH1) (fst lemma) trans l-proj-s) , weakeningVal' vv (snd lemma) r-proj-s
     where
@@ -185,11 +169,10 @@ module Bounding where
               (λ h' vh' H' vbh'H' v' vv' V' vbv'V' r vr R vbrR v₁ vv₁ n x₂ →
               let IH3 = bounding e₂ (Source.lem5' Θ h' v' r) (extend-substVal3 a vh' vv' vr) (Complexity.lem5' Θ' H' V' R)
                         (extend-substBound3 sb vbh'H' vbv'V' vbrR) v₁ vv₁ n
-                        (transport (λ x → evals x v₁ n) {!!} x₂)
+                        (transport (λ x → evals x v₁ n) (Source.subst-compose5 Θ e₂ h' v' r) x₂)
               in
-              {!!} ,
-              {!!})
+              fst IH3 trans cong-refl (ap l-proj (! (Complexity.subst-compose5 Θ' || e₂ ||e H' V' R))) ,
+              weakeningVal' vv₁ (snd IH3) (cong-rproj (cong-refl (! (Complexity.subst-compose5 Θ' || e₂ ||e H' V' R)))))
               v vv _ branch-evals
-{-  bounding true Θ a Θ' sb .true true-isval .0c true-evals = l-proj-s , r-proj-s
-  bounding false Θ a Θ' sb .false false-isval .0c false-evals = l-proj-s , r-proj-s-}
-  bounding _ = {!!}
+  bounding true Θ a Θ' sb .true true-isval .0c true-evals = l-proj-s , r-proj-s
+  bounding false Θ a Θ' sb .false false-isval .0c false-evals = l-proj-s , r-proj-s

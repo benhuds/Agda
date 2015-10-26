@@ -521,6 +521,10 @@ module Complexity where
                  → subst (subst e2 (s-extend (s-extend Θ))) (lem4 v' r) == subst e2 (lem4' Θ v' r)
   subst-compose4 Θ v' r e2 = subst-compose2 Θ e2 v' r
 
+  postulate
+    subst-compose5 : ∀ {Γ Γ' τ τ1 τ2 τ3} (Θ : sctx Γ Γ') (e : (τ1 :: (τ2 :: (τ3 :: Γ'))) |- τ) (v1 : Γ |- τ1) (v2 : Γ |- τ2) (v3 : Γ |- τ3)
+                 → subst (subst e (s-extend (s-extend (s-extend (Θ))))) (lem5 v1 v2 v3) == subst e (lem5' Θ v1 v2 v3)
+
 -------
 
   -- define 'stepping' as a datatype (fig. 1 of proof)
