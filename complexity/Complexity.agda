@@ -506,13 +506,7 @@ module Complexity where
                  → subst (subst e1 (s-extend (s-extend Θ))) (lem4 v1 v2) == subst e1 (lem4' Θ v1 v2)
   subst-compose2 Θ e1 v1 v2 = ap (subst e1) (subst-compose2-lemma v1 v2 e1 Θ) ∘
                            ! (subst-ss (lem4 v1 v2) (s-extend (s-extend Θ)) e1)
-{-
-  subst-compose2 : ∀ {Γ Γ' τ} (Θ : sctx Γ Γ') (n : Γ |- nat) (e1 : Γ' |- τ) (e2 : (nat :: (τ :: Γ')) |- τ)
-                →  subst (subst e2 (s-extend (s-extend Θ))) (lem4 n ((rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ)))))) ==
-                   subst e2 (lem4' Θ n ((rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ))))))
-  subst-compose2 Θ n e1 e2 = ap (subst e2) (subst-compose2-lemma n ((rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ))))) e2 Θ) ∘
-                             ! (subst-ss (lem4 n ((rec n (subst e1 Θ) (subst e2 (s-extend (s-extend Θ)))))) (s-extend (s-extend Θ)) e2)
--}
+
   subst-compose3 : ∀ {Γ Γ' τ τ1 τ2} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ' |- τ1) (v2 : Γ' |- τ2)
                  → subst (subst e1 (lem4 v1 v2)) Θ == subst e1 (lem4' Θ (subst v1 Θ) (subst v2 Θ))
   subst-compose3 Θ e1 v1 v2 = ap (subst e1) (subst-compose3-lemma Θ e1 v1 v2) ∘ ! (subst-ss Θ (lem4 v1 v2) e1)
@@ -521,9 +515,31 @@ module Complexity where
                  → subst (subst e2 (s-extend (s-extend Θ))) (lem4 v' r) == subst e2 (lem4' Θ v' r)
   subst-compose4 Θ v' r e2 = subst-compose2 Θ e2 v' r
 
-  postulate
-    subst-compose5 : ∀ {Γ Γ' τ τ1 τ2 τ3} (Θ : sctx Γ Γ') (e : (τ1 :: (τ2 :: (τ3 :: Γ'))) |- τ) (v1 : Γ |- τ1) (v2 : Γ |- τ2) (v3 : Γ |- τ3)
+  fuse4 : ∀ {Γ Γ' τ τ1 τ2 τ3} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (v3 : Γ |- τ3) (Θ : sctx Γ Γ') (x : τ ∈ τ2 :: τ3 :: Γ')
+        → subst (s-extend (s-extend Θ) x) (lem3' (lem3' ids v3) v2) == lem3' (lem3' Θ v3) v2 x
+  fuse4 v1 v2 v3 Θ x = subst (s-extend (s-extend Θ) x) (lem3' (lem3' ids v3) v2) =⟨ {!!} ⟩
+                       (lem3' (lem3' Θ v3) v2 x ∎)
+
+--subst (s-extend (s-extend Θ) x) (lem5 v1 v2 v3 sr iS) =⟨ Refl ⟩
+                       --subst (s-extend (s-extend Θ) x) (lem3' (lem3' ids v3) v2) =⟨ ! (sr-comp (lem5 v1 v2 v3) iS (s-extend (s-extend Θ) x)) ⟩
+                       --subst (ren (s-extend (s-extend Θ) x) iS) (lem5 v1 v2 v3) =⟨ sr-comp (lem5 v1 v2 v3) iS (s-extend (s-extend Θ) x) ⟩
+                       --subst (s-extend (s-extend Θ) x) (lem5 v1 v2 v3 sr iS) =⟨ Refl ⟩
+
+  subst-compose5-lemma-lemma : ∀ {Γ Γ' τ τ1 τ2 τ3 τ'} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (v3 : Γ |- τ3) (e1 : τ1 :: τ2 :: τ3 :: Γ' |- τ) (Θ : sctx Γ Γ') (x : τ' ∈ τ1 :: τ2 :: τ3 :: Γ')
+                             → _==_ {_} {_} ((lem5 v1 v2 v3 ss s-extend (s-extend (s-extend Θ))) x) (lem5' Θ v1 v2 v3 x)
+  subst-compose5-lemma-lemma v1 v2 v3 e Θ i0 = Refl
+  subst-compose5-lemma-lemma v1 v2 v3 e Θ (iS x) = (lem5 v1 v2 v3 ss s-extend (s-extend (s-extend Θ))) (iS x) =⟨ sr-comp (lem5 v1 v2 v3) iS (s-extend (s-extend Θ) x) ⟩
+                                                   subst (s-extend (s-extend Θ) x) (lem3' (lem3' ids v3) v2) =⟨ fuse4 v1 v2 v3 Θ x ⟩
+                                                   (lem3' (lem3' Θ v3) v2 x ∎)
+
+  subst-compose5-lemma : ∀ {Γ Γ' τ τ1 τ2 τ3} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (v3 : Γ |- τ3) (e : τ1 :: τ2 :: τ3 :: Γ' |- τ) (Θ : sctx Γ Γ')
+                       → _==_ {_} {sctx Γ (τ1 :: τ2 :: τ3 :: Γ')} (lem5 v1 v2 v3 ss (s-extend (s-extend (s-extend Θ)))) (lem5' Θ v1 v2 v3)
+  subst-compose5-lemma v1 v2 v3 e Θ = λ=i (λ τ → λ= (λ x → subst-compose5-lemma-lemma v1 v2 v3 e Θ x))
+
+  subst-compose5 : ∀ {Γ Γ' τ τ1 τ2 τ3} (Θ : sctx Γ Γ') (e : (τ1 :: (τ2 :: (τ3 :: Γ'))) |- τ) (v1 : Γ |- τ1) (v2 : Γ |- τ2) (v3 : Γ |- τ3)
                  → subst (subst e (s-extend (s-extend (s-extend (Θ))))) (lem5 v1 v2 v3) == subst e (lem5' Θ v1 v2 v3)
+  subst-compose5 Θ e v1 v2 v3 = ap (subst e) (subst-compose5-lemma v1 v2 v3 e Θ) ∘
+                                ! (subst-ss (lem5 v1 v2 v3) (s-extend (s-extend (s-extend Θ))) e)
 
 -------
 
