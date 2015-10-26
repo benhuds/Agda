@@ -541,6 +541,7 @@ module Complexity where
     +-unit-l' : ∀ {Γ} {e : Γ |- C} → e ≤s (plusC 0C e) 
     +-unit-r : ∀ {Γ} {e : Γ |- C} → (plusC e 0C) ≤s e
     +-unit-r' : ∀ {Γ} {e : Γ |- C} → e ≤s (plusC e 0C) 
+    +-1-r : ∀ {Γ} {e : Γ |- C} → e ≤s (plusC e 1C) 
     +-assoc : ∀ {Γ} {e1 e2 e3 : Γ |- C} → (plusC e1 (plusC e2 e3)) ≤s (plusC (plusC e1 e2) e3)
     +-assoc' : ∀ {Γ} {e1 e2 e3 : Γ |- C} → (plusC e1 (plusC e2 e3)) ≤s (plusC (plusC e1 e2) e3)
     refl-+ : ∀ {Γ} {e0 e1 : Γ |- C} → (plusC e0 e1) ≤s (plusC e1 e0)
