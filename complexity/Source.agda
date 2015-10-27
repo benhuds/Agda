@@ -484,15 +484,23 @@ module Source where
   subst-compose4 Θ v' r e2 = ap (subst e2) (subst-compose2-lemma v' r e2 Θ) ∘
                            ! (subst-ss (lem4 v' r) (s-extend (s-extend Θ)) e2)
 
+  fuse3-lemma : ∀ {Γ Γ' τ τ1 τ2 τ3} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (v3 : Γ |- τ3) (Θ : sctx Γ Γ') (x : τ ∈ Γ')
+              → (lem3' (lem3' ids v3) v2 ss q∙ (q∙ Θ)) x == Θ x
+  fuse3-lemma v1 v2 v3 Θ x = subst (ren (wkn (Θ x)) iS) (lem3' (q v3) v2) =⟨ sr-comp (lem3' (q v3) v2) iS (wkn (Θ x)) ⟩
+                             subst (wkn (Θ x)) (lem3' (q v3) v2 sr iS) =⟨ Refl ⟩
+                             subst (ren (Θ x) iS) (lem3' (q v3) v2 sr iS) =⟨ sr-comp (lem3' (q v3) v2 sr iS) iS (Θ x) ⟩
+                             subst (Θ x) ((lem3' (q v3) v2 sr iS) sr iS) =⟨ Refl ⟩
+                             subst (Θ x) ids =⟨ ! (subst-id (Θ x)) ⟩
+                             (Θ x ∎)
+
   fuse3 : ∀ {Γ Γ' τ τ1 τ2 τ3} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (v3 : Γ |- τ3) (Θ : sctx Γ Γ') (x : τ ∈ τ2 :: τ3 :: Γ')
         → subst (s-extend (s-extend Θ) x) (lem3' (lem3' ids v3) v2) == lem3' (lem3' Θ v3) v2 x
-  fuse3 v1 v2 v3 Θ x = subst (s-extend (s-extend Θ) x) (lem3' (lem3' ids v3) v2) =⟨ {!!} ⟩
-                       (lem3' (lem3' Θ v3) v2 x ∎)
-
---subst (s-extend (s-extend Θ) x) (lem5 v1 v2 v3 sr iS) =⟨ Refl ⟩
-                       --subst (s-extend (s-extend Θ) x) (lem3' (lem3' ids v3) v2) =⟨ ! (sr-comp (lem5 v1 v2 v3) iS (s-extend (s-extend Θ) x)) ⟩
-                       --subst (ren (s-extend (s-extend Θ) x) iS) (lem5 v1 v2 v3) =⟨ sr-comp (lem5 v1 v2 v3) iS (s-extend (s-extend Θ) x) ⟩
-                       --subst (s-extend (s-extend Θ) x) (lem5 v1 v2 v3 sr iS) =⟨ Refl ⟩
+  fuse3 v1 v2 v3 Θ i0 = Refl
+  fuse3 v1 v2 v3 Θ (iS i0) = Refl
+  fuse3 v1 v2 v3 Θ (iS (iS x)) = subst (wkn (wkn (Θ x))) (lem3' (lem3' ids v3) v2) =⟨ subst-ss (lem3' (lem3' ids v3) v2) (q∙ (q∙ Θ)) (var x) ⟩
+                                 subst (var x) (lem3' (lem3' ids v3) v2 ss q∙ (q∙ Θ)) =⟨ fuse3-lemma v1 v2 v3 Θ x ⟩
+                                 subst (var x) Θ =⟨ Refl ⟩
+                                 (Θ x ∎)
 
   subst-compose5-lemma-lemma : ∀ {Γ Γ' τ τ1 τ2 τ3 τ'} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (v3 : Γ |- τ3) (e1 : τ1 :: τ2 :: τ3 :: Γ' |- τ)
                                (Θ : sctx Γ Γ') (x : τ' ∈ τ1 :: τ2 :: τ3 :: Γ')
