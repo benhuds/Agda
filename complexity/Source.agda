@@ -429,9 +429,9 @@ module Source where
 
   fuse1 : ∀ {Γ Γ' τ τ'} (v : Γ |- τ') (Θ : sctx Γ Γ') (x : τ ∈ Γ') → (q v ss q∙ Θ) x == Θ x
   fuse1 v Θ x = subst (ren (Θ x) iS) (q v) =⟨ sr-comp (q v) iS (Θ x) ⟩
-             subst (Θ x) (q v sr iS) =⟨ Refl ⟩
-             subst (Θ x) ids =⟨ ! (subst-id (Θ x)) ⟩
-             (Θ x ∎)
+                subst (Θ x) (q v sr iS) =⟨ Refl ⟩
+                subst (Θ x) ids =⟨ ! (subst-id (Θ x)) ⟩
+                (Θ x ∎)
 
   subst-compose-lemma-lemma : ∀ {Γ Γ' τ τ'} (v : Γ |- τ') (Θ : sctx Γ Γ') (x : τ ∈ τ' :: Γ')
                             → _==_ {_} {Γ |- τ} (_ss_ (q v) (s-extend Θ) x) (lem3' Θ v x)
@@ -494,7 +494,8 @@ module Source where
                        --subst (ren (s-extend (s-extend Θ) x) iS) (lem5 v1 v2 v3) =⟨ sr-comp (lem5 v1 v2 v3) iS (s-extend (s-extend Θ) x) ⟩
                        --subst (s-extend (s-extend Θ) x) (lem5 v1 v2 v3 sr iS) =⟨ Refl ⟩
 
-  subst-compose5-lemma-lemma : ∀ {Γ Γ' τ τ1 τ2 τ3 τ'} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (v3 : Γ |- τ3) (e1 : τ1 :: τ2 :: τ3 :: Γ' |- τ) (Θ : sctx Γ Γ') (x : τ' ∈ τ1 :: τ2 :: τ3 :: Γ')
+  subst-compose5-lemma-lemma : ∀ {Γ Γ' τ τ1 τ2 τ3 τ'} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (v3 : Γ |- τ3) (e1 : τ1 :: τ2 :: τ3 :: Γ' |- τ)
+                               (Θ : sctx Γ Γ') (x : τ' ∈ τ1 :: τ2 :: τ3 :: Γ')
                              → _==_ {_} {_} ((lem5 v1 v2 v3 ss s-extend (s-extend (s-extend Θ))) x) (lem5' Θ v1 v2 v3 x)
   subst-compose5-lemma-lemma v1 v2 v3 e Θ i0 = Refl
   subst-compose5-lemma-lemma v1 v2 v3 e Θ (iS x) = (lem5 v1 v2 v3 ss s-extend (s-extend (s-extend Θ))) (iS x) =⟨ sr-comp (lem5 v1 v2 v3) iS (s-extend (s-extend Θ) x) ⟩

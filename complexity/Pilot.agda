@@ -302,7 +302,7 @@ module Pilot where
     subst z' Θ = z'
     subst (suc' e) Θ = suc' (subst e Θ)
     subst (rec' e e₁ e₂ p) Θ = rec' (subst e Θ) (subst e₁ Θ) (subst e₂ (s-extend (s-extend Θ))) (transport (λ x → x) {!!} (subst-s {e = e} (λ τ x → {!!})))
-
+                               --(transport (λ x → x) {!!} (subst-s {e = e} (λ τ x → {!!})))
 
 
 ------weakening and substitution lemmas
