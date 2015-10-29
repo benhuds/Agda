@@ -5,13 +5,13 @@ module Pilot where
 
   data CTp : Set where
     unit : CTp
-    nat : CTp
+    nat : CTp -- discrete natural numbers ♭nat; ≤ interpreted as =
     _->c_ : CTp → CTp → CTp
     _×c_ : CTp → CTp → CTp
     list : CTp → CTp
     bool : CTp
     C : CTp
-    nat≤ : CTp
+    rnat : CTp -- natural numbers with ≤ actually interpreted as ≤
 
   -- represent a context as a list of types
   Ctx = List CTp
@@ -29,74 +29,33 @@ module Pilot where
     sctx Γ Γ' = ∀ {τ} → τ ∈ Γ' → Γ |- τ
 
     data _|-_ : Ctx → CTp → Set where
-      unit : ∀ {Γ}
-         → Γ |- unit
-      0C : ∀ {Γ}
-       → Γ |- C
-      1C : ∀ {Γ}
-       → Γ |- C
-      plusC : ∀ {Γ}
-         → Γ |- C
-         → Γ |- C
-         → Γ |- C
-      var : ∀ {Γ τ}
-        → τ ∈ Γ
-        → Γ |- τ
-      z : ∀ {Γ}
-        → Γ |- nat
-      suc : ∀ {Γ}
-        → (e : Γ |- nat)        
-        → Γ |- nat
-      rec : ∀ {Γ τ}
-        → Γ |- nat
-        → Γ |- τ
-        → (nat :: (τ :: Γ)) |- τ
-        → Γ |- τ
-      z' : ∀ {Γ} → Γ |- nat≤
-      suc' : ∀ {Γ}
-         → Γ |- nat≤
-         → Γ |- nat≤
-      rec' : ∀ {Γ τ}
-         → Γ |- nat≤ 
-         → (Z' : Γ |- τ)
-         → (S' : (nat≤ :: (τ :: Γ)) |- τ)
-         → (P : Z' ≤s subst S' (lem3' (lem3' ids Z') z'))
-         → Γ |- τ
-      lam : ∀ {Γ τ ρ}
-        → (ρ :: Γ) |- τ
-        → Γ |- (ρ ->c τ)
-      app : ∀ {Γ τ1 τ2}
-        → Γ |- (τ2 ->c τ1)
-        → Γ |- τ2
-        → Γ |- τ1
-      prod : ∀ {Γ τ1 τ2}
-         → Γ |- τ1
-         → Γ |- τ2
-         → Γ |- (τ1 ×c τ2)
-      l-proj : ∀ {Γ τ1 τ2}
-           → Γ |- (τ1 ×c τ2)
-           → Γ |- τ1
-      r-proj : ∀ {Γ τ1 τ2}
-           → Γ |- (τ1 ×c τ2)
-           → Γ |- τ2
+      unit : ∀ {Γ} → Γ |- unit
+      0C : ∀ {Γ} → Γ |- C
+      1C : ∀ {Γ}→ Γ |- C
+      plusC : ∀ {Γ} → Γ |- C → Γ |- C → Γ |- C
+      var : ∀ {Γ τ} → τ ∈ Γ → Γ |- τ
+      z : ∀ {Γ} → Γ |- nat
+      s : ∀ {Γ} → (e : Γ |- nat) → Γ |- nat
+      rec : ∀ {Γ τ} → Γ |- nat → Γ |- τ → (nat :: (τ :: Γ)) |- τ → Γ |- τ
+      lam : ∀ {Γ τ ρ} → (ρ :: Γ) |- τ → Γ |- (ρ ->c τ)
+      app : ∀ {Γ τ1 τ2} → Γ |- (τ2 ->c τ1) → Γ |- τ2 → Γ |- τ1
+      rz : ∀ {Γ} → Γ |- rnat
+      rs : ∀ {Γ} → Γ |- rnat → Γ |- rnat
+      rrec : ∀ {Γ τ} → Γ |- rnat → (Z' : Γ |- τ) → (S' : Γ |- (rnat ->c (τ ->c τ))) → (P : Z' ≤s (app (app S' rz) Z')) → Γ |- τ
+      --→ (S' : (nat≤ :: (τ :: Γ)) |- τ) → (P : Z' ≤s subst S' (lem3' (lem3' ids Z') z')) (what we're doing is the same but just avoids termination problems)
+      prod : ∀ {Γ τ1 τ2} → Γ |- τ1 → Γ |- τ2 → Γ |- (τ1 ×c τ2)
+      l-proj : ∀ {Γ τ1 τ2} → Γ |- (τ1 ×c τ2) → Γ |- τ1
+      r-proj : ∀ {Γ τ1 τ2} → Γ |- (τ1 ×c τ2) → Γ |- τ2
       nil : ∀ {Γ τ} → Γ |- list τ
       _::c_ : ∀ {Γ τ} → Γ |- τ → Γ |- list τ → Γ |- list τ
       listrec : ∀ {Γ τ τ'} → Γ |- list τ → Γ |- τ' → (τ :: (list τ :: (τ' :: Γ))) |- τ' → Γ |- τ'
       true : ∀ {Γ} → Γ |- bool
       false : ∀ {Γ} → Γ |- bool
-  -- define 'stepping' as a datatype (fig. 1 of proof)
+
     data _≤s_ : ∀ {Γ T} → Γ |- T → Γ |- T → Set where
-      refl-s : ∀ {Γ T}
-           → {e : Γ |- T}
-           → e ≤s e
-      trans-s : ∀ {Γ T}
-            → {e e' e'' : Γ |- T}
-            → e ≤s e' → e' ≤s e''
-            → e ≤s e''
-      plus-s : ∀ {Γ}
-           → {e1 e2 n1 n2 : Γ |- C}
-           → e1 ≤s n1 → e2 ≤s n2
-           → (plusC e1 e2) ≤s (plusC n1 n2)
+      refl-s : ∀ {Γ T} → {e : Γ |- T} → e ≤s e
+      trans-s : ∀ {Γ T} → {e e' e'' : Γ |- T} → e ≤s e' → e' ≤s e'' → e ≤s e''
+      plus-s : ∀ {Γ} → {e1 e2 n1 n2 : Γ |- C} → e1 ≤s n1 → e2 ≤s n2 → (plusC e1 e2) ≤s (plusC n1 n2)
       cong-refl : ∀ {Γ τ} {e e' : Γ |- τ} → e == e' → e ≤s e'
       +-unit-l : ∀ {Γ} {e : Γ |- C} → (plusC 0C e) ≤s e
       +-unit-l' : ∀ {Γ} {e : Γ |- C} → e ≤s (plusC 0C e) 
@@ -109,42 +68,24 @@ module Pilot where
       cong-lproj : ∀ {Γ τ τ'} {e e' : Γ |- (τ ×c τ')} → e ≤s e' → (l-proj e) ≤s (l-proj e')    
       cong-rproj : ∀ {Γ τ τ'} {e e' : Γ |- (τ ×c τ')} → e ≤s e' → (r-proj e) ≤s (r-proj e')
       cong-app   : ∀ {Γ τ τ'} {e e' : Γ |- (τ ->c τ')} {e1 : Γ |- τ} → e ≤s e' → (app e e1) ≤s (app e' e1)
-      cong-subst : ∀ {Γ Γ' τ} {e1 e2 : Γ' |- τ} {Θ : sctx Γ Γ'} → e1 ≤s e2 → (subst e1 Θ) ≤s (subst e2 Θ)
-      subst-s : ∀ {Γ Γ' τ} {Θ Θ' : sctx Γ Γ'} {e : Γ' |- τ} → (∀ τ → (x : τ ∈ Γ') → Θ x ≤s Θ' x) → subst e Θ ≤s subst e Θ'
+      ren-cong : ∀ {Γ Γ' τ} {e1 e2 : Γ' |- τ} {ρ : rctx Γ Γ'} → e1 ≤s e2 → (ren e1 ρ) ≤s (ren e2 ρ)
+      subst-cong : ∀ {Γ Γ' τ} {e1 e2 : Γ' |- τ} {Θ : sctx Γ Γ'} → e1 ≤s e2 → (subst e1 Θ) ≤s (subst e2 Θ)
+      subst-cong2 : ∀ {Γ Γ' τ} {Θ Θ' : sctx Γ Γ'} {e : Γ' |- τ} → (∀ τ → (x : τ ∈ Γ') → Θ x ≤s Θ' x) → subst e Θ ≤s subst e Θ'
       cong-rec : ∀ {Γ τ} {e e' : Γ |- nat} {e0 : Γ |- τ} {e1 : (nat :: (τ :: Γ)) |- τ}
-             → e ≤s e'
-             → rec e e0 e1 ≤s rec e' e0 e1
+                → e ≤s e' → rec e e0 e1 ≤s rec e' e0 e1
       cong-listrec : ∀ {Γ τ τ'} {e e' : Γ |- list τ} {e0 : Γ |- τ'} {e1 : (τ :: (list τ :: (τ' :: Γ))) |- τ'}
-                 → e ≤s e'
-                 → listrec e e0 e1 ≤s listrec e' e0 e1
-   -- lam-s : ∀ {Γ T T'}
-    --      → {e : (T :: Γ) |- T'}
-      --    → {e2 : Γ |- T}
-        --  → subst e (q e2) ≤s app (lam e) e2
-      l-proj-s : ∀ {Γ T1 T2}
-             → {e1 : Γ |- T1}  {e2 : Γ |- T2}
-             → e1 ≤s (l-proj (prod e1 e2))
-      r-proj-s : ∀ {Γ T1 T2}
-             → {e1 : Γ |- T1} → {e2 : Γ |- T2}
-             → e2 ≤s (r-proj (prod e1 e2))
-      rec-steps-z : ∀ {Γ T}
-                → {e0 : Γ |- T}
-                → {e1 : (nat :: (T :: Γ)) |- T}
-                → e0 ≤s (rec z e0 e1)
-      rec-steps-s : ∀ {Γ T}
-                  → {e : Γ |- nat}
-                  → {e0 : Γ |- T}
-                  → {e1 : (nat :: (T :: Γ)) |- T}
-                  → subst e1 (lem4 e (rec e e0 e1)) ≤s (rec (suc e) e0 e1)
-      listrec-steps-nil : ∀ {Γ τ τ'}
-                      → {e0 : Γ |- τ'}
-                      → {e1 : (τ :: (list τ :: (τ' :: Γ))) |- τ'}
-                      → e0 ≤s (listrec nil e0 e1)
-      listrec-steps-cons : ∀ {Γ τ τ'}
-                         → {h : Γ |- τ} {t : Γ |- list τ}
-                         → {e0 : Γ |- τ'}
-                         → {e1 : (τ :: (list τ :: (τ' :: Γ))) |- τ'}
+                 → e ≤s e' → listrec e e0 e1 ≤s listrec e' e0 e1
+      lam-s : ∀ {Γ T T'} → {e : (T :: Γ) |- T'} → {e2 : Γ |- T} → subst e (q e2) ≤s app (lam e) e2
+      l-proj-s : ∀ {Γ T1 T2} → {e1 : Γ |- T1}  {e2 : Γ |- T2} → e1 ≤s (l-proj (prod e1 e2))
+      r-proj-s : ∀ {Γ T1 T2} → {e1 : Γ |- T1} → {e2 : Γ |- T2} → e2 ≤s (r-proj (prod e1 e2))
+      rec-steps-z : ∀ {Γ T} → {e0 : Γ |- T} → {e1 : (nat :: (T :: Γ)) |- T} → e0 ≤s (rec z e0 e1)
+      rec-steps-s : ∀ {Γ T} → {e : Γ |- nat} → {e0 : Γ |- T} → {e1 : (nat :: (T :: Γ)) |- T} → subst e1 (lem4 e (rec e e0 e1)) ≤s (rec (s e) e0 e1)
+      listrec-steps-nil : ∀ {Γ τ τ'} → {e0 : Γ |- τ'} → {e1 : (τ :: (list τ :: (τ' :: Γ))) |- τ'}
+                        → e0 ≤s (listrec nil e0 e1)
+      listrec-steps-cons : ∀ {Γ τ τ'} → {h : Γ |- τ} {t : Γ |- list τ}
+                         → {e0 : Γ |- τ'} → {e1 : (τ :: (list τ :: (τ' :: Γ))) |- τ'}
                          → subst e1 (lem5 h t (listrec t e0 e1)) ≤s (listrec (h ::c t) e0 e1)
+
     rctx : Ctx → Ctx → Set
     rctx Γ Γ' = ∀ {τ} → τ ∈ Γ' → τ ∈ Γ
 
@@ -185,7 +126,7 @@ module Pilot where
     ren (plusC e e₁) ρ = plusC (ren e ρ) (ren e₁ ρ)
     ren (var x) ρ = var (ρ x)
     ren z ρ = z
-    ren (suc e) ρ = suc (ren e ρ)
+    ren (s e) ρ = s (ren e ρ)
     ren (rec e e₁ e₂) ρ = rec (ren e ρ) (ren e₁ ρ) (ren e₂ (r-extend (r-extend ρ)))
     ren (lam e) ρ = lam (ren e (r-extend ρ))
     ren (app e e₁) ρ = app (ren e ρ) (ren e₁ ρ)
@@ -197,9 +138,9 @@ module Pilot where
     ren true ρ = true
     ren false ρ = false
     ren (listrec e e₁ e₂) ρ = listrec (ren e ρ) (ren e₁ ρ) (ren e₂ (r-extend (r-extend (r-extend ρ))))
-    ren z' ρ = z'
-    ren (suc' e) ρ = suc' (ren e ρ)
-    ren (rec' e e₁ e₂ p) ρ = rec' (ren e ρ) (ren e₁ ρ) (ren e₂ (r-extend (r-extend ρ))) {!!}
+    ren rz ρ = rz
+    ren (rs e) ρ = rs (ren e ρ)
+    ren (rrec e e₁ e₂ p) ρ = rrec (ren e ρ) (ren e₁ ρ) (ren e₂ ρ) (ren-cong p)
 
 {-    extend-ren-comp-lemma : ∀ {Γ Γ' Γ'' τ τ'} → (x : τ ∈ τ' :: Γ'') (ρ1 : rctx Γ Γ') (ρ2 : rctx Γ' Γ'')
                           → Id {_} {_} ((r-extend ρ1 ∙rr r-extend ρ2) x) (r-extend (ρ1 ∙rr ρ2) x)
@@ -279,7 +220,6 @@ module Pilot where
     lem5 : ∀ {Γ τ1 τ2 τ3} → Γ |- τ1 → Γ |- τ2 → Γ |- τ3 → sctx Γ (τ1 :: (τ2 :: (τ3 :: Γ)))
     lem5 e1 e2 e3 = lem5' ids e1 e2 e3
 
-    {-# NO_TERMINATION_CHECK #-}
     subst : ∀ {Γ Γ' τ} → Γ' |- τ → sctx Γ Γ' → Γ |- τ
     subst unit Θ = unit
     subst 0C Θ = 0C
@@ -287,7 +227,7 @@ module Pilot where
     subst (plusC e e₁) Θ = plusC (subst e Θ) (subst e₁ Θ)
     subst (var x) Θ = Θ x
     subst z Θ = z
-    subst (suc e) Θ = suc (subst e Θ)
+    subst (s e) Θ = s (subst e Θ)
     subst (rec e e₁ e₂) Θ = rec (subst e Θ) (subst e₁ Θ) (subst e₂ (s-extend (s-extend Θ)))
     subst (lam e) Θ = lam (subst e (s-extend Θ))
     subst (app e e₁) Θ = app (subst e Θ) (subst e₁ Θ)
@@ -299,10 +239,9 @@ module Pilot where
     subst true Θ = true
     subst false Θ = false
     subst (listrec e e₁ e₂) Θ = listrec (subst e Θ) (subst e₁ Θ) (subst e₂ (s-extend (s-extend (s-extend Θ))))
-    subst z' Θ = z'
-    subst (suc' e) Θ = suc' (subst e Θ)
-    subst (rec' e e₁ e₂ p) Θ = rec' (subst e Θ) (subst e₁ Θ) (subst e₂ (s-extend (s-extend Θ))) (transport (λ x → x) {!!} (subst-s {e = e} (λ τ x → {!!})))
-                               --(transport (λ x → x) {!!} (subst-s {e = e} (λ τ x → {!!})))
+    subst rz Θ = rz
+    subst (rs e) Θ = rs (subst e Θ)
+    subst (rrec e e₁ e₂ p) Θ = rrec (subst e Θ) (subst e₁ Θ) (subst e₂ Θ) (subst-cong p)
 
 
 ------weakening and substitution lemmas
