@@ -1,19 +1,20 @@
-{- INTERPRETATION -}
+{- INTERPRETATION OF NEW COMPLEXITY LANGUAGE -}
 
 open import Preliminaries
 open import Preorder-Max
-open import Complexity
+open import Pilot
 
 module Interpretation where
 
   -- interpret complexity types as preorders
   [_]t : CTp → PREORDER
   [ unit ]t = unit-p
-  [ nat ]t = Nat , nat-p
+  [ nat ]t = Nat , {!!}
   [ A ->c B ]t = [ A ]t ->p [ B ]t
   [ A ×c B ]t = [ A ]t ×p [ B ]t
   [ list A ]t = Nat , nat-p
   [ bool ]t = unit-p
+  [ rnat ]t = Nat , nat-p
   [ C ]t = Nat , nat-p
   
   -- interpret contexts as preorders
@@ -35,10 +36,32 @@ module Interpretation where
   interpE unit = monotone (λ x → <>) (λ x y x₁ → <>)
   interpE 0C = monotone (λ x → Z) (λ x y x₁ → <>)
   interpE 1C = monotone (λ x → S Z) (λ x y x₁ → <>)
+  interpE (plusC e e₁) = {!!}
+  interpE (var x) = lookup x
+  interpE z = monotone (λ x → Z) (λ x y x₁ → <>)
+  interpE (s e) = {!!}
+  interpE (rec e e₁ e₂) = {!!}
+  interpE (lam e) = lam' (interpE e)
+  interpE (app e e₁) = app' (interpE e) (interpE e₁)
+  interpE rz = {!!}
+  interpE (rs e) = {!!}
+  interpE (rrec e e₁ e₂ P) = {!!}
+  interpE (prod e e₁) = pair' (interpE e) (interpE e₁)
+  interpE (l-proj e) = fst' (interpE e)
+  interpE (r-proj e) = snd' (interpE e)
+  interpE nil = {!!}
+  interpE (e ::c e₁) = {!!}
+  interpE (listrec e e₁ e₂) = {!!}
+  interpE true = {!!}
+  interpE false = {!!}
+{-
+  interpE unit = monotone (λ x → <>) (λ x y x₁ → <>)
+  interpE 0C = monotone (λ x → Z) (λ x y x₁ → <>)
+  interpE 1C = monotone (λ x → S Z) (λ x y x₁ → <>)
   interpE (plusC e e₁) = monotone (λ x → {!!} Nat.+ {!!}) {!!}
   interpE (var x) = lookup x
   interpE z = monotone (λ x → Z) (λ x y x₁ → <>)
-  interpE (suc e) = monotone (λ x → S {!!}) (λ x y x₁ → {!!})
+  interpE (s e) = monotone (λ x → S {!!}) (λ x y x₁ → {!!})
   interpE (rec e e₁ e₂) = {!!}
   interpE (lam e) = lam' (interpE e)
   interpE (app e e₁) = app' (interpE e) (interpE e₁)
@@ -50,9 +73,10 @@ module Interpretation where
   interpE (listrec e e₁ e₂) = {!!}
   interpE true = {!!}
   interpE false = {!!}
-
+-}
   sound : ∀ {Γ τ} (e e' : Γ |- τ) → e ≤s e' → PREORDER≤ ([ Γ ]c ->p [ τ ]t) (interpE e) (interpE e')
-  sound {_} {τ} e .e refl-s k = Preorder-max-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
+  sound e e' d k = {!!}
+{-  sound {_} {τ} e .e refl-s k = Preorder-max-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
   sound {_} {τ} e e' (trans-s s s₁) k = {!!}
   sound ._ ._ (plus-s s s₁) x = {!!}
   sound e e' (cong-refl x) x₁ = {!!}
@@ -73,7 +97,7 @@ module Interpretation where
   sound e ._ r-proj-s x = {!!}
   sound ._ ._ rec-steps-s x = {!!}
   sound e ._ rec-steps-z x = {!!}
-
+-}
 {-
 
   cong-lemma : ∀ {Γ τ τ'}

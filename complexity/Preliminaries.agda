@@ -37,12 +37,17 @@ module Preliminaries where
        (f : A → B) → M == N → (f M) == (f N)
   ap f Refl = Refl
 
-  ap2 : {l1 l2 l3 : Level} {A : Set l1} {B : Set l2} {C : Set l3} {M N : A} {M' N' : B} (f : A -> B -> C) -> M == N -> M' == N' -> (f M M') == (f N N')
+  ap2 : {l1 l2 l3 : Level} {A : Set l1} {B : Set l2} {C : Set l3} {M N : A} {M' N' : B}
+        (f : A -> B -> C) -> M == N -> M' == N' -> (f M M') == (f N N')
   ap2 f Refl Refl = Refl
 
   ap3 : {l1 l2 l3 l4 : Level} {A : Set l1} {B : Set l2} {C : Set l3} {D : Set l4} {M N : A} {M' N' : B} {M'' N'' : C}
       (f : A → B → C → D) → M == N → M' == N' → M'' == N'' → (f M M' M'') == (f N N' N'')
   ap3 f Refl Refl Refl = Refl
+
+  ap4 : {l1 l2 l3 l4 l5 : Level} {A : Set l1} {B : Set l2} {C : Set l3} {D : Set l4} {E : Set l5} {M N : A} {M' N' : B} {M'' N'' : C} {M''' N''' : D}
+      (f : A → B → C → D → E) → M == N → M' == N' → M'' == N'' → M''' == N''' → (f M M' M'' M''') == (f N N' N'' N''')
+  ap4 f Refl Refl Refl Refl = Refl
 
   postulate
     -- function extensionality

@@ -1,23 +1,9 @@
-{- Name: Bowornmet (Ben) Hudson
-
---Preorders 2: Electric Boogaloo--
-
--}
+{- PREORDERS WITH MAXIMUMS -}
 
 open import Preliminaries
 
 module Preorder-Max where
 
-  {- Doing the same thing as we did in Preorder.agda but this
-     time we want to keep our end goal in mind and extend the
-     notion of preorders to include information about maximums
-     as well. This will make it easier to 'ensure' that functions
-     on nats are monotone (because they sometimes aren't - e.g.
-     sine, cosine, etc.) so we can give them a reasonable upper bound.
-     If we don't monotonize functions on nats then that makes bounding
-     more complicated. This also means we have to extend the idea of
-     maximums to all our other types...
-  -}
   record Preorder-max-str (A : Set) : Set1 where
     constructor preorder-max
     field
@@ -31,7 +17,34 @@ module Preorder-Max where
 
 ------------------------------------------
 
-  -- order on nats
+  -- DISCRETE NAT (♭N)
+  nat-eq : Nat → Nat → Set
+  nat-eq Z Z = Unit
+  nat-eq Z (S n) = Void
+  nat-eq (S m) Z = Void
+  nat-eq (S m) (S n) = nat-eq m n
+
+  nat-eq-refl : ∀ (x : Nat) → nat-eq x x
+  nat-eq-refl Z = <>
+  nat-eq-refl (S x) = nat-eq-refl x
+
+  nat-eq-trans : ∀ (x y z : Nat) → nat-eq x y → nat-eq y z → nat-eq x z
+  nat-eq-trans Z Z Z x x₁ = <>
+  nat-eq-trans Z Z (S z) x ()
+  nat-eq-trans Z (S y) z () x₁
+  nat-eq-trans (S x) Z z () x₂
+  nat-eq-trans (S x) (S y) Z x₁ ()
+  nat-eq-trans (S x) (S y) (S z) x₁ x₂ = nat-eq-trans x y z x₁ x₂
+
+  -- nat max
+  nat-eq-max : Nat → Nat → Nat
+  nat-eq-max Z n = n
+  nat-eq-max (S m) Z = S m
+  nat-eq-max (S m) (S n) = S (nat-eq-max m n)
+
+------------------------------------------
+
+  -- NAT WITH ≤ RELATION
   ≤nat : Nat → Nat → Set
   ≤nat Z Z = Unit
   ≤nat Z (S y) = Unit
