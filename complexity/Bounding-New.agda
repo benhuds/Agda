@@ -36,21 +36,21 @@ module Bounding-New where
                            let useIH = IH vr vvr n2 (transport (λ H → evals-rec-branch e0 e1 H vr n2) (! (fst (val-evals-inversion val-v' D))) D') 
                             in (cong-+ (Eq0C-≤0 (snd (val-evals-inversion val-v' D))) refl-s trans +-unit-l) trans fst useIH , snd useIH } )
                          vbranch val-vbranch nbranch evals-branch
-{-
+
   boundingListRec : ∀ {τ τ'} (v : [] Source.|- list τ') (vv : val v)
                              (e0 : [] Source.|- τ)
                              (e1 : τ' :: list τ' :: susp τ :: [] Source.|- τ)
-                             (E : [] Complexity.|- list ⟨⟨ τ' ⟩⟩)
-                             (E0 : [] Complexity.|- || τ ||)
-                             (E1 : ⟨⟨ τ' ⟩⟩ :: list ⟨⟨ τ' ⟩⟩ :: || τ || :: [] Complexity.|- || τ ||)
+                             (E : [] Pilot.|- list ⟨⟨ τ' ⟩⟩)
+                             (E0 : [] Pilot.|- || τ ||)
+                             (E1 : ⟨⟨ τ' ⟩⟩ :: list ⟨⟨ τ' ⟩⟩ :: || τ || :: [] Pilot.|- || τ ||)
                              → valBound v vv E → expBound e0 E0
-                             → ((h' : []  Source.|- τ') (vh' : val h') (H' : [] Complexity.|- ⟨⟨ τ' ⟩⟩)
+                             → ((h' : []  Source.|- τ') (vh' : val h') (H' : [] Pilot.|- ⟨⟨ τ' ⟩⟩)
                                → valBound h' vh' H'
-                               → (v' : [] Source.|- list τ') (vv' : val v') (V' : [] Complexity.|- list ⟨⟨ τ' ⟩⟩)
+                               → (v' : [] Source.|- list τ') (vv' : val v') (V' : [] Pilot.|- list ⟨⟨ τ' ⟩⟩)
                                → valBound v' vv' V'
-                               → (r : [] Source.|- susp τ) (vr : val r) (R : [] Complexity.|- || τ ||)
+                               → (r : [] Source.|- susp τ) (vr : val r) (R : [] Pilot.|- || τ ||)
                                → valBound r vr R
-                               → expBound (Source.subst e1 (Source.lem5 h' v' r)) (Complexity.subst E1 (Complexity.lem5 H' V' R)))
+                               → expBound (Source.subst e1 (Source.lem5 h' v' r)) (Pilot.subst E1 (Pilot.lem5 H' V' R)))
                              → (vbranch : [] Source.|- τ)  (vvbranch : val vbranch) (nbranch : Cost)
                              → evals-listrec-branch e0 e1 v vbranch nbranch
                              → plusC 1C (interp-Cost nbranch) ≤s l-proj (listrec E (1C +C E0) (1C +C E1))
@@ -71,7 +71,7 @@ module Bounding-New where
                      let useIH = IH vr vvr n2 (transport (λ H → evals-listrec-branch e0 e1 H vr n2) (! (fst (val-evals-inversion vv₁ D))) D')
                      in (cong-+ (Eq0C-≤0 (snd (val-evals-inversion vv₁ D))) refl-s trans +-unit-l) trans fst useIH , snd useIH } )
                      vbranch vvbranch nbranch evals-branch
--}
+
   bounding : ∀{Γ τ} → (e : Γ Source.|- τ) → (Θ : Source.sctx [] Γ) 
                        → (a : substVal Θ) 
                        → (Θ' : Pilot.sctx [] ⟨⟨ Γ ⟩⟩c) 
