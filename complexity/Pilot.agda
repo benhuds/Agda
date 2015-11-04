@@ -26,13 +26,16 @@ module Pilot where
   
   rctx : Ctx → Ctx → Set
   rctx Γ Γ' = ∀ {τ} → τ ∈ Γ' → τ ∈ Γ
-
   r-extend : ∀ {Γ Γ' τ} → rctx Γ Γ' → rctx (τ :: Γ) (τ :: Γ')
   data _|-_ : Ctx → CTp → Set
   sctx : Ctx → Ctx → Set
   sctx Γ Γ' = ∀ {τ} → τ ∈ Γ' → Γ |- τ
   _∙rr_ : ∀ {A B C} → rctx A B → rctx B C → rctx A C
   _rs_ : ∀ {A B C} → rctx A B → sctx B C → sctx A C
+  ren : ∀ {Γ Γ' τ} → Γ' |- τ → rctx Γ Γ' → Γ |- τ
+  subst : ∀ {Γ Γ' τ} → Γ' |- τ → sctx Γ Γ' → Γ |- τ
+  _ss_ : ∀ {A B C} → sctx A B → sctx B C → sctx A C
+  _sr_ : ∀ {A B C} → sctx A B → rctx B C → sctx A C
   data _≤s_ : ∀ {Γ T} → Γ |- T → Γ |- T → Set
   rename-var : ∀ {Γ Γ' τ} → rctx Γ Γ' → τ ∈ Γ' → τ ∈ Γ
   idr : ∀ {Γ} → rctx Γ Γ
@@ -41,7 +44,6 @@ module Pilot where
   rename-var-ident : ∀ {Γ τ} → (x : τ ∈ Γ) → rename-var idr x == x
   rename-var-∙ : ∀ {A B C τ} → (r1 : rctx A B) (r2 : rctx B C) (x : τ ∈ C) → rename-var r1 (rename-var r2 x) == rename-var (r1 ∙rr r2) x
   ∙rr-assoc : ∀ {A B C D} → (r1 : rctx A B) (r2 : rctx B C) (r3 : rctx C D) → _==_ {_} {rctx A D} (r1 ∙rr (r2 ∙rr r3)) ((r1 ∙rr r2) ∙rr r3)
-  ren : ∀ {Γ Γ' τ} → Γ' |- τ → rctx Γ Γ' → Γ |- τ
   extend-ren-comp-lemma : ∀ {Γ Γ' Γ'' τ τ'} → (x : τ ∈ τ' :: Γ'') (ρ1 : rctx Γ Γ') (ρ2 : rctx Γ' Γ'') → Id {_} {_} ((r-extend ρ1 ∙rr r-extend ρ2) x) (r-extend (ρ1 ∙rr ρ2) x)
   extend-ren-comp : ∀ {Γ Γ' Γ'' τ} → (ρ1 : rctx Γ Γ') → (ρ2 : rctx Γ' Γ'') → Id {_} {rctx (τ :: Γ) (τ :: Γ'')} (r-extend ρ1 ∙rr r-extend ρ2) (r-extend (ρ1 ∙rr ρ2))
   wkn : ∀ {Γ τ1 τ2} → Γ |- τ2 → (τ1 :: Γ) |- τ2
@@ -55,7 +57,6 @@ module Pilot where
   lem4 : ∀ {Γ τ1 τ2} → Γ |- τ1 → Γ |- τ2 → sctx Γ (τ1 :: (τ2 :: Γ))
   lem5' : ∀ {Γ Γ' τ1 τ2 τ3} → sctx Γ Γ' → Γ |- τ1 → Γ |- τ2 → Γ |- τ3 → sctx Γ (τ1 :: (τ2 :: (τ3 :: Γ')))
   lem5 : ∀ {Γ τ1 τ2 τ3} → Γ |- τ1 → Γ |- τ2 → Γ |- τ3 → sctx Γ (τ1 :: (τ2 :: (τ3 :: Γ)))
-  subst : ∀ {Γ Γ' τ} → Γ' |- τ → sctx Γ Γ' → Γ |- τ
 
   data _|-_ where
     unit : ∀ {Γ} → Γ |- unit
@@ -122,6 +123,14 @@ module Pilot where
                → ren (subst e Θ) ρ ≤s subst e (ρ rs Θ)
     subst-rs-r : ∀ {A B C τ} → (ρ : rctx C A) (Θ : sctx A B) (e : B |- τ)
                → subst e (ρ rs Θ) ≤s ren (subst e Θ) ρ
+    subst-sr-l : ∀ {Γ Γ' Γ'' τ} → (Θ : sctx Γ Γ') → (ρ : rctx Γ' Γ'') → (e : Γ'' |- τ)
+              → (subst (ren e ρ) Θ) ≤s subst e (Θ sr ρ)
+    subst-sr-r : ∀ {Γ Γ' Γ'' τ} → (Θ : sctx Γ Γ') → (ρ : rctx Γ' Γ'') → (e : Γ'' |- τ)
+              → subst e (Θ sr ρ) ≤s (subst (ren e ρ) Θ)
+    subst-ss-l : ∀ {A B C τ} → (Θ1 : sctx A B) (Θ2 : sctx B C) (e : C |- τ)
+               → subst e (Θ1 ss Θ2) ≤s subst (subst e Θ2) Θ1
+    subst-ss-r : ∀ {A B C τ} → (Θ1 : sctx A B) (Θ2 : sctx B C) (e : C |- τ)
+               → subst (subst e Θ2) Θ1 ≤s subst e (Θ1 ss Θ2)
     subst-compose-l : ∀ {Γ Γ' τ τ1} (Θ : sctx Γ Γ') (v : Γ |- τ) (e : (τ :: Γ' |- τ1) )
                 → subst (subst e (s-extend Θ)) (q v) ≤s subst e (lem3' Θ v)
     subst-compose-r : ∀ {Γ Γ' τ τ1} (Θ : sctx Γ Γ') (v : Γ |- τ) (e : (τ :: Γ' |- τ1) )
@@ -277,13 +286,8 @@ module Pilot where
   subst1 : ∀ {Γ τ τ1} → Γ |- τ1 → (τ1 :: Γ) |- τ → Γ |- τ
   subst1 e e' = subst e' (q e)
 
-  --_rs_ : ∀ {A B C} → rctx A B → sctx B C → sctx A C
   _rs_ ρ Θ x = ren (subst (var x) Θ) ρ
-
-  _ss_ : ∀ {A B C} → sctx A B → sctx B C → sctx A C
   _ss_ Θ1 Θ2 x = subst (subst (var x) Θ2) Θ1
-
-  _sr_ : ∀ {A B C} → sctx A B → rctx B C → sctx A C
   _sr_ Θ ρ x = subst (ren (var x) ρ) Θ
 
   --free stuff
@@ -383,32 +387,6 @@ module Pilot where
                                        (ap (subst e₂) (ap s-extend (ap s-extend (extend-rs-once ρ Θ)) ∘
                                        extend-rs-twice (r-extend ρ) (s-extend Θ)) ∘
                                        subst-rs (r-extend (r-extend (r-extend ρ))) (s-extend (s-extend (s-extend Θ))) e₂)
-
-  rs-comp : ∀ {Γ Γ' Γ'' τ} → (ρ : rctx Γ Γ') → (Θ : sctx Γ' Γ'') → (e : Γ'' |- τ)
-          → (ren (subst e Θ) ρ) == subst e (ρ rs Θ)
-  rs-comp ρ Θ unit = Refl
-  rs-comp ρ Θ 0C = Refl
-  rs-comp ρ Θ 1C = Refl
-  rs-comp ρ Θ (plusC e e₁) = ap2 plusC (rs-comp ρ Θ e) (rs-comp ρ Θ e₁)
-  rs-comp ρ Θ (var x) = svar-rs ρ Θ x
-  rs-comp ρ Θ z = Refl
-  rs-comp ρ Θ (suc e) = ap suc (rs-comp ρ Θ e)
-  rs-comp ρ Θ (rec e e₁ e₂) = ap3 rec (rs-comp ρ Θ e) (rs-comp ρ Θ e₁)
-                              (ap (subst e₂) (extend-rs-twice ρ Θ) ∘ rs-comp (r-extend (r-extend ρ)) (s-extend (s-extend Θ)) e₂)
-  rs-comp ρ Θ (lam e) = ap lam (ap (subst e) (extend-rs-once ρ Θ) ∘ rs-comp (r-extend ρ) (s-extend Θ) e)
-  rs-comp ρ Θ (app e e₁) = ap2 app (rs-comp ρ Θ e) (rs-comp ρ Θ e₁)
-  rs-comp ρ Θ (prod e e₁) = ap2 prod (rs-comp ρ Θ e) (rs-comp ρ Θ e₁)
-  rs-comp ρ Θ (l-proj e) = ap l-proj (rs-comp ρ Θ e)
-  rs-comp ρ Θ (r-proj e) = ap r-proj (rs-comp ρ Θ e)
-  rs-comp ρ Θ nil = Refl
-  rs-comp ρ Θ (e ::c e₁) = ap2 _::c_ (rs-comp ρ Θ e) (rs-comp ρ Θ e₁)
-  rs-comp ρ Θ (listrec e e₁ e₂) = ap3 listrec (rs-comp ρ Θ e) (rs-comp ρ Θ e₁) 
-                                    (ap (subst e₂) (ap s-extend (ap s-extend (extend-rs-once ρ Θ)) ∘
-                                    extend-rs-twice (r-extend ρ) (s-extend Θ)) ∘
-                                    rs-comp (r-extend (r-extend (r-extend ρ)))
-                                    (s-extend (s-extend (s-extend Θ))) e₂)
-  rs-comp ρ Θ true = Refl
-  rs-comp ρ Θ false = Refl
 
   extend-sr-once-lemma : ∀ {A B C τ τ'} → (Θ : sctx A B) (ρ : rctx B C) (x : τ ∈ τ' :: C)
                        → _==_ {_} {τ' :: A |- τ} (s-extend (_sr_ Θ ρ) x) (_sr_ (s-extend Θ) (r-extend ρ) x)
