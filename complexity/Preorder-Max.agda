@@ -292,6 +292,16 @@ module Preorder-Max where
   comp : ∀ {PA PB PC} → MONOTONE PA PB → MONOTONE PB PC → MONOTONE PA PC
   comp (monotone f f-ismono) (monotone g g-ismono) = monotone (λ x → g (f x)) (λ x y x₁ → g-ismono (f x) (f y) (f-ismono x y x₁))
 
+--  plus' : ∀ {PΓ} → MONOTONE PΓ (Nat , nat-p) → MONOTONE PΓ (Nat , nat-p) → MONOTONE PΓ (Nat , nat-p)
+--  plus' {fst , preorder-max ≤ refl trans max max-l max-r max-lub} (monotone f f-is-monotone) (monotone g g-is-monotone) = monotone (λ x → f x + g x) (λ x y x₁ → {!!})
+
+  z' : ∀ {PΓ} → MONOTONE PΓ (Nat , nat-p)
+  z' = monotone (λ x → Z) (λ x y x₁ → <>)
+
+  -- what did i just do
+ -- suc' : ∀ {PΓ} → MONOTONE PΓ (Nat , nat-p) → MONOTONE PΓ (Nat , nat-p)
+ -- suc' {fst , preorder-max ≤ refl trans max max-l max-r max-lub} (monotone f is-monotone) = monotone (λ x → S (f x)) (λ x y x₁ → {!!}) --is-monotone x y x₁)
+
   -- proofs that types like pairs etc. with preorders are monotone
   pair' : ∀ {PΓ PA PB} → MONOTONE PΓ PA → MONOTONE PΓ PB → MONOTONE PΓ (PA ×p PB)
   pair' (monotone f f-ismono) (monotone g g-ismono) = monotone (λ x → (f x) , (g x)) (λ x y x₁ → f-ismono x y x₁ , g-ismono x y x₁)
