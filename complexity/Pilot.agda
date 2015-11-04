@@ -28,11 +28,12 @@ module Pilot where
   rctx Γ Γ' = ∀ {τ} → τ ∈ Γ' → τ ∈ Γ
 
   r-extend : ∀ {Γ Γ' τ} → rctx Γ Γ' → rctx (τ :: Γ) (τ :: Γ')
-  _∙rr_ : ∀ {A B C} → rctx A B → rctx B C → rctx A C
   data _|-_ : Ctx → CTp → Set
-  data _≤s_ : ∀ {Γ T} → Γ |- T → Γ |- T → Set
   sctx : Ctx → Ctx → Set
   sctx Γ Γ' = ∀ {τ} → τ ∈ Γ' → Γ |- τ
+  _∙rr_ : ∀ {A B C} → rctx A B → rctx B C → rctx A C
+  _rs_ : ∀ {A B C} → rctx A B → sctx B C → sctx A C
+  data _≤s_ : ∀ {Γ T} → Γ |- T → Γ |- T → Set
   rename-var : ∀ {Γ Γ' τ} → rctx Γ Γ' → τ ∈ Γ' → τ ∈ Γ
   idr : ∀ {Γ} → rctx Γ Γ
   p∙ : ∀ {Γ Γ' τ} → rctx Γ Γ' → rctx (τ :: Γ) Γ'
@@ -113,6 +114,34 @@ module Pilot where
     listrec-steps-cons : ∀ {Γ τ τ'} → {h : Γ |- τ} {t : Γ |- list τ}
                        → {e0 : Γ |- τ'} → {e1 : (τ :: (list τ :: (τ' :: Γ))) |- τ'}
                        → subst e1 (lem5 h t (listrec t e0 e1)) ≤s (listrec (h ::c t) e0 e1)
+    ren-comp-l : ∀ {Γ Γ' Γ'' τ} → (ρ1 : rctx Γ Γ') → (ρ2 : rctx Γ' Γ'') → (e : Γ'' |- τ) → (ren (ren e ρ2) ρ1) ≤s (ren e (ρ1 ∙rr ρ2))
+    ren-comp-r : ∀ {Γ Γ' Γ'' τ} → (ρ1 : rctx Γ Γ') → (ρ2 : rctx Γ' Γ'') → (e : Γ'' |- τ) → (ren e (ρ1 ∙rr ρ2)) ≤s (ren (ren e ρ2) ρ1)
+    subst-id-l : ∀ {Γ τ} → (e : Γ |- τ) → e ≤s subst e ids
+    subst-id-r : ∀ {Γ τ} → (e : Γ |- τ) → subst e ids ≤s e
+    subst-rs-l : ∀ {A B C τ} → (ρ : rctx C A) (Θ : sctx A B) (e : B |- τ)
+               → ren (subst e Θ) ρ ≤s subst e (ρ rs Θ)
+    subst-rs-r : ∀ {A B C τ} → (ρ : rctx C A) (Θ : sctx A B) (e : B |- τ)
+               → subst e (ρ rs Θ) ≤s ren (subst e Θ) ρ
+    subst-compose-l : ∀ {Γ Γ' τ τ1} (Θ : sctx Γ Γ') (v : Γ |- τ) (e : (τ :: Γ' |- τ1) )
+                → subst (subst e (s-extend Θ)) (q v) ≤s subst e (lem3' Θ v)
+    subst-compose-r : ∀ {Γ Γ' τ τ1} (Θ : sctx Γ Γ') (v : Γ |- τ) (e : (τ :: Γ' |- τ1) )
+                → subst e (lem3' Θ v) ≤s subst (subst e (s-extend Θ)) (q v)
+    subst-compose2-l : ∀ {Γ Γ' τ τ1 τ2} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ |- τ1) (v2 : Γ |- τ2)
+                     → subst (subst e1 (s-extend (s-extend Θ))) (lem4 v1 v2) ≤s subst e1 (lem4' Θ v1 v2)
+    subst-compose2-r : ∀ {Γ Γ' τ τ1 τ2} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ |- τ1) (v2 : Γ |- τ2)
+                     → subst e1 (lem4' Θ v1 v2) ≤s subst (subst e1 (s-extend (s-extend Θ))) (lem4 v1 v2)
+    subst-compose3-l : ∀ {Γ Γ' τ τ1 τ2} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ' |- τ1) (v2 : Γ' |- τ2)
+                     → subst (subst e1 (lem4 v1 v2)) Θ ≤s subst e1 (lem4' Θ (subst v1 Θ) (subst v2 Θ))
+    subst-compose3-r : ∀ {Γ Γ' τ τ1 τ2} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ' |- τ1) (v2 : Γ' |- τ2)
+                     → subst e1 (lem4' Θ (subst v1 Θ) (subst v2 Θ)) ≤s subst (subst e1 (lem4 v1 v2)) Θ
+    subst-compose4-l : ∀ {Γ Γ' τ} (Θ : sctx Γ Γ') (v' : Γ |- nat) (r : Γ |- τ) (e2 : (nat :: (τ :: Γ')) |- τ)
+                     → subst (subst e2 (s-extend (s-extend Θ))) (lem4 v' r) ≤s subst e2 (lem4' Θ v' r)
+    subst-compose4-r : ∀ {Γ Γ' τ} (Θ : sctx Γ Γ') (v' : Γ |- nat) (r : Γ |- τ) (e2 : (nat :: (τ :: Γ')) |- τ)
+                     → subst e2 (lem4' Θ v' r) ≤s subst (subst e2 (s-extend (s-extend Θ))) (lem4 v' r)
+    subst-compose5-l : ∀ {Γ Γ' τ τ1 τ2 τ3} (Θ : sctx Γ Γ') (e : (τ1 :: (τ2 :: (τ3 :: Γ'))) |- τ) (v1 : Γ |- τ1) (v2 : Γ |- τ2) (v3 : Γ |- τ3)
+                     → subst (subst e (s-extend (s-extend (s-extend (Θ))))) (lem5 v1 v2 v3) ≤s subst e (lem5' Θ v1 v2 v3)
+    subst-compose5-r : ∀ {Γ Γ' τ τ1 τ2 τ3} (Θ : sctx Γ Γ') (e : (τ1 :: (τ2 :: (τ3 :: Γ'))) |- τ) (v1 : Γ |- τ1) (v2 : Γ |- τ2) (v3 : Γ |- τ3)
+                     → subst e (lem5' Θ v1 v2 v3) ≤s subst (subst e (s-extend (s-extend (s-extend (Θ))))) (lem5 v1 v2 v3)
 
   -- r-extend : ∀ {Γ Γ' τ} → rctx Γ Γ' → rctx (τ :: Γ) (τ :: Γ')
   r-extend ρ i0 = i0
@@ -248,7 +277,7 @@ module Pilot where
   subst1 : ∀ {Γ τ τ1} → Γ |- τ1 → (τ1 :: Γ) |- τ → Γ |- τ
   subst1 e e' = subst e' (q e)
 
-  _rs_ : ∀ {A B C} → rctx A B → sctx B C → sctx A C
+  --_rs_ : ∀ {A B C} → rctx A B → sctx B C → sctx A C
   _rs_ ρ Θ x = ren (subst (var x) Θ) ρ
 
   _ss_ : ∀ {A B C} → sctx A B → sctx B C → sctx A C
@@ -289,8 +318,9 @@ module Pilot where
   extend-id-twice : ∀ {Γ τ1 τ2} → Id {_} {sctx (τ1 :: τ2 :: Γ) (τ1 :: τ2 :: Γ)} (ids {τ1 :: τ2 :: Γ}) (s-extend (s-extend ids))
   extend-id-twice = ap s-extend extend-id-once ∘ extend-id-once
 
-  subst-id : ∀ {Γ τ} (e : Γ |- τ) → e == subst e ids
-  subst-id unit = Refl
+  postulate
+    subst-id : ∀ {Γ τ} (e : Γ |- τ) → e == subst e ids
+{-  subst-id unit = Refl
   subst-id 0C = Refl
   subst-id 1C = Refl
   subst-id (plusC e e₁) = ap2 plusC (subst-id e) (subst-id e₁)
@@ -311,7 +341,7 @@ module Pilot where
   subst-id true = Refl
   subst-id false = Refl
   subst-id (listrec e e₁ e₂) = ap3 listrec (subst-id e) (subst-id e₁) (ap (subst e₂) (ap s-extend (ap s-extend extend-id-once) ∘ extend-id-twice) ∘ subst-id e₂)
-
+-}
 
   extend-rs-once-lemma : ∀ {A B C τ τ'} → (x : τ ∈ τ' :: B) (ρ : rctx C A) (Θ : sctx A B) → _==_ {_} {τ' :: C |- τ}
                        (_rs_ {τ' :: C} {τ' :: A} {τ' :: B} (r-extend {C} {A} {τ'} ρ)

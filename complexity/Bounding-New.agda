@@ -87,50 +87,32 @@ module Bounding-New where
     (r-proj (Pilot.subst || e ||e Θ')) , (snd IH) , r-proj-s
     where
       IH = (bounding e Θ a Θ' sb _ vv _ evals)
-  bounding (rec e e₁ e₂) Θ a Θ' sb v vv c evals = {!!}
-  bounding (lam e) Θ a Θ' sb v vv c evals = {!!}
-  bounding (app e e₁) Θ a Θ' sb v vv c evals = {!!}
-  bounding (prod e e₁) Θ a Θ' sb v vv c evals = {!!}
-  bounding (delay e) Θ a Θ' sb v vv c evals = {!!}
-  bounding (force e) Θ a Θ' sb v vv c evals = {!!}
-  bounding (split e e₁) Θ a Θ' sb v vv c evals = {!!}
-  bounding nil Θ a Θ' sb .nil nil-isval .0c nil-evals = l-proj-s , r-proj-s
-  bounding (e ::s e₁) Θ a Θ' sb .(x ::s xs) (cons-isval x xs vv vv₁) ._ (cons-evals evals evals₁) =
-           (cong-+ (fst IH1) (fst IH2) trans l-proj-s) ,
-             (r-proj (Pilot.subst || e ||e Θ')) , r-proj (Pilot.subst || e₁ ||e Θ') , ((snd IH1 , snd IH2) , r-proj-s)
-    where
-      IH1 = (bounding e Θ a Θ' sb _ vv _ evals) 
-      IH2 = (bounding e₁ Θ a Θ' sb _ vv₁ _ evals₁)
-  bounding (listrec e e₁ e₂) Θ a Θ' sb v vv c evals = {!!}
-  bounding true Θ a Θ' sb .true true-isval .0c true-evals = l-proj-s , r-proj-s
-  bounding false Θ a Θ' sb .false false-isval .0c false-evals = l-proj-s , r-proj-s
-{-
-{-
   bounding (rec e e₁ e₂) Θ a Θ' sb e' val-e' ._ (rec-evals {v = v} arg-evals branch-evals) =
     cong-+ (fst IH1) (fst lemma) trans l-proj-s , weakeningVal' val-e' (snd lemma) r-proj-s
     where
       IH1 = bounding e Θ a Θ' sb _ (evals-val arg-evals) _ arg-evals
       lemma = boundingRec v (evals-val arg-evals) _ 
-              (Source.subst e₂ (Source.s-extend (Source.s-extend Θ))) _ _ (Complexity.subst || e₂ ||e (Complexity.s-extend (Complexity.s-extend Θ')))
+              (Source.subst e₂ (Source.s-extend (Source.s-extend Θ))) _ _ (Pilot.subst || e₂ ||e (Pilot.s-extend (Pilot.s-extend Θ')))
               (snd IH1)
               (bounding e₁ Θ a Θ' sb )
               (λ v' valv' E' valBoundv' r valr R valBoundR v'' valv'' c'' evals-rec →
-              let IH3 = (bounding e₂ (Source.lem4' Θ v' r) (extend-substVal2 a valv' valr) (Complexity.lem4' Θ' E' R)
+              let IH3 = (bounding e₂ (Source.lem4' Θ v' r) (extend-substVal2 a valv' valr) (Pilot.lem4' Θ' E' R)
                         (extend-substBound2 sb valBoundv' valBoundR) v'' valv'' c'' (transport (λ x → evals x v'' c'')
                         (Source.subst-compose4 Θ v' r e₂) evals-rec))
-              in (fst IH3 trans cong-refl (ap l-proj (! (Complexity.subst-compose4 Θ' E' R || e₂ ||e))) ,
-                 weakeningVal' valv'' (snd IH3) (cong-rproj (cong-refl (! (Complexity.subst-compose4 Θ' E' R || e₂ ||e))))))
+              in (fst IH3 trans cong-lproj (subst-compose4-r Θ' E' R || e₂ ||e)) , 
+                 weakeningVal' valv'' (snd IH3)  (cong-rproj (subst-compose4-r Θ' E' R || e₂ ||e)))
                  e' val-e' _ branch-evals
-  bounding {τ = ρ ->s τ} (lam e) Θ a Θ' sb .(lam (Source.subst e (Source.s-extend Θ))) (lam-isval .(Source.subst e (Source.s-extend Θ))) .0c lam-evals = 
+  bounding (lam e) Θ a Θ' sb .(lam (Source.subst e (Source.s-extend Θ))) (lam-isval .(Source.subst e (Source.s-extend Θ))) .0c lam-evals =
     l-proj-s ,
     (λ v₁ vv₁ E1 valbound1 v vv n body-evals →
-    let IH = bounding e (Source.lem3' Θ v₁) (extend-substVal a vv₁)
-             (Pilot.lem3' Θ' E1) (extend-substBound sb valbound1) 
-             v vv n (transport (λ x → evals x v n) (Source.subst-compose Θ v₁ e) body-evals)
-    in
-      fst IH trans cong-lproj (cong-refl (! (Pilot.subst-compose Θ' E1 || e ||e)) trans lam-s trans cong-app r-proj-s) ,
-      weakeningVal' vv (snd IH) (cong-rproj (cong-refl (! (Complexity.subst-compose Θ' E1 || e ||e)) trans lam-s trans cong-app r-proj-s)))
--}
+         let IH : _
+             IH
+               = bounding e (Source.lem3' Θ v₁) (extend-substVal a vv₁)
+                 (Pilot.lem3' Θ' E1) (extend-substBound sb valbound1) v vv n
+                 (transport (λ x → evals x v n) (subst-compose Θ v₁ e) body-evals)
+         in
+           fst IH trans cong-lproj (subst-compose-r Θ' E1 || e ||e trans lam-s trans cong-app r-proj-s) ,
+           weakeningVal' vv (snd IH) (cong-rproj (subst-compose-r Θ' E1 || e ||e trans lam-s trans cong-app r-proj-s)))
   bounding (app e1 e2) Θ a Θ' sb v val-v .((n0 +c n1) +c n)
            (app-evals {n0} {n1} {n} {τ2} {τ} {.(Source.subst e1 Θ)} {e1'} {.(Source.subst e2 Θ)} {v2} e1-evals e2-evals subst-evals) =
     cong-+ (cong-+ (fst IH1) (fst IH2)) (fst IH1a) trans l-proj-s ,
@@ -158,37 +140,37 @@ module Bounding-New where
     weakeningVal' vv (snd (snd IH v vv n2 evals₁)) r-proj-s
     where
       IH = (bounding e Θ a Θ' sb _ (delay-isval e') n1 evals)
-{-
   bounding {Γ} {τ} (split e0 e1) Θ a Θ' sb e' val-e' .(n1 +c n2) (split-evals {n1} {n2} {.τ} {τ1} {τ2} {.(Source.subst e0 Θ)} {v1} {v2} evals-in-c0 evals-in-c1) with evals-val evals-in-c0 | (bounding e0 Θ a Θ' sb (prod v1 v2) (evals-val evals-in-c0) _ evals-in-c0)
-  ... | pair-isval ._ ._ val-v1 val-v2 | (IH11 , vb1 , vb2)
-           = cong-+ IH11 (fst IH2) trans
-             cong-+ refl-s (cong-lproj (cong-refl (! (Pilot.subst-compose3 Θ' || e1 ||e (l-proj (r-proj || e0 ||e)) (r-proj (r-proj || e0 ||e)))))) trans l-proj-s ,
-             weakeningVal' val-e' (snd IH2)
-             (cong-rproj (cong-refl
-               (! (Complexity.subst-compose3 Θ' || e1 ||e (l-proj (r-proj || e0 ||e)) (r-proj (r-proj || e0 ||e))))) trans r-proj-s) where
-           IH2 = bounding e1 (Source.lem4' Θ v1 v2)
-                            (extend-substVal2 a val-v1 val-v2)
-                            (Pilot.lem4' Θ' (l-proj (r-proj (Pilot.subst || e0 ||e Θ'))) (r-proj (r-proj (Pilot.subst || e0 ||e Θ'))))
-                            (extend-substBound2 sb vb1 vb2)
-                              e' val-e' n2 (transport (λ x → evals x e' n2) (Source.subst-compose3 Θ e1 v1 v2) evals-in-c1)
--}
-{-
+  ... | pair-isval ._ ._ val-v1 val-v2 | (IH11 , vb1 , vb2) = 
+    (cong-+ IH11 (fst IH2) trans cong-+ refl-s (cong-lproj (subst-compose3-r Θ' || e1 ||e (l-proj (r-proj || e0 ||e)) (r-proj (r-proj || e0 ||e))))) trans l-proj-s ,
+    weakeningVal' val-e' (snd IH2) (cong-rproj (subst-compose3-r Θ' || e1 ||e (l-proj (r-proj || e0 ||e)) (r-proj (r-proj || e0 ||e))) trans r-proj-s)
+    where
+      IH2 = bounding e1 (Source.lem4' Θ v1 v2) (extend-substVal2 a val-v1 val-v2)
+            (Pilot.lem4' Θ' (l-proj (r-proj (Pilot.subst || e0 ||e Θ'))) (r-proj (r-proj (Pilot.subst || e0 ||e Θ'))))
+            (extend-substBound2 sb vb1 vb2)
+            e' val-e' n2 (transport (λ x → evals x e' n2) (Source.subst-compose3 Θ e1 v1 v2) evals-in-c1)
+  bounding nil Θ a Θ' sb .nil nil-isval .0c nil-evals = l-proj-s , r-proj-s
+  bounding (e ::s e₁) Θ a Θ' sb .(x ::s xs) (cons-isval x xs vv vv₁) ._ (cons-evals evals evals₁) =
+           (cong-+ (fst IH1) (fst IH2) trans l-proj-s) ,
+             (r-proj (Pilot.subst || e ||e Θ')) , r-proj (Pilot.subst || e₁ ||e Θ') , ((snd IH1 , snd IH2) , r-proj-s)
+    where
+      IH1 = (bounding e Θ a Θ' sb _ vv _ evals) 
+      IH2 = (bounding e₁ Θ a Θ' sb _ vv₁ _ evals₁)
   bounding (listrec e e₁ e₂) Θ a Θ' sb v vv ._ (listrec-evals {v = k} arg-evals branch-evals) =
     (cong-+ (fst IH1) (fst lemma) trans l-proj-s) , weakeningVal' vv (snd lemma) r-proj-s
     where
       IH1 = bounding e Θ a Θ' sb _ (evals-val arg-evals) _ arg-evals
       lemma = boundingListRec k (evals-val arg-evals) _
               (Source.subst e₂ (Source.s-extend (Source.s-extend (Source.s-extend Θ)))) _ _
-              (Complexity.subst || e₂ ||e (Complexity.s-extend (Complexity.s-extend (Complexity.s-extend Θ'))))
+              (Pilot.subst || e₂ ||e (Pilot.s-extend (Pilot.s-extend (Pilot.s-extend Θ'))))
               (snd IH1)
               (bounding e₁ Θ a Θ' sb)
               (λ h' vh' H' vbh'H' v' vv' V' vbv'V' r vr R vbrR v₁ vv₁ n x₂ →
-              let IH3 = bounding e₂ (Source.lem5' Θ h' v' r) (extend-substVal3 a vh' vv' vr) (Complexity.lem5' Θ' H' V' R)
+              let IH3 = bounding e₂ (Source.lem5' Θ h' v' r) (extend-substVal3 a vh' vv' vr) (Pilot.lem5' Θ' H' V' R)
                         (extend-substBound3 sb vbh'H' vbv'V' vbrR) v₁ vv₁ n
                         (transport (λ x → evals x v₁ n) (Source.subst-compose5 Θ e₂ h' v' r) x₂)
               in
-              fst IH3 trans cong-refl (ap l-proj (! (Complexity.subst-compose5 Θ' || e₂ ||e H' V' R))) ,
-              weakeningVal' vv₁ (snd IH3) (cong-rproj (cong-refl (! (Complexity.subst-compose5 Θ' || e₂ ||e H' V' R)))))
-              v vv _ branch-evals
--}
--}
+              fst IH3 trans cong-lproj (subst-compose5-r Θ' || e₂ ||e H' V' R) ,
+              weakeningVal' vv₁ (snd IH3) (cong-rproj (subst-compose5-r Θ' || e₂ ||e H' V' R))) v vv _ branch-evals
+  bounding true Θ a Θ' sb .true true-isval .0c true-evals = l-proj-s , r-proj-s
+  bounding false Θ a Θ' sb .false false-isval .0c false-evals = l-proj-s , r-proj-s
