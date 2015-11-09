@@ -38,9 +38,32 @@ module Preorder-Max where
 
   -- nat max
   nat-eq-max : Nat → Nat → Nat
-  nat-eq-max Z n = n
+  nat-eq-max Z Z = Z
+  nat-eq-max Z (S n) = S n
   nat-eq-max (S m) Z = S m
   nat-eq-max (S m) (S n) = S (nat-eq-max m n)
+
+  postulate
+    nat-eq-max-l : ∀ (l r : Nat) → nat-eq l (nat-eq-max l r)
+{-  nat-eq-max-l Z Z = <>
+  nat-eq-max-l Z (S r) = {!!}
+  nat-eq-max-l (S l) Z = nat-eq-refl l
+  nat-eq-max-l (S l) (S r) = nat-eq-max-l l r
+-}
+
+  postulate
+    nat-eq-max-r : ∀ (l r : Nat) → nat-eq r (nat-eq-max l r)
+
+  nat-eq-max-lub : ∀ (k l r : Nat) → nat-eq l k → nat-eq r k → nat-eq (nat-eq-max l r) k
+  nat-eq-max-lub Z Z Z x x₁ = <>
+  nat-eq-max-lub Z Z (S r) x ()
+  nat-eq-max-lub Z (S l) r () x₁
+  nat-eq-max-lub (S k) Z r () x₁
+  nat-eq-max-lub (S k) (S l) Z x ()
+  nat-eq-max-lub (S k) (S l) (S r) x x₁ = nat-eq-max-lub k l r x x₁
+
+  ♭nat-p : Preorder-max-str Nat
+  ♭nat-p = preorder-max nat-eq nat-eq-refl nat-eq-trans nat-eq-max nat-eq-max-l nat-eq-max-r nat-eq-max-lub
 
 ------------------------------------------
 
@@ -179,90 +202,10 @@ module Preorder-Max where
 
 ------------------------------------------
 
---"Hey, let's make things monotone!"
-
-  -- another way to define the ≤ relation on Nat
-  data _≤'_ : Nat → Nat → Set where
-    x≤'x : {x : Nat} → x ≤' x
-    x≤'y : {x y : Nat} → x ≤' y → x ≤' (S y)
-
-  -- silly lemmas about silly nats
-  nat-lemma : (x : Nat) → Z ≤' x
-  nat-lemma Z = x≤'x
-  nat-lemma (S x) = x≤'y (nat-lemma x)
-
-  nat-lemma2 : (x y : Nat) → x ≤' y → (S x) ≤' (S y)
-  nat-lemma2 .y y x≤'x = x≤'x
-  nat-lemma2 x .(S y) (x≤'y {.x} {y} p) = x≤'y (nat-lemma2 x y p)
-
-  nat-lemma3 : (x : Nat) → ≤nat x (S x)
-  nat-lemma3 Z = <>
-  nat-lemma3 (S x) = nat-lemma3 x
-
-  -- maps to and from the old and new definitions of the ≤ relation
-  ≤-map : (x y : Nat) → ≤nat x y → x ≤' y
-  ≤-map Z Z f = x≤'x
-  ≤-map Z (S y) f = nat-lemma (S y)
-  ≤-map (S x) Z ()
-  ≤-map (S x) (S y) f = nat-lemma2 x y (≤-map x y f)
-
-  ≤-map2 : (x y : Nat) → x ≤' y → ≤nat x y
-  ≤-map2 .y y x≤'x = nat-refl y
-  ≤-map2 x .(S y) (x≤'y {.x} {y} f) = nat-trans x y (S y) (≤-map2 x y f) (nat-lemma3 y)
-
-  -- a function to find the maximum of a whole set and not just a pair of values
-  max' : ∀ {A : Set} → (PA : Preorder-max-str A) → Nat → (Nat → A) → A
-  max' PA Z f = f Z
-  max' PA (S n) f = Preorder-max-str.max PA (f (S n)) (max' PA n f)
-
   -- primitive recursion function corresponding to rec
   natrec : ∀{C : Set} → C → (Nat → C → C) → Nat → C
   natrec base step Z = base
   natrec base step (S n) = step n (natrec base step n)
-
-  -- another lemma
-  mono-f-lemma : ∀ {A : Set} → (x y : Nat) → x ≤' y → (PA : Preorder-max-str A) → (f : Nat → A) → Preorder-max-str.≤ PA (max' PA x f) (max' PA y f)
-  mono-f-lemma .y y x≤'x PA f = Preorder-max-str.refl PA (max' PA y f)
-  mono-f-lemma x .(S y) (x≤'y {.x} {y} p) PA f = Preorder-max-str.trans PA (max' PA x f) (max' PA y f) (max' PA (S y) f)
-                                                                        (mono-f-lemma x y p PA f) (Preorder-max-str.max-r PA (f (S y)) (max' PA y f))
-
-  -- make a function monotone by taking the max at every point
-  mono-f : ∀ {A : Set} → (PA : Preorder-max-str A) → (f : Nat → A) → Monotone Nat A nat-p PA
-  mono-f PA f = monotone (λ x → max' PA x f) (λ x y x₁ → mono-f-lemma x y (≤-map x y x₁) PA f)
-
-  -- f ≤ (monotonization of f)
-  mono-f-is-monotone : ∀ {A : Set} → (PA : Preorder-max-str A) → (x : Nat) → (f : Nat → A) → Preorder-max-str.≤ PA (f x) (Monotone.f (mono-f PA f) x)
-  mono-f-is-monotone PA Z f = Preorder-max-str.refl PA (f Z)
-  mono-f-is-monotone PA (S x) f = Preorder-max-str.max-l PA (f (S x)) (max' PA x f)
-
-  -- if f is already monotone, then its monotonization is less than or equal to itself
-  mono-f-≤-itself : ∀ {A : Set}
-                    → (PA : Preorder-max-str A)
-                    → (x : Nat)
-                    → (f : Monotone Nat A nat-p PA)
-                    →  Preorder-max-str.≤ PA (Monotone.f (mono-f PA (Monotone.f f)) x) (Monotone.f f x)
-  mono-f-≤-itself PA Z f = Preorder-max-str.refl PA (Monotone.f (mono-f PA (Monotone.f f)) Z)
-  mono-f-≤-itself PA (S x) f = Preorder-max-str.max-lub PA (Monotone.f f (S x)) (Monotone.f f (S x)) (max' PA x (Monotone.f f)) 
-                                                        (Preorder-max-str.refl PA (Monotone.f f (S x))) 
-                                                          (Preorder-max-str.trans PA (max' PA x (Monotone.f f)) 
-                                                            (Monotone.f f x) (Monotone.f f (S x)) (mono-f-≤-itself PA x f)
-                                                              (Monotone.is-monotone f x (S x) (≤-map2 x (S x) (x≤'y x≤'x))))
-
-  -- monotonize at the end
-  mnatrec : ∀ {A : Set} → (PA : Preorder-max-str A) → A → (Nat → A → A) → Nat → A
-  mnatrec PA zc sc e = max' PA e (natrec zc sc)
-
-  -- still incorrect
-  mono-natrec : ∀ {A : Set} → (PA : Preorder-max-str A) → A → (Nat → A → A) → Nat → A
-  mono-natrec PA zc sc Z = zc
-  mono-natrec PA zc sc (S y') = Preorder-max-str.max PA zc (sc y' (mono-natrec PA zc sc y'))
-
-  data N' : Set where
-    Z1 : N'
-    Sa : N' → N'
-    Sb : N' → N'
-
-
 
 ------------------------------------------
 
@@ -280,6 +223,9 @@ module Preorder-Max where
   _->p_ : PREORDER → PREORDER → PREORDER
   (A , PA) ->p (B , PB) = Monotone A B PA PB , mono-p A B PA PB
 
+  PN : PREORDER
+  PN = Nat , nat-p
+
   -- Unit is a preorder
   unit-p : PREORDER
   unit-p = Unit , preorder-max (λ x x₁ → Unit) (λ x → <>) (λ x y z _ _ → <>) (λ _ _ → <>) (λ l r → <>) (λ l r → <>) (λ k l r _ _ → <>)
@@ -292,14 +238,14 @@ module Preorder-Max where
   comp : ∀ {PA PB PC} → MONOTONE PA PB → MONOTONE PB PC → MONOTONE PA PC
   comp (monotone f f-ismono) (monotone g g-ismono) = monotone (λ x → g (f x)) (λ x y x₁ → g-ismono (f x) (f y) (f-ismono x y x₁))
 
---  plus' : ∀ {PΓ} → MONOTONE PΓ (Nat , nat-p) → MONOTONE PΓ (Nat , nat-p) → MONOTONE PΓ (Nat , nat-p)
+--  plus' : ∀ {PΓ} → MONOTONE PΓ PN → MONOTONE PΓ PN → MONOTONE PΓ PN
 --  plus' {fst , preorder-max ≤ refl trans max max-l max-r max-lub} (monotone f f-is-monotone) (monotone g g-is-monotone) = monotone (λ x → f x + g x) (λ x y x₁ → {!!})
 
-  z' : ∀ {PΓ} → MONOTONE PΓ (Nat , nat-p)
+  z' : ∀ {PΓ} → MONOTONE PΓ PN
   z' = monotone (λ x → Z) (λ x y x₁ → <>)
 
   -- what did i just do
-  suc' : ∀ {PΓ} → MONOTONE PΓ (Nat , nat-p) → MONOTONE PΓ (Nat , nat-p)
+  suc' : ∀ {PΓ} → MONOTONE PΓ PN → MONOTONE PΓ PN
   suc' {fst , preorder-max ≤ refl trans max max-l max-r max-lub} (monotone f is-monotone) = monotone (λ x → S (f x)) (λ x y x₁ → is-monotone x y x₁)
 
   -- proofs that types like pairs etc. with preorders are monotone

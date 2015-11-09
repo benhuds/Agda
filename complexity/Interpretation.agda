@@ -9,7 +9,7 @@ module Interpretation where
   -- interpret complexity types as preorders
   [_]t : CTp → PREORDER
   [ unit ]t = unit-p
-  [ nat ]t = Nat , {!!}
+  [ nat ]t = Nat , ♭nat-p
   [ A ->c B ]t = [ A ]t ->p [ B ]t
   [ A ×c B ]t = [ A ]t ×p [ B ]t
   [ list A ]t = Nat , nat-p
@@ -43,8 +43,8 @@ module Interpretation where
   interpE (rec e e₁ e₂) = {!!}
   interpE (lam e) = lam' (interpE e)
   interpE (app e e₁) = app' (interpE e) (interpE e₁)
-  interpE rz = {!!}
-  interpE (rs e) = {!!}
+  interpE rz = monotone (λ x → Z) (λ x y x₁ → <>)
+  interpE (rsuc e) = suc' (interpE e)
   interpE (rrec e e₁ e₂ P) = {!!}
   interpE (prod e e₁) = pair' (interpE e) (interpE e₁)
   interpE (l-proj e) = fst' (interpE e)
