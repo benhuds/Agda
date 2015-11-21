@@ -9,7 +9,7 @@ module Interpretation where
   -- interpret complexity types as preorders
   [_]t : CTp → PREORDER
   [ unit ]t = unit-p
-  [ nat ]t = Nat , ♭nat-p
+  [ nat ]t = Nat , {!!}
   [ A ->c B ]t = [ A ]t ->p [ B ]t
   [ A ×c B ]t = [ A ]t ×p [ B ]t
   [ list A ]t = Nat , nat-p

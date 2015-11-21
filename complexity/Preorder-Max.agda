@@ -15,55 +15,22 @@ module Preorder-Max where
       max-r : ∀ l r → ≤ r (max l r)
       max-lub : ∀ k l r → ≤ l k → ≤ r k → ≤ (max l r) k
 
+  record Pre-wtop (A : Set) : Set1 where
+    constructor pt
+    field
+      ≤ : A → A → Set
+      refl : ∀ x → ≤ x x
+      trans : ∀ x y z → ≤ x y → ≤ y z → ≤ x z
+      max : A → A → A
+      max-l : ∀ l r → ≤ l (max l r)
+      max-r : ∀ l r → ≤ r (max l r)
+      max-lub : ∀ k l r → ≤ l k → ≤ r k → ≤ (max l r) k
+      top : A
+      top-max : ∀ x → ≤ x top
+
 ------------------------------------------
 
-  -- DISCRETE NAT (♭N)
-  nat-eq : Nat → Nat → Set
-  nat-eq Z Z = Unit
-  nat-eq Z (S n) = Void
-  nat-eq (S m) Z = Void
-  nat-eq (S m) (S n) = nat-eq m n
-
-  nat-eq-refl : ∀ (x : Nat) → nat-eq x x
-  nat-eq-refl Z = <>
-  nat-eq-refl (S x) = nat-eq-refl x
-
-  nat-eq-trans : ∀ (x y z : Nat) → nat-eq x y → nat-eq y z → nat-eq x z
-  nat-eq-trans Z Z Z x x₁ = <>
-  nat-eq-trans Z Z (S z) x ()
-  nat-eq-trans Z (S y) z () x₁
-  nat-eq-trans (S x) Z z () x₂
-  nat-eq-trans (S x) (S y) Z x₁ ()
-  nat-eq-trans (S x) (S y) (S z) x₁ x₂ = nat-eq-trans x y z x₁ x₂
-
-  -- nat max
-  nat-eq-max : Nat → Nat → Nat
-  nat-eq-max Z Z = Z
-  nat-eq-max Z (S n) = S n
-  nat-eq-max (S m) Z = S m
-  nat-eq-max (S m) (S n) = S (nat-eq-max m n)
-
-  postulate
-    nat-eq-max-l : ∀ (l r : Nat) → nat-eq l (nat-eq-max l r)
-{-  nat-eq-max-l Z Z = <>
-  nat-eq-max-l Z (S r) = {!!}
-  nat-eq-max-l (S l) Z = nat-eq-refl l
-  nat-eq-max-l (S l) (S r) = nat-eq-max-l l r
--}
-
-  postulate
-    nat-eq-max-r : ∀ (l r : Nat) → nat-eq r (nat-eq-max l r)
-
-  nat-eq-max-lub : ∀ (k l r : Nat) → nat-eq l k → nat-eq r k → nat-eq (nat-eq-max l r) k
-  nat-eq-max-lub Z Z Z x x₁ = <>
-  nat-eq-max-lub Z Z (S r) x ()
-  nat-eq-max-lub Z (S l) r () x₁
-  nat-eq-max-lub (S k) Z r () x₁
-  nat-eq-max-lub (S k) (S l) Z x ()
-  nat-eq-max-lub (S k) (S l) (S r) x x₁ = nat-eq-max-lub k l r x x₁
-
-  ♭nat-p : Preorder-max-str Nat
-  ♭nat-p = preorder-max nat-eq nat-eq-refl nat-eq-trans nat-eq-max nat-eq-max-l nat-eq-max-r nat-eq-max-lub
+  en = Either Nat Unit
 
 ------------------------------------------
 
@@ -244,11 +211,14 @@ module Preorder-Max where
   z' : ∀ {PΓ} → MONOTONE PΓ PN
   z' = monotone (λ x → Z) (λ x y x₁ → <>)
 
-  -- what did i just do
   suc' : ∀ {PΓ} → MONOTONE PΓ PN → MONOTONE PΓ PN
   suc' {fst , preorder-max ≤ refl trans max max-l max-r max-lub} (monotone f is-monotone) = monotone (λ x → S (f x)) (λ x y x₁ → is-monotone x y x₁)
 
-  -- proofs that types like pairs etc. with preorders are monotone
+  rec' : ∀ {PΓ PC} → (e0 : MONOTONE PΓ PC) → (e1 : MONOTONE PΓ (PN ->p (PC ->p PC))) → MONOTONE (PΓ ×p PN) PC
+  rec' {Γ , preorder-max ≤Γ reflΓ transΓ maxΓ max-lΓ max-rΓ max-lubΓ} {C , preorder-max ≤c reflc transc maxc max-lc max-rc max-lubc}
+       (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) = monotone (λ x → natrec (e0 (fst x)) {!!} (snd x))
+                                                                   (λ x y x₁ → {!!})
+
   pair' : ∀ {PΓ PA PB} → MONOTONE PΓ PA → MONOTONE PΓ PB → MONOTONE PΓ (PA ×p PB)
   pair' (monotone f f-ismono) (monotone g g-ismono) = monotone (λ x → (f x) , (g x)) (λ x y x₁ → (f-ismono x y x₁) , (g-ismono x y x₁))
 

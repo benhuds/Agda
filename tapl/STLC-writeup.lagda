@@ -42,6 +42,8 @@ The types of the simply-typed $\lambda$-calculus can be defined in Agda as an in
 data Tp : Set where
     b : Tp
     _⇒_ : Tp → Tp → Tp
+     nat : Typ
+    _?_ : Typ ? Typ ? Typ
 \end{code}
 
 where $b$ is some uninterpreted base type.  Contexts $\Gamma$ are lists of types, indexed by de Bruijn indices:
