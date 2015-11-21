@@ -214,9 +214,10 @@ module Preorder-Max where
   suc' : ∀ {PΓ} → MONOTONE PΓ PN → MONOTONE PΓ PN
   suc' {fst , preorder-max ≤ refl trans max max-l max-r max-lub} (monotone f is-monotone) = monotone (λ x → S (f x)) (λ x y x₁ → is-monotone x y x₁)
 
-  rec' : ∀ {PΓ PC} → (e0 : MONOTONE PΓ PC) → (e1 : MONOTONE PΓ (PN ->p (PC ->p PC))) → MONOTONE (PΓ ×p PN) PC
+  rec' : ∀ {PΓ PC} → (e0 : MONOTONE PΓ PC) → (e1 : MONOTONE (PΓ ×p (PN ×p PC)) PC) → MONOTONE (PΓ ×p PN) PC
   rec' {Γ , preorder-max ≤Γ reflΓ transΓ maxΓ max-lΓ max-rΓ max-lubΓ} {C , preorder-max ≤c reflc transc maxc max-lc max-rc max-lubc}
-       (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) = monotone (λ x → natrec (e0 (fst x)) {!!} (snd x))
+       (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) =
+         monotone (λ x → natrec (e0 (fst x)) (λ n x₂ → e1 ((fst x) , n , x₂)) (snd x)) --natrec (x₁ , x₂) (λ x₃ x₄ → x₄) x₁)) (snd x))
                                                                    (λ x y x₁ → {!!})
 
   pair' : ∀ {PΓ PA PB} → MONOTONE PΓ PA → MONOTONE PΓ PB → MONOTONE PΓ (PA ×p PB)
