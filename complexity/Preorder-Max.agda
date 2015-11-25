@@ -170,7 +170,7 @@ module Preorder-Max where
 ------------------------------------------
 
   -- primitive recursion function corresponding to rec
-  natrec : ∀{C : Set} → C → (Nat → C → C) → Nat → C
+  natrec : ∀{C : Set} → (base : C) → (step : Nat → C → C) → (n : Nat) → C
   natrec base step Z = base
   natrec base step (S n) = step n (natrec base step n)
 
@@ -214,11 +214,13 @@ module Preorder-Max where
   suc' : ∀ {PΓ} → MONOTONE PΓ PN → MONOTONE PΓ PN
   suc' {fst , preorder-max ≤ refl trans max max-l max-r max-lub} (monotone f is-monotone) = monotone (λ x → S (f x)) (λ x y x₁ → is-monotone x y x₁)
 
-  rec' : ∀ {PΓ PC} → (e0 : MONOTONE PΓ PC) → (e1 : MONOTONE (PΓ ×p (PN ×p PC)) PC) → MONOTONE (PΓ ×p PN) PC
+  rec' : ∀ {PΓ PC} → (e0 : MONOTONE PΓ PC) → (e1 : MONOTONE (PΓ ×p (PN ×p PC)) PC)
+       → (∀ x → Preorder-max-str.≤ (snd PC) (Monotone.f e0 x) (Monotone.f e1 (x , (0 , Monotone.f e0 x))))
+       → MONOTONE (PΓ ×p PN) PC
   rec' {Γ , preorder-max ≤Γ reflΓ transΓ maxΓ max-lΓ max-rΓ max-lubΓ} {C , preorder-max ≤c reflc transc maxc max-lc max-rc max-lubc}
-       (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) =
-         monotone (λ x → natrec (e0 (fst x)) (λ n x₂ → e1 ((fst x) , n , x₂)) (snd x)) --natrec (x₁ , x₂) (λ x₃ x₄ → x₄) x₁)) (snd x))
-                                                                   (λ x y x₁ → {!!})
+       (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) p =
+         monotone (λ x → natrec (e0 (fst x)) (λ n x₂ → e1 ((fst x) , (n , x₂))) (snd x))
+           (λ x y x₁ → {!!})
 
   pair' : ∀ {PΓ PA PB} → MONOTONE PΓ PA → MONOTONE PΓ PB → MONOTONE PΓ (PA ×p PB)
   pair' (monotone f f-ismono) (monotone g g-ismono) = monotone (λ x → (f x) , (g x)) (λ x y x₁ → (f-ismono x y x₁) , (g-ismono x y x₁))
