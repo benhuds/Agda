@@ -214,13 +214,38 @@ module Preorder-Max where
   suc' : ∀ {PΓ} → MONOTONE PΓ PN → MONOTONE PΓ PN
   suc' {fst , preorder-max ≤ refl trans max max-l max-r max-lub} (monotone f is-monotone) = monotone (λ x → S (f x)) (λ x y x₁ → is-monotone x y x₁)
 
+  e0-lem : ∀ {PΓ PC} → (e0 : MONOTONE PΓ PC) → (e1 : MONOTONE (PΓ ×p (PN ×p PC)) PC) → (x y : fst (PΓ ×p PN)) --→ (k : fst PN)
+         → (∀ x → Preorder-max-str.≤ (snd PC) (Monotone.f e0 x) (Monotone.f e1 (x , (0 , Monotone.f e0 x))))
+         → Preorder-max-str.≤ (snd PΓ) (fst x) (fst y)
+         → Preorder-max-str.≤ (snd PC)
+             (natrec (Monotone.f e0 (fst x)) (λ n x₂ → Monotone.f e1 (fst x , n , x₂)) (snd x))
+             (natrec (Monotone.f e0 (fst y)) (λ n x₂ → Monotone.f e1 (fst y , n , x₂)) (snd x))
+  e0-lem {Γ , preorder-max ≤Γ reflΓ transΓ maxΓ max-lΓ max-rΓ max-lubΓ} {C , preorder-max ≤c reflc transc maxc max-lc max-rc max-lubc}
+         (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) (x , Z) (y , m) p q = e0-is-monotone x y q
+  e0-lem {Γ , preorder-max ≤Γ reflΓ transΓ maxΓ max-lΓ max-rΓ max-lubΓ} {C , preorder-max ≤c reflc transc maxc max-lc max-rc max-lubc}
+         (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) (x , S n) (y , m) p q =
+           e1-is-monotone (x , (n , natrec (e0 x) (λ n₁ x₂ → e1 (x , n₁ , x₂)) n))
+                          (y , (n , natrec (e0 y) (λ n₁ x₂ → e1 (y , n₁ , x₂)) n))
+                          (q ,
+                            (Preorder-max-str.refl nat-p n , {!!})) --e0-lem (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) {!!} {!!} p q))
+
+{- WTS:
+      (e1 (x , n , natrec (e0 x) (λ n₁ x₂ → e1 (x , n₁ , x₂)) n))
+   ≤c (e1 (y , n , natrec (e0 y) (λ n₁ x₂ → e1 (y , n₁ , x₂)) n))-}
+
   rec' : ∀ {PΓ PC} → (e0 : MONOTONE PΓ PC) → (e1 : MONOTONE (PΓ ×p (PN ×p PC)) PC)
        → (∀ x → Preorder-max-str.≤ (snd PC) (Monotone.f e0 x) (Monotone.f e1 (x , (0 , Monotone.f e0 x))))
        → MONOTONE (PΓ ×p PN) PC
   rec' {Γ , preorder-max ≤Γ reflΓ transΓ maxΓ max-lΓ max-rΓ max-lubΓ} {C , preorder-max ≤c reflc transc maxc max-lc max-rc max-lubc}
        (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) p =
          monotone (λ x → natrec (e0 (fst x)) (λ n x₂ → e1 ((fst x) , (n , x₂))) (snd x))
-           (λ x y x₁ → {!!})
+           (λ x y x₁ →
+             transc
+               (natrec (e0 (fst x)) (λ n x₂ → e1 (fst x , n , x₂)) (snd x))
+               (natrec (e0 (fst y)) (λ n x₂ → e1 (fst y , n , x₂)) (snd x))
+               (natrec (e0 (fst y)) (λ n x₂ → e1 (fst y , n , x₂)) (snd y))
+                 {!!}
+                 {!!})
 
   pair' : ∀ {PΓ PA PB} → MONOTONE PΓ PA → MONOTONE PΓ PB → MONOTONE PΓ (PA ×p PB)
   pair' (monotone f f-ismono) (monotone g g-ismono) = monotone (λ x → (f x) , (g x)) (λ x y x₁ → (f-ismono x y x₁) , (g-ismono x y x₁))
