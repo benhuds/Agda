@@ -227,7 +227,9 @@ module Preorder-Max where
            e1-is-monotone (x , (n , natrec (e0 x) (λ n₁ x₂ → e1 (x , n₁ , x₂)) n))
                           (y , (n , natrec (e0 y) (λ n₁ x₂ → e1 (y , n₁ , x₂)) n))
                           (q ,
-                            (Preorder-max-str.refl nat-p n , {!!})) --e0-lem (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) {!!} {!!} p q))
+                            (Preorder-max-str.refl nat-p n ,
+                              e0-lem {Γ , preorder-max ≤Γ reflΓ transΓ maxΓ max-lΓ max-rΓ max-lubΓ} {C , preorder-max ≤c reflc transc maxc max-lc max-rc max-lubc}
+                                     (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) (x , n) (y , m) p q))
 
   hlem : ∀ {PΓ PC} → (e0 : MONOTONE PΓ PC) → (e1 : MONOTONE (PΓ ×p (PN ×p PC)) PC) → (x : fst (PΓ ×p PN))
        → (∀ x → Preorder-max-str.≤ (snd PC) (Monotone.f e0 x) (Monotone.f e1 (x , (0 , Monotone.f e0 x))))
