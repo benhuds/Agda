@@ -284,8 +284,10 @@ module Preorder-Max where
                (natrec (e0 (fst x)) (λ n x₂ → e1 (fst x , n , x₂)) (snd x))
                (natrec (e0 (fst y)) (λ n x₂ → e1 (fst y , n , x₂)) (snd x))
                (natrec (e0 (fst y)) (λ n x₂ → e1 (fst y , n , x₂)) (snd y))
-                 {!!}
-                 {!!})
+                 (e0-lem {Γ , preorder-max ≤Γ reflΓ transΓ maxΓ max-lΓ max-rΓ max-lubΓ} {C , preorder-max ≤c reflc transc maxc max-lc max-rc max-lubc}
+                         (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) (fst x , snd x) (fst y , snd x) (λ x₂ → p x₂) (fst x₁))
+                 (e0-lem2 {Γ , preorder-max ≤Γ reflΓ transΓ maxΓ max-lΓ max-rΓ max-lubΓ} {C , preorder-max ≤c reflc transc maxc max-lc max-rc max-lubc}
+                          (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) (fst y , snd x) (fst y , snd y) (λ x₂ → p x₂) (snd x₁)))
 
   pair' : ∀ {PΓ PA PB} → MONOTONE PΓ PA → MONOTONE PΓ PB → MONOTONE PΓ (PA ×p PB)
   pair' (monotone f f-ismono) (monotone g g-ismono) = monotone (λ x → (f x) , (g x)) (λ x y x₁ → (f-ismono x y x₁) , (g-ismono x y x₁))
