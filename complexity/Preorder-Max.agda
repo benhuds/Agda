@@ -15,19 +15,6 @@ module Preorder-Max where
       max-r : ∀ l r → ≤ r (max l r)
       max-lub : ∀ k l r → ≤ l k → ≤ r k → ≤ (max l r) k
 
-  record Pre-wtop (A : Set) : Set1 where
-    constructor pt
-    field
-      ≤ : A → A → Set
-      refl : ∀ x → ≤ x x
-      trans : ∀ x y z → ≤ x y → ≤ y z → ≤ x z
-      max : A → A → A
-      max-l : ∀ l r → ≤ l (max l r)
-      max-r : ∀ l r → ≤ r (max l r)
-      max-lub : ∀ k l r → ≤ l k → ≤ r k → ≤ (max l r) k
-      top : A
-      top-max : ∀ x → ≤ x top
-
 ------------------------------------------
 
   en = Either Nat Unit
@@ -91,6 +78,32 @@ module Preorder-Max where
   -- Nat is preorder with max
   nat-p : Preorder-max-str Nat
   nat-p = preorder-max ≤nat nat-refl nat-trans nat-max nat-max-l nat-max-r nat-max-lub
+
+  ≤b : Bool → Bool → Set
+  ≤b True True = Unit
+  ≤b True False = Void
+  ≤b False True = Void
+  ≤b False False = Unit
+
+  b-refl : (x : Bool) → ≤b x x
+  b-refl True = <>
+  b-refl False = <>
+
+  b-trans : (x y z : Bool) → ≤b x y → ≤b y z → ≤b x z
+  b-trans True True True x x₁ = <>
+  b-trans True True False x ()
+  b-trans True False z () x₁
+  b-trans False True z () x₁
+  b-trans False False True x ()
+  b-trans False False False x x₁ = <>
+
+
+  -- you can't impose maximum values on bool because you get stuck in trying to prove max-l/r.
+  b-max : Bool → Bool → Bool
+  b-max True True = True
+  b-max True False = True
+  b-max False True = True
+  b-max False False = False
 
 ------------------------------------------
 

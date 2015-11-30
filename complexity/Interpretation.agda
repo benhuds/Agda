@@ -39,7 +39,7 @@ module Interpretation where
   interpE (plusC e e₁) = {!!}
   interpE (var x) = lookup x
   interpE z = monotone (λ x → Z) (λ x y x₁ → <>)
-  interpE (s e) = {!!}
+  interpE (s e) = suc' (interpE e)
   interpE (rec e e₁ e₂) = {!!}
   interpE (lam e) = lam' (interpE e)
   interpE (app e e₁) = app' (interpE e) (interpE e₁)
