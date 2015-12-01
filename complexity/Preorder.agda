@@ -86,8 +86,8 @@ module Preorder where
                           Preorder-str.trans PA a1 a2 a3 a1<a2 a2<a3 , Preorder-str.trans PB b1 b2 b3 b1<b2 b2<b3
 
   -- proof that AxB is a preorder
-  AxB-ispreorder : ∀ (A B : Set) → Preorder-str A → Preorder-str B → Preorder-str (A × B)
-  AxB-ispreorder A B pre-a pre-b = record { ≤ = ≤axb pre-a pre-b; refl = axb-refl pre-a pre-b; trans = axb-trans pre-a pre-b } 
+  axb-p : ∀ (A B : Set) → Preorder-str A → Preorder-str B → Preorder-str (A × B)
+  axb-p A B pre-a pre-b = record { ≤ = ≤axb pre-a pre-b; refl = axb-refl pre-a pre-b; trans = axb-trans pre-a pre-b } 
 
 ------------------------------------------
 
@@ -130,7 +130,7 @@ module Preorder where
   
   -- some operations
   _×p_ : PREORDER → PREORDER → PREORDER
-  (A , PA) ×p (B , PB) = A × B , AxB-ispreorder A B PA PB
+  (A , PA) ×p (B , PB) = A × B , axb-p A B PA PB
 
   _->p_ : PREORDER → PREORDER → PREORDER
   (A , PA) ->p (B , PB) = Monotone A B PA PB , monotone-ispreorder A B PA PB
@@ -295,3 +295,25 @@ module Preorder where
 
   nat-pM : Preorder-max-str Nat nat-p
   nat-pM = preorder-max nat-max nat-max-l nat-max-r nat-max-lub
+
+  axb-max : ∀ {A B : Set} {PA : Preorder-str A} {PB : Preorder-str B}
+          → Preorder-max-str A PA → Preorder-max-str B PB → (A × B) → (A × B) → (A × B)
+  axb-max PA PB (a1 , b1) (a2 , b2) = Preorder-max-str.max PA a1 a2 , Preorder-max-str.max PB b1 b2
+
+  axb-max-l : ∀ {A B : Set} {PA : Preorder-str A} {PB : Preorder-str B}
+            → (PMA : Preorder-max-str A PA) → (PMB : Preorder-max-str B PB) → (l r : (A × B)) → ≤axb PA PB l (axb-max PMA PMB l r)
+  axb-max-l PMA PMB (a1 , b1) (a2 , b2) = Preorder-max-str.max-l PMA a1 a2 , Preorder-max-str.max-l PMB b1 b2
+
+  axb-max-r : ∀ {A B : Set} {PA : Preorder-str A} {PB : Preorder-str B}
+            → (PMA : Preorder-max-str A PA) → (PMB : Preorder-max-str B PB) → (l r : (A × B)) → ≤axb PA PB r (axb-max PMA PMB l r)
+  axb-max-r PMA PMB (a1 , b1) (a2 , b2) = Preorder-max-str.max-r PMA a1 a2 , Preorder-max-str.max-r PMB b1 b2
+
+  axb-max-lub : ∀ {A B : Set} {PA : Preorder-str A} {PB : Preorder-str B} 
+              → (PMA : Preorder-max-str A PA) → (PMB : Preorder-max-str B PB) → (k l r : (A × B)) 
+              → ≤axb PA PB l k → ≤axb PA PB r k → ≤axb PA PB (axb-max PMA PMB l r) k
+  axb-max-lub PMA PMB (k1 , k2) (l1 , l2) (r1 , r2) (l1<k1 , l2<k2) (r1<k1 , r2<k2) =
+                 Preorder-max-str.max-lub PMA k1 l1 r1 l1<k1 r1<k1 , Preorder-max-str.max-lub PMB k2 l2 r2 l2<k2 r2<k2
+
+  axb-pM : ∀ {A B : Set} {PA : Preorder-str A} {PB : Preorder-str B}
+         → Preorder-max-str A PA → Preorder-max-str B PB → Preorder-max-str (A × B) (axb-p A B PA PB)
+  axb-pM PMA PMB = preorder-max (axb-max PMA PMB) (axb-max-l PMA PMB) (axb-max-r PMA PMB) (axb-max-lub PMA PMB)
