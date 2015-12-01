@@ -191,23 +191,23 @@ module Preorder-Max where
 
 -- same thing as Preorder.agda but for this module
 
-  PREORDER = Σ (λ (A : Set) → Preorder-max-str A)
-
-  MONOTONE : (PΓ PA : PREORDER) → Set
+  PREORDER-MAX = Σ (λ (A : Set) → Preorder-max-str A)
+{-
+  MONOTONE : (PΓ PA : PREORDER-MAX) → Set
   MONOTONE (Γ , PΓ) (A , PA) = Monotone Γ A PΓ PA
 
   -- some operations
-  _×p_ : PREORDER → PREORDER → PREORDER
+  _×p_ : PREORDER-MAX → PREORDER-MAX → PREORDER-MAX
   (A , PA) ×p (B , PB) = A × B , axb-p A B PA PB
 
-  _->p_ : PREORDER → PREORDER → PREORDER
+  _->p_ : PREORDER-MAX → PREORDER-MAX → PREORDER-MAX
   (A , PA) ->p (B , PB) = Monotone A B PA PB , mono-p A B PA PB
 
-  PN : PREORDER
+  PN : PREORDER-MAX
   PN = Nat , nat-p
 
   -- Unit is a preorder
-  unit-p : PREORDER
+  unit-p : PREORDER-MAX
   unit-p = Unit , preorder-max (λ x x₁ → Unit) (λ x → <>) (λ x y z _ _ → <>) (λ _ _ → <>) (λ l r → <>) (λ l r → <>) (λ k l r _ _ → <>)
 
   -- identity preserves monotonicity
@@ -321,3 +321,4 @@ module Preorder-Max where
   app' {_} {_} {b , preorder-max _ _ transb _ _ _ _} (monotone f f-ismono) (monotone g g-ismono) =
           monotone (λ x → Monotone.f (f x) (g x)) (λ x y z → transb (Monotone.f (f x) (g x)) (Monotone.f (f y) (g x)) (Monotone.f (f y) (g y))
           (f-ismono x y z (g x)) (Monotone.is-monotone (f y) (g x) (g y) (g-ismono x y z)))
+-}

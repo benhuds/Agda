@@ -40,6 +40,27 @@ module Preorder where
   nat-p : Preorder-str Nat
   nat-p = record { ≤ = ≤nat; refl = nat-refl; trans = nat-trans }
 
+  ≤b : Bool → Bool → Set
+  ≤b True True = Unit
+  ≤b True False = Void
+  ≤b False True = Void
+  ≤b False False = Unit
+
+  b-refl : (x : Bool) → ≤b x x
+  b-refl True = <>
+  b-refl False = <>
+
+  b-trans : (x y z : Bool) → ≤b x y → ≤b y z → ≤b x z
+  b-trans True True True x x₁ = <>
+  b-trans True True False x ()
+  b-trans True False z () x₁
+  b-trans False True z () x₁
+  b-trans False False True x ()
+  b-trans False False False x x₁ = <>
+
+  bool-p : Preorder-str Bool
+  bool-p = preorder ≤b b-refl b-trans
+
 ------------------------------------------
 
   -- Task 2: Show that the product of two preorders is a preorder

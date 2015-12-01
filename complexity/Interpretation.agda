@@ -2,38 +2,43 @@
 
 open import Preliminaries
 open import Preorder-Max
-open import Pilot
+open import Preorder
+open import Pilot2
 
 module Interpretation where
 
   -- interpret complexity types as preorders
   [_]t : CTp → PREORDER
   [ unit ]t = unit-p
-  [ nat ]t = Nat , {!!}
-  [ A ->c B ]t = [ A ]t ->p [ B ]t
-  [ A ×c B ]t = [ A ]t ×p [ B ]t
-  [ list A ]t = Nat , nat-p
-  [ bool ]t = unit-p
-  [ rnat ]t = Nat , nat-p
-  [ C ]t = Nat , nat-p
+  [ nat ]t = Nat , Preorder.nat-p
+  [ τ ->c τ₁ ]t = [ τ ]t ->p [ τ₁ ]t
+  [ τ ×c τ₁ ]t = [ τ ]t ×p [ τ₁ ]t
+  [ list τ ]t = {!!}
+  [ bool ]t = Bool , bool-p
+  [ C ]t = {!!}
+  [ rnat ]t = {!!}
   
   -- interpret contexts as preorders
   [_]c : Ctx → PREORDER
-  [ [] ]c = unit-p
-  [ τ :: Γ ]c = [ Γ ]c ×p [ τ ]t 
+  [ [] ]c = {!!}
+  [ τ :: Γ ]c = {!!} --[ Γ ]c ×p [ τ ]t 
 
   el : PREORDER → Set
   el = fst
-
+{-
   PREORDER≤ : (PA : PREORDER) → el PA → el PA → Set
   PREORDER≤ PA = Preorder-max-str.≤ (snd PA)
+-}
 
+{-
   lookup : ∀{Γ τ} → τ ∈ Γ → el ([ Γ ]c ->p [ τ ]t)
   lookup (i0 {Γ} {τ}) = snd' {[ (τ :: Γ) ]c} {[ Γ ]c} {_} id
   lookup (iS {Γ} {τ} {τ1} x) = comp {[ (τ1 :: Γ) ]c} {_} {_} (fst' {[ (τ1 :: Γ) ]c} {_} {[ τ1 ]t} id) (lookup x)
 
   interpE : ∀{Γ τ} → Γ |- τ → el ([ Γ ]c ->p [ τ ]t)
-  interpE unit = monotone (λ x → <>) (λ x y x₁ → <>)
+  interpE e = {!!}-}
+
+{-  interpE unit = monotone (λ x → <>) (λ x y x₁ → <>)
   interpE 0C = monotone (λ x → Z) (λ x y x₁ → <>)
   interpE 1C = monotone (λ x → S Z) (λ x y x₁ → <>)
   interpE (plusC e e₁) = {!!}
@@ -53,7 +58,7 @@ module Interpretation where
   interpE (e ::c e₁) = {!!}
   interpE (listrec e e₁ e₂) = {!!}
   interpE true = {!!}
-  interpE false = {!!}
+  interpE false = {!!}-}
 {-
   interpE unit = monotone (λ x → <>) (λ x y x₁ → <>)
   interpE 0C = monotone (λ x → Z) (λ x y x₁ → <>)
@@ -74,8 +79,12 @@ module Interpretation where
   interpE true = {!!}
   interpE false = {!!}
 -}
+{-
+
   sound : ∀ {Γ τ} (e e' : Γ |- τ) → e ≤s e' → PREORDER≤ ([ Γ ]c ->p [ τ ]t) (interpE e) (interpE e')
   sound e e' d k = {!!}
+
+-}
 {-  sound {_} {τ} e .e refl-s k = Preorder-max-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
   sound {_} {τ} e e' (trans-s s s₁) k = {!!}
   sound ._ ._ (plus-s s s₁) x = {!!}
