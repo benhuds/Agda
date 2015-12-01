@@ -255,3 +255,43 @@ module Preorder where
                      (fst x , snd x) (fst y , snd x) (λ x₂ → p x₂) (fst x₁))
                   (h-lem2 {Γ , preorder ≤ refl trans} {C , preorder ≤c reflc transc}
                      (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) (fst y , snd x) (fst y , snd y) (λ x₂ → p x₂) (snd x₁)))
+
+--- extend Preorders so you can impose max on them if type has maximums
+
+  record Preorder-max-str (A : Set) (PA : Preorder-str A) : Set where
+    constructor preorder-max
+    field
+      max : A → A → A
+      max-l : ∀ l r → Preorder-str.≤ PA l (max l r)
+      max-r : ∀ l r → Preorder-str.≤ PA r (max l r)
+      max-lub : ∀ k l r → Preorder-str.≤ PA l k → Preorder-str.≤ PA r k → Preorder-str.≤ PA (max l r) k
+
+  nat-max : Nat → Nat → Nat
+  nat-max Z n = n
+  nat-max (S m) Z = S m
+  nat-max (S m) (S n) = S (nat-max m n)
+
+  nat-max-l : ∀ (l r : Nat) → ≤nat l (nat-max l r)
+  nat-max-l Z Z = <>
+  nat-max-l Z (S n) = <>
+  nat-max-l (S m) Z = nat-refl m
+  nat-max-l (S m) (S n) = nat-max-l m n
+
+  nat-max-r : ∀ (l r : Nat) → ≤nat r (nat-max l r)
+  nat-max-r Z Z = <>
+  nat-max-r Z (S n) = nat-refl n
+  nat-max-r (S m) Z = <>
+  nat-max-r (S m) (S n) = nat-max-r m n
+
+  nat-max-lub : ∀ (k l r : Nat) → ≤nat l k → ≤nat r k → ≤nat (nat-max l r) k
+  nat-max-lub Z Z Z p q = <>
+  nat-max-lub Z Z (S r) p ()
+  nat-max-lub Z (S l) Z () q
+  nat-max-lub Z (S l) (S r) () q
+  nat-max-lub (S k) Z Z p q = <>
+  nat-max-lub (S k) Z (S r) p q = q
+  nat-max-lub (S k) (S l) Z p q = p
+  nat-max-lub (S k) (S l) (S r) p q = nat-max-lub k l r p q
+
+  nat-pM : Preorder-max-str Nat nat-p
+  nat-pM = preorder-max nat-max nat-max-l nat-max-r nat-max-lub
