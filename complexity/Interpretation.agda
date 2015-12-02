@@ -10,21 +10,28 @@ module Interpretation where
   -- interpret complexity types as preorders
   [_]t : CTp → PREORDER
   [ unit ]t = unit-p
-  [ nat ]t = Nat , nat-p
+  [ nat ]t = Nat , ♭nat-p
   [ τ ->c τ₁ ]t = [ τ ]t ->p [ τ₁ ]t
   [ τ ×c τ₁ ]t = [ τ ]t ×p [ τ₁ ]t
   [ list τ ]t = Nat , nat-p
   [ bool ]t = Bool , bool-p
   [ C ]t = Nat , nat-p
-  [ rnat ]t = {!!}
-{-
-  [_]tm : CTpM → PREORDER-MAX
-  [ e ]tm = {!!}
-  -}
+  [ rnat ]t = Nat , nat-p
+
+  [_]tm : ∀ {A} → CTpM A → Preorder-max-str (snd [ A ]t)
+  [ runit ]tm = unit-pM
+  [ rn ]tm = nat-pM
+  [ e ×cm e₁ ]tm = axb-pM [ e ]tm [ e₁ ]tm
+  [ _->cm_ e ]tm = {!!}
+  
   -- interpret contexts as preorders
   [_]c : Ctx → PREORDER
   [ [] ]c = unit-p
   [ τ :: Γ ]c = [ Γ ]c ×p [ τ ]t
+
+{-[ Θ ]s : Monotone [ Γ ]  [ Γ' ]
+  [ ρ ]r : same
+  interpE ren e ρ k == interpE e (interpR ρ) k-}
 
   el : PREORDER → Set
   el = fst
@@ -36,6 +43,12 @@ module Interpretation where
   lookup (i0 {Γ} {τ}) = snd' {[ (τ :: Γ) ]c} {[ Γ ]c} {_} id
   lookup (iS {Γ} {τ} {τ1} x) = comp {[ (τ1 :: Γ) ]c} {_} {_} (fst' {[ (τ1 :: Γ) ]c} {_} {[ τ1 ]t} id) (lookup x)
 
+  interpR : ∀ {Γ Γ'} → (ρ : rctx Γ Γ') → MONOTONE [ Γ' ]c [ Γ ]c
+  interpR ρ = {!!}
+
+  interpS : ∀ {Γ Γ'} → (Θ : sctx Γ Γ') → MONOTONE [ Γ' ]c [ Γ ]c
+  interpS Θ = monotone (λ x → {!Θ !}) (λ x y x₁ → {!!})
+
   interpE : ∀{Γ τ} → Γ |- τ → el ([ Γ ]c ->p [ τ ]t)
   interpE unit = monotone (λ x → <>) (λ x y x₁ → <>)
   interpE 0C = monotone (λ x → Z) (λ x y x₁ → <>)
@@ -43,13 +56,13 @@ module Interpretation where
   interpE (plusC e e₁) = monotone (λ x → Monotone.f (interpE e) x + Monotone.f (interpE e₁) x) (λ x y x₁ → {!!})
   interpE (var x) = lookup x
   interpE z = monotone (λ x → Z) (λ x y x₁ → <>)
-  interpE (s e) = suc' (interpE e)
-  interpE (rec e e₁ e₂) = monotone (λ x → natrec (Monotone.f (interpE e₁) x) (λ n x₂ → Monotone.f (interpE e₂) ((x , x₂) , n)) (Monotone.f (interpE e) x))
-                          (λ x y x₁ → {!!})
+  interpE (s e) = monotone (λ x → S (Monotone.f (interpE e) x)) {!!}
+  interpE (rec e e₁ e₂) = {!!}
+--monotone (λ x → natrec (Monotone.f (interpE e₁) x) (λ n x₂ → Monotone.f (interpE e₂) ((x , x₂) , n)) (Monotone.f (interpE e) x)) (λ x y x₁ → {!!})
   interpE (lam e) = lam' (interpE e)
   interpE (app e e₁) = app' (interpE e) (interpE e₁)
-  interpE rz = {!!}
-  interpE (rsuc e) = {!!}
+  interpE rz = z'
+  interpE (rsuc e) = suc' (interpE e)
   interpE (rrec e e₁ e₂ P) = {!!}
   interpE (prod e e₁) = pair' (interpE e) (interpE e₁)
   interpE (l-proj e) = fst' (interpE e)
@@ -68,8 +81,8 @@ module Interpretation where
         (sound e e'' d k) (sound e'' e' d₁ k)
   sound ._ ._ (plus-s d d₁) k = {!!}
   sound {_} {τ} e .e (cong-refl Refl) k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
-  sound .(plusC 0C e') e' +-unit-l k = Preorder-str.refl (snd [ nat ]t) (Monotone.f (interpE e') k)
-  sound e .(plusC 0C e) +-unit-l' k = Preorder-str.refl (snd [ nat ]t) (Monotone.f (interpE e) k)
+  sound .(plusC 0C e') e' +-unit-l k = {!!} --Preorder-str.refl (snd [ nat ]t) (Monotone.f (interpE e') k)
+  sound e .(plusC 0C e) +-unit-l' k = {!!} --Preorder-str.refl (snd [ nat ]t) (Monotone.f (interpE e) k)
   sound {_} {.C} .(plusC e' 0C) e' +-unit-r k = {!!}
   sound e .(plusC e 0C) +-unit-r' k = {!!}
   sound {_} {.C} ._ ._ +-assoc k = {!!}
@@ -80,14 +93,14 @@ module Interpretation where
   sound {Γ} {τ} ._ ._ (cong-rproj {.Γ} {_} {.τ} {e} {e'} d) k = snd (sound e e' d k)
   sound {Γ} {τ} ._ ._ (cong-app {.Γ} {τ'} {.τ} {e} {e'} {e1} d) k = sound e e' d k (Monotone.f (interpE e1) k)
   sound {Γ} {τ} ._ ._ (ren-cong {.Γ} {Γ'} {.τ} {e1} {e2} {ρ} d) k = {!!}
-  sound ._ ._ (subst-cong {_} {_} {_} {e1} d) k = {!!}
+  sound ._ ._ (subst-cong {_} {_} {_} {e1} {e2} {Θ} d) k = {!!}
   sound ._ ._ (subst-cong2 x) k = {!!}
   sound {Γ} {τ} ._ ._ (cong-rec {.Γ} {.τ} {e} {e'} {e0} {e1} d) k = {!!}
   sound ._ ._ (cong-listrec d) k = {!!}
   sound {Γ} {τ} ._ ._ (lam-s {.Γ} {τ'} {.τ} {e} {e2}) k = {!!}
   sound {Γ} {τ} e ._ (l-proj-s {.Γ}) k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
   sound {Γ} {τ} e ._ (r-proj-s {.Γ}) k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
-  sound {_} {τ} e ._ rec-steps-z k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
+  sound {_} {τ} e ._ rec-steps-z k = {!!} --Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
   sound ._ ._ rec-steps-s k = {!!}
   sound e ._ listrec-steps-nil k = {!!}
   sound ._ ._ listrec-steps-cons k = {!!}

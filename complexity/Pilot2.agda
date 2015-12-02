@@ -15,11 +15,9 @@ module Pilot2 where
 
   data CTpM : CTp → Set where
     runit : CTpM unit
-    rn : CTpM nat
-    _×cm_ : ∀ {τ1 τ2} → CTpM (τ1 ×c τ2)
-    _->cm_ : ∀ {τ1 τ2} → CTpM (τ1 ->c τ2)
-    rlist : ∀ {τ} → CTpM (list τ)
-    rbool : CTpM bool
+    rn : CTpM rnat
+    _×cm_ : ∀ {τ1 τ2} → CTpM τ1 → CTpM τ2 → CTpM (τ1 ×c τ2)
+    _->cm_ : ∀ {τ1 τ2} → CTpM τ2 → CTpM (τ1 ->c τ2)
     
   -- represent a context as a list of types
   Ctx = List CTp
@@ -89,7 +87,14 @@ module Pilot2 where
     listrec : ∀ {Γ τ τ'} → Γ |- list τ → Γ |- τ' → (τ :: (list τ :: (τ' :: Γ))) |- τ' → Γ |- τ'
     true : ∀ {Γ} → Γ |- bool
     false : ∀ {Γ} → Γ |- bool
+    --max : ∀ {Γ τ} → CTpM τ → Γ |- τ → Γ |- τ 
 
+{-[ Θ ]s : Monotone [ Γ ]  [ Γ' ]
+  [ ρ ]r : same
+  interpE ren e ρ k == interpE e (interpR ρ) k
+interp commutes with renaming and substitution
+equations that define ren and subst are true in the semantics-}
+--also add axioms for max-l/r etc.
   data _≤s_ where
     refl-s : ∀ {Γ T} → {e : Γ |- T} → e ≤s e
     trans-s : ∀ {Γ T} → {e e' e'' : Γ |- T} → e ≤s e' → e' ≤s e'' → e ≤s e''

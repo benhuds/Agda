@@ -40,6 +40,29 @@ module Preorder where
   nat-p : Preorder-str Nat
   nat-p = record { ≤ = ≤nat; refl = nat-refl; trans = nat-trans }
 
+  --discrete nat
+  nat-eq : Nat → Nat → Set
+  nat-eq Z Z = Unit
+  nat-eq Z (S n) = Void
+  nat-eq (S m) Z = Void
+  nat-eq (S m) (S n) = nat-eq m n
+
+  ♭nat-refl : (x : Nat) → nat-eq x x
+  ♭nat-refl Z = <>
+  ♭nat-refl (S x) = ♭nat-refl x
+
+  ♭nat-trans : (x y z : Nat) → nat-eq x y → nat-eq y z → nat-eq x z
+  ♭nat-trans Z Z Z x x₁ = <>
+  ♭nat-trans Z Z (S z) x ()
+  ♭nat-trans Z (S y) z () x₁
+  ♭nat-trans (S x) Z z () x₂
+  ♭nat-trans (S x) (S y) Z x₁ x₂ = x₂
+  ♭nat-trans (S x) (S y) (S z) x₁ x₂ = ♭nat-trans x y z x₁ x₂
+
+  ♭nat-p : Preorder-str Nat
+  ♭nat-p = preorder nat-eq ♭nat-refl ♭nat-trans
+
+  --bools
   ≤b : Bool → Bool → Set
   ≤b True True = Unit
   ≤b True False = Void
@@ -264,7 +287,7 @@ module Preorder where
 -}
 --- extend Preorders so you can impose max on them if type has maximums
 
-  record Preorder-max-str (A : Set) (PA : Preorder-str A) : Set where
+  record Preorder-max-str {A : Set} (PA : Preorder-str A) : Set where
     constructor preorder-max
     field
       max : A → A → A
@@ -299,30 +322,33 @@ module Preorder where
   nat-max-lub (S k) (S l) Z p q = p
   nat-max-lub (S k) (S l) (S r) p q = nat-max-lub k l r p q
 
-  nat-pM : Preorder-max-str Nat nat-p
+  nat-pM : Preorder-max-str nat-p
   nat-pM = preorder-max nat-max nat-max-l nat-max-r nat-max-lub
 
+  unit-pM : Preorder-max-str (snd unit-p)
+  unit-pM = preorder-max (λ x x₁ → <>) (λ l r → <>) (λ l r → <>) (λ k l r x x₁ → <>)
+
   axb-max : ∀ {A B : Set} {PA : Preorder-str A} {PB : Preorder-str B}
-          → Preorder-max-str A PA → Preorder-max-str B PB → (A × B) → (A × B) → (A × B)
+          → Preorder-max-str PA → Preorder-max-str PB → (A × B) → (A × B) → (A × B)
   axb-max PA PB (a1 , b1) (a2 , b2) = Preorder-max-str.max PA a1 a2 , Preorder-max-str.max PB b1 b2
 
   axb-max-l : ∀ {A B : Set} {PA : Preorder-str A} {PB : Preorder-str B}
-            → (PMA : Preorder-max-str A PA) → (PMB : Preorder-max-str B PB) → (l r : (A × B)) → ≤axb PA PB l (axb-max PMA PMB l r)
+            → (PMA : Preorder-max-str PA) → (PMB : Preorder-max-str PB) → (l r : (A × B)) → ≤axb PA PB l (axb-max PMA PMB l r)
   axb-max-l PMA PMB (a1 , b1) (a2 , b2) = Preorder-max-str.max-l PMA a1 a2 , Preorder-max-str.max-l PMB b1 b2
 
   axb-max-r : ∀ {A B : Set} {PA : Preorder-str A} {PB : Preorder-str B}
-            → (PMA : Preorder-max-str A PA) → (PMB : Preorder-max-str B PB) → (l r : (A × B)) → ≤axb PA PB r (axb-max PMA PMB l r)
+            → (PMA : Preorder-max-str PA) → (PMB : Preorder-max-str PB) → (l r : (A × B)) → ≤axb PA PB r (axb-max PMA PMB l r)
   axb-max-r PMA PMB (a1 , b1) (a2 , b2) = Preorder-max-str.max-r PMA a1 a2 , Preorder-max-str.max-r PMB b1 b2
 
   axb-max-lub : ∀ {A B : Set} {PA : Preorder-str A} {PB : Preorder-str B} 
-              → (PMA : Preorder-max-str A PA) → (PMB : Preorder-max-str B PB) → (k l r : (A × B)) 
+              → (PMA : Preorder-max-str PA) → (PMB : Preorder-max-str PB) → (k l r : (A × B)) 
               → ≤axb PA PB l k → ≤axb PA PB r k → ≤axb PA PB (axb-max PMA PMB l r) k
   axb-max-lub PMA PMB (k1 , k2) (l1 , l2) (r1 , r2) (l1<k1 , l2<k2) (r1<k1 , r2<k2) =
                  Preorder-max-str.max-lub PMA k1 l1 r1 l1<k1 r1<k1 , Preorder-max-str.max-lub PMB k2 l2 r2 l2<k2 r2<k2
 
   axb-pM : ∀ {A B : Set} {PA : Preorder-str A} {PB : Preorder-str B}
-         → Preorder-max-str A PA → Preorder-max-str B PB → Preorder-max-str (A × B) (axb-p A B PA PB)
+         → Preorder-max-str PA → Preorder-max-str PB → Preorder-max-str (axb-p A B PA PB)
   axb-pM PMA PMB = preorder-max (axb-max PMA PMB) (axb-max-l PMA PMB) (axb-max-r PMA PMB) (axb-max-lub PMA PMB)
 
   --???
-  PREORDER-MAX = (Σ (λ (A : Set) → (PA : Preorder-str A) → Preorder-max-str A PA))
+  PREORDER-MAX = (Σ (λ (A : Set) → (PA : Preorder-str A) → Preorder-max-str PA))
