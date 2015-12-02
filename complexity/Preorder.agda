@@ -256,6 +256,12 @@ module Preorder where
                   (h-lem2 {Γ , preorder ≤ refl trans} {C , preorder ≤c reflc transc}
                      (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) (fst y , snd x) (fst y , snd y) (λ x₂ → p x₂) (snd x₁)))
 
+{-
+  plus' : ∀ {PΓ} → (e0 : MONOTONE PΓ PN) → (e1 : MONOTONE PΓ PN)
+        → MONOTONE PΓ PN
+  plus' {Γ , preorder ≤ refl trans} (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) =
+        monotone (λ x → e0 x + e1 x) (λ x y x₁ → {!!})
+-}
 --- extend Preorders so you can impose max on them if type has maximums
 
   record Preorder-max-str (A : Set) (PA : Preorder-str A) : Set where
@@ -317,3 +323,6 @@ module Preorder where
   axb-pM : ∀ {A B : Set} {PA : Preorder-str A} {PB : Preorder-str B}
          → Preorder-max-str A PA → Preorder-max-str B PB → Preorder-max-str (A × B) (axb-p A B PA PB)
   axb-pM PMA PMB = preorder-max (axb-max PMA PMB) (axb-max-l PMA PMB) (axb-max-r PMA PMB) (axb-max-lub PMA PMB)
+
+  --???
+  PREORDER-MAX = (Σ (λ (A : Set) → (PA : Preorder-str A) → Preorder-max-str A PA))
