@@ -29,10 +29,6 @@ module Interpretation where
   [ [] ]c = unit-p
   [ τ :: Γ ]c = [ Γ ]c ×p [ τ ]t
 
-{-[ Θ ]s : Monotone [ Γ ]  [ Γ' ]
-  [ ρ ]r : same
-  interpE ren e ρ k == interpE e (interpR ρ) k-}
-
   el : PREORDER → Set
   el = fst
 
@@ -74,7 +70,7 @@ module Interpretation where
   throw-r : ∀ {Γ Γ' τ} → rctx Γ (τ :: Γ') → rctx Γ Γ'
   throw-r d = λ x → d (iS x)
 
-  interpR : ∀ {Γ Γ'} → (ρ : rctx Γ Γ') → MONOTONE [ Γ ]c [ Γ' ]c
+  interpR : ∀ {Γ Γ'} → rctx Γ Γ' → MONOTONE [ Γ ]c [ Γ' ]c
   interpR {Γ' = []} ρ = monotone (λ _ → <>) (λ x y x₁ → <>)
   interpR {Γ' = τ :: Γ'} ρ = monotone (λ x → (Monotone.f (interpR (throw-r ρ)) x) , (Monotone.f (lookup (ρ i0)) x))
                              (λ x y x₁ → (Monotone.is-monotone (interpR (throw-r ρ)) x y x₁) , (Monotone.is-monotone (lookup (ρ i0)) x y x₁))
@@ -82,10 +78,16 @@ module Interpretation where
   throw-s : ∀ {Γ Γ' τ} → sctx Γ (τ :: Γ') → sctx Γ Γ'
   throw-s d = λ x → d (iS x)
 
-  interpS : ∀ {Γ Γ'} → (Θ : sctx Γ Γ') → el ([ Γ ]c ->p [ Γ' ]c)
+  interpS : ∀ {Γ Γ'} → sctx Γ Γ' → el ([ Γ ]c ->p [ Γ' ]c)
   interpS {Γ' = []} Θ = monotone (λ _ → <>) (λ x y x₁ → <>)
   interpS {Γ' = τ :: Γ'} Θ = monotone (λ x → Monotone.f (interpS (throw-s Θ)) x , Monotone.f (interpE (Θ i0)) x)
                              (λ x y x₁ → Monotone.is-monotone (interpS (throw-s Θ)) x y x₁ , (Monotone.is-monotone (interpE (Θ i0)) x y x₁))
+
+  ren-eq-lem : ∀ {Γ Γ' τ} → (ρ : rctx Γ Γ') → (e : Γ' |- τ) → (k : fst [ Γ ]c) → Monotone.f (interpE (ren e ρ)) k == Monotone.f {!!} k
+  ren-eq-lem ρ e k = {!!}
+
+{-fst [ .Γ ]c
+interpE ren e ρ k == interpE e (interpR ρ) k-}
 
   sound : ∀ {Γ τ} (e e' : Γ |- τ) → e ≤s e' → PREORDER≤ ([ Γ ]c ->p [ τ ]t) (interpE e) (interpE e')
   sound {_} {τ} e .e refl-s k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
