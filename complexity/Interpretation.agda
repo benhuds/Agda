@@ -22,7 +22,7 @@ module Interpretation where
   [ runit ]tm = unit-pM
   [ rn ]tm = nat-pM
   [ e ×cm e₁ ]tm = axb-pM [ e ]tm [ e₁ ]tm
-  [ _->cm_ e ]tm = {!!}
+  [ _->cm_ e ]tm = mono-pM {!!} [ e ]tm
   
   -- interpret contexts as preorders
   [_]c : Ctx → PREORDER
@@ -40,11 +40,11 @@ module Interpretation where
   PREORDER≤ PA = Preorder-str.≤ (snd PA)
 
   lookup : ∀{Γ τ} → τ ∈ Γ → el ([ Γ ]c ->p [ τ ]t)
-  lookup (i0 {Γ} {τ}) = snd' {[ (τ :: Γ) ]c} {[ Γ ]c} {_} id
+  lookup (i0 {Γ} {τ}) = snd' id --snd' {[ (τ :: Γ) ]c} {[ Γ ]c} {_} id
   lookup (iS {Γ} {τ} {τ1} x) = comp {[ (τ1 :: Γ) ]c} {_} {_} (fst' {[ (τ1 :: Γ) ]c} {_} {[ τ1 ]t} id) (lookup x)
 
   interpR : ∀ {Γ Γ'} → (ρ : rctx Γ Γ') → MONOTONE [ Γ' ]c [ Γ ]c
-  interpR ρ = {!!}
+  interpR {Γ} {Γ'} ρ = {!!}
 
   interpS : ∀ {Γ Γ'} → (Θ : sctx Γ Γ') → MONOTONE [ Γ' ]c [ Γ ]c
   interpS Θ = monotone (λ x → {!Θ !}) (λ x y x₁ → {!!})
@@ -72,6 +72,10 @@ module Interpretation where
   interpE (listrec e e₁ e₂) = {!!}
   interpE true = monotone (λ x → True) (λ x y x₁ → <>)
   interpE false = monotone (λ x → False) (λ x y x₁ → <>)
+  interpE (max runit e1 e2) = {!!}
+  interpE (max rn e1 e2) = {!!}
+  interpE (max (τ ×cm τ₁) e1 e2) = {!!}
+  interpE (max (_->cm_ τ) e1 e2) = {!!}
 
   sound : ∀ {Γ τ} (e e' : Γ |- τ) → e ≤s e' → PREORDER≤ ([ Γ ]c ->p [ τ ]t) (interpE e) (interpE e')
   sound {_} {τ} e .e refl-s k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
@@ -81,8 +85,8 @@ module Interpretation where
         (sound e e'' d k) (sound e'' e' d₁ k)
   sound ._ ._ (plus-s d d₁) k = {!!}
   sound {_} {τ} e .e (cong-refl Refl) k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
-  sound .(plusC 0C e') e' +-unit-l k = {!!} --Preorder-str.refl (snd [ nat ]t) (Monotone.f (interpE e') k)
-  sound e .(plusC 0C e) +-unit-l' k = {!!} --Preorder-str.refl (snd [ nat ]t) (Monotone.f (interpE e) k)
+  sound .(plusC 0C e') e' +-unit-l k = Preorder-str.refl (snd [ rnat ]t) (Monotone.f (interpE e') k)
+  sound e .(plusC 0C e) +-unit-l' k = Preorder-str.refl (snd [ rnat ]t) (Monotone.f (interpE e) k)
   sound {_} {.C} .(plusC e' 0C) e' +-unit-r k = {!!}
   sound e .(plusC e 0C) +-unit-r' k = {!!}
   sound {_} {.C} ._ ._ +-assoc k = {!!}

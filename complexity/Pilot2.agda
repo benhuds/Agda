@@ -1,5 +1,4 @@
 open import Preliminaries
-open import Preorder-Max
 
 module Pilot2 where
 
@@ -87,7 +86,7 @@ module Pilot2 where
     listrec : ∀ {Γ τ τ'} → Γ |- list τ → Γ |- τ' → (τ :: (list τ :: (τ' :: Γ))) |- τ' → Γ |- τ'
     true : ∀ {Γ} → Γ |- bool
     false : ∀ {Γ} → Γ |- bool
-    --max : ∀ {Γ τ} → CTpM τ → Γ |- τ → Γ |- τ 
+    max : ∀ {Γ τ} → CTpM τ → Γ |- τ → Γ |- τ  → Γ |- τ
 
 {-[ Θ ]s : Monotone [ Γ ]  [ Γ' ]
   [ ρ ]r : same
@@ -200,15 +199,17 @@ equations that define ren and subst are true in the semantics-}
   ren rz ρ = rz
   ren (rsuc e) ρ = rsuc (ren e ρ)
   ren (rrec e e₁ e₂ p) ρ = rrec (ren e ρ) (ren e₁ ρ) (ren e₂ ρ) (ren-cong p)
+  ren (max τ e1 e2) ρ = max τ (ren e1 ρ) (ren e2 ρ)
 
   extend-ren-comp-lemma i0 ρ1 ρ2 = Refl
   extend-ren-comp-lemma (iS x) ρ1 ρ2 = Refl
 
   extend-ren-comp ρ1 ρ2 = λ=i (λ τ → λ= (λ x → extend-ren-comp-lemma x ρ1 ρ2))
-  
+
   postulate
     ren-comp : ∀ {Γ Γ' Γ'' τ} → (ρ1 : rctx Γ Γ') → (ρ2 : rctx Γ' Γ'') → (e : Γ'' |- τ) → (ren (ren e ρ2) ρ1) == (ren e (ρ1 ∙rr ρ2))
-{-  ren-comp ρ1 ρ2 unit = Refl
+{-
+  ren-comp ρ1 ρ2 unit = Refl
   ren-comp ρ1 ρ2 0C = Refl
   ren-comp ρ1 ρ2 1C = Refl
   ren-comp ρ1 ρ2 (plusC e e₁) = ap2 plusC (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
@@ -221,6 +222,9 @@ equations that define ren and subst are true in the semantics-}
                                        ren-comp (r-extend (r-extend ρ1)) (r-extend (r-extend ρ2)) e₂)
   ren-comp ρ1 ρ2 (lam e) = ap lam ((ap (ren e) (extend-ren-comp ρ1 ρ2)) ∘ ren-comp (r-extend ρ1) (r-extend ρ2) e)
   ren-comp ρ1 ρ2 (app e e₁) = ap2 app (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
+  ren-comp ρ1 ρ2 rz = Refl
+  ren-comp ρ1 ρ2 (rsuc e) = ap rsuc (ren-comp ρ1 ρ2 e)
+  ren-comp ρ1 ρ2 (rrec e e₁ e₂ P) = {!!}
   ren-comp ρ1 ρ2 (prod e e₁) = ap2 prod (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
   ren-comp ρ1 ρ2 (l-proj e) = ap l-proj (ren-comp ρ1 ρ2 e)
   ren-comp ρ1 ρ2 (r-proj e) = ap r-proj (ren-comp ρ1 ρ2 e)
@@ -234,9 +238,7 @@ equations that define ren and subst are true in the semantics-}
                                                   (r-extend (r-extend (r-extend ρ2))) e₂)
   ren-comp ρ1 ρ2 true = Refl
   ren-comp ρ1 ρ2 false = Refl
-  ren-comp ρ1 ρ2 rz = Refl
-  ren-comp ρ1 ρ2 (rs e) = ap rs (ren-comp ρ1 ρ2 e)
-  ren-comp ρ1 ρ2 (rrec e e₁ e₂ p) = {!!}
+  ren-comp ρ1 ρ2 (max x e e₁) = ap2 (max x) (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
 -}
   -- weakening a context
 
@@ -295,6 +297,7 @@ equations that define ren and subst are true in the semantics-}
   subst rz Θ = rz
   subst (rsuc e) Θ = rsuc (subst e Θ)
   subst (rrec e e₁ e₂ p) Θ = rrec (subst e Θ) (subst e₁ Θ) (subst e₂ Θ) (subst-cong p)
+  subst (max τ e1 e2) Θ = max τ (subst e1 Θ) (subst e2 Θ)
 
   subst1 : ∀ {Γ τ τ1} → Γ |- τ1 → (τ1 :: Γ) |- τ → Γ |- τ
   subst1 e e' = subst e' (q e)
