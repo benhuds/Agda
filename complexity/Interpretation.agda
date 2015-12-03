@@ -83,11 +83,29 @@ module Interpretation where
   interpS {Γ' = τ :: Γ'} Θ = monotone (λ x → Monotone.f (interpS (throw-s Θ)) x , Monotone.f (interpE (Θ i0)) x)
                              (λ x y x₁ → Monotone.is-monotone (interpS (throw-s Θ)) x y x₁ , (Monotone.is-monotone (interpE (Θ i0)) x y x₁))
 
-  ren-eq-lem : ∀ {Γ Γ' τ} → (ρ : rctx Γ Γ') → (e : Γ' |- τ) → (k : fst [ Γ ]c) → Monotone.f (interpE (ren e ρ)) k == Monotone.f {!!} k
-  ren-eq-lem ρ e k = {!!}
-
-{-fst [ .Γ ]c
-interpE ren e ρ k == interpE e (interpR ρ) k-}
+  ren-eq-lem : ∀ {Γ Γ' τ} → (ρ : rctx Γ Γ') → (e : Γ' |- τ) → (k : fst [ Γ ]c) → Monotone.f (interpE (ren e ρ)) k == Monotone.f (interpE e) (Monotone.f (interpR ρ) k)
+  ren-eq-lem ρ unit k = Refl
+  ren-eq-lem ρ 0C k = Refl
+  ren-eq-lem ρ 1C k = Refl
+  ren-eq-lem ρ (plusC e e₁) k = {!!}
+  ren-eq-lem ρ (var x) k = {!!}
+  ren-eq-lem ρ z k = Refl
+  ren-eq-lem ρ (s e) k = ap S (ren-eq-lem ρ e k)
+  ren-eq-lem ρ (rec e e₁ e₂) k = {!!}
+  ren-eq-lem ρ (lam e) k = {!!}
+  ren-eq-lem ρ (app e e₁) k = {!!}
+  ren-eq-lem ρ rz k = Refl
+  ren-eq-lem ρ (rsuc e) k = ap S (ren-eq-lem ρ e k)
+  ren-eq-lem ρ (rrec e e₁ e₂ P) k = {!!}
+  ren-eq-lem ρ (prod e e₁) k = ap2 {!!} {!!} {!!}
+  ren-eq-lem ρ (l-proj e) k = ap fst (ren-eq-lem ρ e k)
+  ren-eq-lem ρ (r-proj e) k = ap snd (ren-eq-lem ρ e k)
+  ren-eq-lem ρ nil k = Refl
+  ren-eq-lem ρ (e ::c e₁) k = {!!}
+  ren-eq-lem ρ (listrec e e₁ e₂) k = {!!}
+  ren-eq-lem ρ true k = Refl
+  ren-eq-lem ρ false k = Refl
+  ren-eq-lem ρ (max x e e₁) k = {!!}
 
   sound : ∀ {Γ τ} (e e' : Γ |- τ) → e ≤s e' → PREORDER≤ ([ Γ ]c ->p [ τ ]t) (interpE e) (interpE e')
   sound {_} {τ} e .e refl-s k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
