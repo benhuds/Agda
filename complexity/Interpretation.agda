@@ -22,7 +22,7 @@ module Interpretation where
   [ runit ]tm = unit-pM
   [ rn ]tm = nat-pM
   [ e ×cm e₁ ]tm = axb-pM [ e ]tm [ e₁ ]tm
-  [ _->cm_ e ]tm = mono-pM {!!} [ e ]tm
+  [ _->cm_ {τ1} e ]tm = mono-pM {!!} [ e ]tm
   
   -- interpret contexts as preorders
   [_]c : Ctx → PREORDER
@@ -62,8 +62,8 @@ module Interpretation where
   interpE (listrec e e₁ e₂) = {!!}
   interpE true = monotone (λ x → True) (λ x y x₁ → <>)
   interpE false = monotone (λ x → False) (λ x y x₁ → <>)
-  interpE (max runit e1 e2) = {!!}
-  interpE (max rn e1 e2) = {!!}
+  interpE (max runit e1 e2) = monotone (λ x → <>) (λ x y x₁ → <>)
+  interpE (max rn e1 e2) = monotone (λ x → Nat.max (Monotone.f (interpE e1) x) (Monotone.f (interpE e2) x)) (λ x y x₁ → {!!})
   interpE (max (τ ×cm τ₁) e1 e2) = {!!}
   interpE (max (_->cm_ τ) e1 e2) = {!!}
 
