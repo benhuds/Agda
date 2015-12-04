@@ -46,7 +46,7 @@ module Interpretation where
   interpE (plusC e e₁) = monotone (λ x → Monotone.f (interpE e) x + Monotone.f (interpE e₁) x) (λ x y x₁ → {!!})
   interpE (var x) = lookup x
   interpE z = monotone (λ x → Z) (λ x y x₁ → <>)
-  interpE (s e) = monotone (λ x → S (Monotone.f (interpE e) x)) {!!}
+  interpE (s e) = monotone (λ x → S (Monotone.f (interpE e) x)) (λ x y x₁ → {!!})
   interpE (rec e e₁ e₂) = {!!}
 --monotone (λ x → natrec (Monotone.f (interpE e₁) x) (λ n x₂ → Monotone.f (interpE e₂) ((x , x₂) , n)) (Monotone.f (interpE e) x)) (λ x y x₁ → {!!})
   interpE (lam e) = lam' (interpE e)
@@ -87,13 +87,14 @@ module Interpretation where
   ren-eq-lem ρ unit k = Refl
   ren-eq-lem ρ 0C k = Refl
   ren-eq-lem ρ 1C k = Refl
-  ren-eq-lem ρ (plusC e e₁) k = {!!}
-  ren-eq-lem ρ (var x) k = {!!}
+  ren-eq-lem ρ (plusC e e₁) k = ap2 _+_ (ren-eq-lem ρ e k) (ren-eq-lem ρ e₁ k)
+  ren-eq-lem ρ (var i0) k = Refl
+  ren-eq-lem ρ (var (iS x)) k = {!!}
   ren-eq-lem ρ z k = Refl
   ren-eq-lem ρ (s e) k = ap S (ren-eq-lem ρ e k)
   ren-eq-lem ρ (rec e e₁ e₂) k = {!!}
-  ren-eq-lem ρ (lam e) k = {!!}
-  ren-eq-lem ρ (app e e₁) k = {!!}
+  ren-eq-lem ρ (lam e) k = {!!} --ap (λ x → Monotone.f {!!} {!!}) (ren-eq-lem (r-extend ρ) e (k , {!!}))
+  ren-eq-lem ρ (app e e₁) k = ap2 (λ x x₁ → Monotone.f x x₁) (ren-eq-lem ρ e k) (ren-eq-lem ρ e₁ k)
   ren-eq-lem ρ rz k = Refl
   ren-eq-lem ρ (rsuc e) k = ap S (ren-eq-lem ρ e k)
   ren-eq-lem ρ (rrec e e₁ e₂ P) k = {!!}
@@ -131,7 +132,7 @@ module Interpretation where
   sound {Γ} {τ} ._ ._ (cong-app {.Γ} {τ'} {.τ} {e} {e'} {e1} d) k = sound e e' d k (Monotone.f (interpE e1) k)
   sound {Γ} {τ} ._ ._ (ren-cong {.Γ} {Γ'} {.τ} {e1} {e2} {ρ} d) k = {!!}
   sound ._ ._ (subst-cong {_} {_} {_} {e1} {e2} {Θ} d) k = {!!}
-  sound ._ ._ (subst-cong2 x) k = {!!}
+  sound {Γ} {τ} ._ ._ (subst-cong2 {.Γ} {Γ'} {.τ} {Θ} {Θ'} {e} x) k = {!!}
   sound {Γ} {τ} ._ ._ (cong-rec {.Γ} {.τ} {e} {e'} {e0} {e1} d) k = {!!}
   sound ._ ._ (cong-listrec d) k = {!!}
   sound {Γ} {τ} ._ ._ (lam-s {.Γ} {τ'} {.τ} {e} {e2}) k = {!!}
