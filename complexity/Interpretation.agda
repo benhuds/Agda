@@ -97,7 +97,7 @@ module Interpretation where
   ren-eq-lem ρ rz k = Refl
   ren-eq-lem ρ (rsuc e) k = ap S (ren-eq-lem ρ e k)
   ren-eq-lem ρ (rrec e e₁ e₂ P) k = {!!}
-  ren-eq-lem ρ (prod e e₁) k = ap2 {!!} {!!} {!!}
+  ren-eq-lem ρ (prod e e₁) k = ap2 (λ x x₁ → x , x₁) (ren-eq-lem ρ e k) (ren-eq-lem ρ e₁ k)
   ren-eq-lem ρ (l-proj e) k = ap fst (ren-eq-lem ρ e k)
   ren-eq-lem ρ (r-proj e) k = ap snd (ren-eq-lem ρ e k)
   ren-eq-lem ρ nil k = Refl
@@ -105,7 +105,10 @@ module Interpretation where
   ren-eq-lem ρ (listrec e e₁ e₂) k = {!!}
   ren-eq-lem ρ true k = Refl
   ren-eq-lem ρ false k = Refl
-  ren-eq-lem ρ (max x e e₁) k = {!!}
+  ren-eq-lem ρ (max runit e e₁) k = Refl
+  ren-eq-lem ρ (max rn e e₁) k = {!!}
+  ren-eq-lem ρ (max (x ×cm x₁) e e₁) k = {!!}
+  ren-eq-lem ρ (max (_->cm_ x) e e₁) k = {!!}
 
   sound : ∀ {Γ τ} (e e' : Γ |- τ) → e ≤s e' → PREORDER≤ ([ Γ ]c ->p [ τ ]t) (interpE e) (interpE e')
   sound {_} {τ} e .e refl-s k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)

@@ -156,7 +156,7 @@ module Preliminaries where
     compare (S n) Z = Greater
     compare (S n) (S m) = compare n m
 
-  open Nat public using (Nat ; Z ; S ; _+_)
+  open Nat public using (Nat ; Z ; S ; _+_ )
 
 
   -- ----------------------------------------------------------------------
