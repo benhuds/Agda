@@ -46,7 +46,7 @@ module Interpretation where
   interpE (plusC e e₁) = monotone (λ x → Monotone.f (interpE e) x + Monotone.f (interpE e₁) x) (λ x y x₁ → {!!})
   interpE (var x) = lookup x
   interpE z = monotone (λ x → Z) (λ x y x₁ → <>)
-  interpE (s e) = monotone (λ x → S (Monotone.f (interpE e) x)) (λ x y x₁ → {!!})
+  interpE (s e) = monotone (λ x → S (Monotone.f (interpE e) x)) (λ x y x₁ → Monotone.is-monotone (interpE e) x y x₁)
   interpE (rec e e₁ e₂) = {!!}
 --monotone (λ x → natrec (Monotone.f (interpE e₁) x) (λ n x₂ → Monotone.f (interpE e₂) ((x , x₂) , n)) (Monotone.f (interpE e) x)) (λ x y x₁ → {!!})
   interpE (lam e) = lam' (interpE e)
@@ -64,7 +64,10 @@ module Interpretation where
   interpE false = monotone (λ x → False) (λ x y x₁ → <>)
   interpE (max runit e1 e2) = monotone (λ x → <>) (λ x y x₁ → <>)
   interpE (max rn e1 e2) = monotone (λ x → Nat.max (Monotone.f (interpE e1) x) (Monotone.f (interpE e2) x)) (λ x y x₁ → {!!})
-  interpE (max (τ ×cm τ₁) e1 e2) = {!!}
+  interpE (max (τ ×cm τ₁) e1 e2) =
+    monotone (λ x → (Preorder-max-str.max [ τ ]tm (fst (Monotone.f (interpE e1) x)) (fst (Monotone.f (interpE e2) x))) ,
+                    Preorder-max-str.max [ τ₁ ]tm (snd (Monotone.f (interpE e1) x)) (snd (Monotone.f (interpE e2) x)))
+             (λ x y x₁ → {!!} , {!!})
   interpE (max (_->cm_ τ) e1 e2) = {!!}
 
   throw-r : ∀ {Γ Γ' τ} → rctx Γ (τ :: Γ') → rctx Γ Γ'
@@ -107,9 +110,34 @@ module Interpretation where
   ren-eq-lem ρ true k = Refl
   ren-eq-lem ρ false k = Refl
   ren-eq-lem ρ (max runit e e₁) k = Refl
-  ren-eq-lem ρ (max rn e e₁) k = {!!}
-  ren-eq-lem ρ (max (x ×cm x₁) e e₁) k = {!!}
+  ren-eq-lem ρ (max rn e e') k = ap2 Nat.max (ren-eq-lem ρ e k) (ren-eq-lem ρ e' k)
+  ren-eq-lem ρ (max (x ×cm x₁) e e₁) k = ap2 (Preorder-max-str.max [ x ×cm x₁ ]tm) (ren-eq-lem ρ e k) (ren-eq-lem ρ e₁ k)
   ren-eq-lem ρ (max (_->cm_ x) e e₁) k = {!!}
+
+  subst-eq-lem : ∀ {Γ Γ' τ} → (Θ : sctx Γ Γ') → (e : Γ' |- τ) → (k : fst [ Γ ]c) → Monotone.f (interpE (subst e Θ)) k == Monotone.f (interpE e) (Monotone.f (interpS Θ) k)
+  subst-eq-lem Θ unit k = Refl
+  subst-eq-lem Θ 0C k = Refl
+  subst-eq-lem Θ 1C k = Refl
+  subst-eq-lem Θ (plusC e e₁) k = ap2 _+_ (subst-eq-lem Θ e k) (subst-eq-lem Θ e₁ k)
+  subst-eq-lem Θ (var i0) k = Refl
+  subst-eq-lem Θ (var (iS x)) k = {!!}
+  subst-eq-lem Θ z k = Refl
+  subst-eq-lem Θ (s e) k = ap S (subst-eq-lem Θ e k)
+  subst-eq-lem Θ (rec e e₁ e₂) k = {!!}
+  subst-eq-lem Θ (lam e) k = {!!}
+  subst-eq-lem Θ (app e e₁) k = ap2 (λ x x₁ → Monotone.f x x₁) (subst-eq-lem Θ e k) (subst-eq-lem Θ e₁ k)
+  subst-eq-lem Θ rz k = Refl
+  subst-eq-lem Θ (rsuc e) k = ap S (subst-eq-lem Θ e k)
+  subst-eq-lem Θ (rrec e e₁ e₂ P) k = {!!}
+  subst-eq-lem Θ (prod e e₁) k = ap2 (λ x x₁ → x , x₁) (subst-eq-lem Θ e k) (subst-eq-lem Θ e₁ k)
+  subst-eq-lem Θ (l-proj e) k = ap fst (subst-eq-lem Θ e k)
+  subst-eq-lem Θ (r-proj e) k = ap snd (subst-eq-lem Θ e k)
+  subst-eq-lem Θ nil k = Refl
+  subst-eq-lem Θ (e ::c e₁) k = {!!}
+  subst-eq-lem Θ (listrec e e₁ e₂) k = {!!}
+  subst-eq-lem Θ true k = Refl
+  subst-eq-lem Θ false k = Refl
+  subst-eq-lem Θ (max x e e₁) k = {!!}
 
   sound : ∀ {Γ τ} (e e' : Γ |- τ) → e ≤s e' → PREORDER≤ ([ Γ ]c ->p [ τ ]t) (interpE e) (interpE e')
   sound {_} {τ} e .e refl-s k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
@@ -126,7 +154,7 @@ module Interpretation where
   sound {_} {.C} ._ ._ +-assoc k = {!!}
   sound ._ ._ +-assoc' k = {!!}
   sound {_} {.C} ._ ._ refl-+ k = {!!}
-  sound ._ ._ (cong-+ d d₁) k = {!!}
+  sound {Γ} {C} ._ ._ (cong-+ {.Γ} {e0} {e1} {e0'} {e1'} d d₁) k = {!!}
   sound {Γ} {τ} ._ ._ (cong-lproj {.Γ} {.τ} {_} {e} {e'} d) k = fst (sound e e' d k)
   sound {Γ} {τ} ._ ._ (cong-rproj {.Γ} {_} {.τ} {e} {e'} d) k = snd (sound e e' d k)
   sound {Γ} {τ} ._ ._ (cong-app {.Γ} {τ'} {.τ} {e} {e'} {e1} d) k = sound e e' d k (Monotone.f (interpE e1) k)
