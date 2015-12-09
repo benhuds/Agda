@@ -283,7 +283,13 @@ module Preorder where
   plus' : ∀ {PΓ} → (e0 : MONOTONE PΓ PN) → (e1 : MONOTONE PΓ PN)
         → MONOTONE PΓ PN
   plus' {Γ , preorder ≤ refl trans} (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) =
-        monotone (λ x → e0 x + e1 x) (λ x y x₁ → {!!})
+        monotone (λ x → e0 x + e1 x)
+          (λ x y x₁ → Preorder-str.trans (snd PN)
+                      (e0 x + e1 x)
+                      (e0 y + e1 x)
+                      (e0 y + e1 y)
+                        {!!}
+                        {!!})
 -}
 --- extend Preorders so you can impose max on them if type has maximums
 
