@@ -22,7 +22,7 @@ module Interpretation where
   [ runit ]tm = unit-pM
   [ rn ]tm = nat-pM
   [ e ×cm e₁ ]tm = axb-pM [ e ]tm [ e₁ ]tm
-  [ _->cm_ {τ1} e ]tm = mono-pM {!not sure what to put here!} [ e ]tm
+  [ _->cm_ {τ1} e ]tm = mono-pM [ e ]tm
   
   -- interpret contexts as preorders
   [_]c : Ctx → PREORDER
@@ -36,24 +36,60 @@ module Interpretation where
   PREORDER≤ PA = Preorder-str.≤ (snd PA)
 
   lookup : ∀{Γ τ} → τ ∈ Γ → el ([ Γ ]c ->p [ τ ]t)
-  lookup (i0 {Γ} {τ}) = snd' id --snd' {[ (τ :: Γ) ]c} {[ Γ ]c} {_} id
-  lookup (iS {Γ} {τ} {τ1} x) = comp {[ (τ1 :: Γ) ]c} {_} {_} (fst' {[ (τ1 :: Γ) ]c} {_} {[ τ1 ]t} id) (lookup x)
+  lookup (i0 {Γ} {τ}) = snd' id
+  lookup (iS {Γ} {τ} {τ1} x) = comp (fst' id) (lookup x)
+
+  nat-lemma3 : ∀ (x : Nat) → ≤nat x (S x)
+  nat-lemma3 Z = <>
+  nat-lemma3 (S x) = nat-lemma3 x
+
+  plus-lem' : ∀ (a b c : Nat) → ≤nat a b → ≤nat a (b + c)
+  plus-lem' Z Z Z <> = <>
+  plus-lem' Z Z (S c) <> = <>
+  plus-lem' Z (S b) c x = <>
+  plus-lem' (S a) Z c ()
+  plus-lem' (S a) (S b) c x = plus-lem' a b c x
+
+  mutual
+    plus-lem'' : ∀ (a b : Nat) → ≤nat a (b + a)
+    plus-lem'' a Z = nat-refl a
+    plus-lem'' Z (S b) = <>
+    plus-lem'' (S a) (S b) = nat-trans a (b + a) (b + S a) (plus-lem'' a b) (plus-lem b a b (S a) (nat-refl b) (nat-lemma3 a))
+
+    plus-lem : ∀ (a b c d : Nat) → ≤nat a c → ≤nat b d → ≤nat (a + b) (c + d)
+    plus-lem Z b Z d p q = q
+    plus-lem Z Z (S c) Z p q = <>
+    plus-lem Z (S b) (S c) Z p ()
+    plus-lem Z Z (S c) (S d) p q = <>
+    plus-lem Z (S b) (S c) (S d) p q = nat-trans b d (c + S d) q (nat-trans d (S d) (c + S d) (nat-lemma3 d) (plus-lem'' (S d) c))
+    plus-lem (S a) b Z d () q
+    plus-lem (S a) b (S c) d p q = plus-lem a b c d p q
 
   interpE : ∀{Γ τ} → Γ |- τ → el ([ Γ ]c ->p [ τ ]t)
   interpE unit = monotone (λ x → <>) (λ x y x₁ → <>)
   interpE 0C = monotone (λ x → Z) (λ x y x₁ → <>)
   interpE 1C = monotone (λ x → S Z) (λ x y x₁ → <>)
-  interpE (plusC e e₁) = {!need a lemma to show monotonicity of this one!} --monotone (λ x → Monotone.f (interpE e) x + Monotone.f (interpE e₁) x) (λ x y x₁ → {!!})
+  interpE (plusC e e₁) =
+    monotone (λ x → Monotone.f (interpE e) x + Monotone.f (interpE e₁) x)
+             (λ x y x₁ → plus-lem (Monotone.f (interpE e) x) (Monotone.f (interpE e₁) x) (Monotone.f (interpE e) y) (Monotone.f (interpE e₁) y)
+               (Monotone.is-monotone (interpE e) x y x₁) (Monotone.is-monotone (interpE e₁) x y x₁))
   interpE (var x) = lookup x
   interpE z = monotone (λ x → Z) (λ x y x₁ → <>)
   interpE (s e) = monotone (λ x → S (Monotone.f (interpE e) x)) (λ x y x₁ → Monotone.is-monotone (interpE e) x y x₁)
-  interpE (rec e e₁ e₂) = {!how to prove this is monotone without 0≤s0?!}
---monotone (λ x → natrec (Monotone.f (interpE e₁) x) (λ n x₂ → Monotone.f (interpE e₂) ((x , x₂) , n)) (Monotone.f (interpE e) x)) (λ x y x₁ → {!!})
+  interpE {Γ} {τ} (rec e e₁ e₂) =
+    monotone (λ x → natrec (Monotone.f (interpE e₁) x) (λ n x₂ → Monotone.f (interpE e₂) ((x , x₂) , n)) (Monotone.f (interpE e) x))
+             (λ x y x₁ →
+               Preorder-str.trans (snd [ τ ]t)
+                 (natrec (Monotone.f (interpE e₁) x) (λ n x₂ → Monotone.f (interpE e₂) ((x , x₂) , n)) (Monotone.f (interpE e) x))
+                 (natrec (Monotone.f (interpE e₁) y) (λ n x₂ → Monotone.f (interpE e₂) ((y , x₂) , n)) (Monotone.f (interpE e) x))
+                 (natrec (Monotone.f (interpE e₁) y) (λ n x₂ → Monotone.f (interpE e₂) ((y , x₂) , n)) (Monotone.f (interpE e) y))
+                 {!!}
+                 {!!})
   interpE (lam e) = lam' (interpE e)
   interpE (app e e₁) = app' (interpE e) (interpE e₁)
   interpE rz = z'
   interpE (rsuc e) = suc' (interpE e)
-  interpE (rrec e e₁ e₂ P) = {!why can't I use rec' here?!}
+  interpE (rrec e e₁ e₂ P) = comp (pair' id (interpE e)) (rec' (interpE e₁) (comp {!!} {!!}) (λ x → {!!}))
   interpE (prod e e₁) = pair' (interpE e) (interpE e₁)
   interpE (l-proj e) = fst' (interpE e)
   interpE (r-proj e) = snd' (interpE e)
@@ -158,7 +194,7 @@ module Interpretation where
   sound {Γ} {τ} ._ ._ (cong-lproj {.Γ} {.τ} {_} {e} {e'} d) k = fst (sound e e' d k)
   sound {Γ} {τ} ._ ._ (cong-rproj {.Γ} {_} {.τ} {e} {e'} d) k = snd (sound e e' d k)
   sound {Γ} {τ} ._ ._ (cong-app {.Γ} {τ'} {.τ} {e} {e'} {e1} d) k = sound e e' d k (Monotone.f (interpE e1) k)
-  sound {Γ} {τ} ._ ._ (ren-cong {.Γ} {Γ'} {.τ} {e1} {e2} {ρ} d) k = {!not sure if i can use cong-refl here?!}
+  sound {Γ} {τ} ._ ._ (ren-cong {.Γ} {Γ'} {.τ} {e1} {e2} {ρ} d) k = {!!}
   sound ._ ._ (subst-cong {_} {_} {_} {e1} {e2} {Θ} d) k = {!!}
   sound {Γ} {τ} ._ ._ (subst-cong2 {.Γ} {Γ'} {.τ} {Θ} {Θ'} {e} x) k = {!!}
   sound {Γ} {τ} ._ ._ (cong-rec {.Γ} {.τ} {e} {e'} {e0} {e1} d) k = {!!}

@@ -357,9 +357,9 @@ module Preorder where
   axb-pM PMA PMB = preorder-max (axb-max PMA PMB) (axb-max-l PMA PMB) (axb-max-r PMA PMB) (axb-max-lub PMA PMB)
 
   mono-max : ∀ {A B : Set} {PA : Preorder-str A} {PB : Preorder-str B}
-           → Preorder-max-str PA → Preorder-max-str PB
+           → Preorder-max-str PB
            → (Monotone A B PA PB) → (Monotone A B PA PB) → (Monotone A B PA PB)
-  mono-max {A} {B} {PA} {PB} PMA PMB (monotone f f-ismono) (monotone g g-ismono) =
+  mono-max {A} {B} {PA} {PB} PMB (monotone f f-ismono) (monotone g g-ismono) =
            monotone (λ x → Preorder-max-str.max PMB (f x) (g x))
                     (λ x y x₁ → Preorder-max-str.max-lub PMB (Preorder-max-str.max PMB (f y) (g y)) (f x) (g x)
                     (Preorder-str.trans PB (f x) (f y)
@@ -370,23 +370,22 @@ module Preorder where
                        (Preorder-max-str.max-r PMB (f y) (g y))))
 
   mono-max-l : ∀ {A B : Set} {PA : Preorder-str A} {PB : Preorder-str B}
-             → (PMA : Preorder-max-str PA) → (PMB : Preorder-max-str PB) → (l r : Monotone A B PA PB) → ≤mono PA PB l (mono-max PMA PMB l r)
-  mono-max-l PMA PMB f g = λ x → Preorder-max-str.max-l PMB (Monotone.f f x) (Monotone.f g x)
+             → (PMB : Preorder-max-str PB) → (l r : Monotone A B PA PB) → ≤mono PA PB l (mono-max PMB l r)
+  mono-max-l PMB f g = λ x → Preorder-max-str.max-l PMB (Monotone.f f x) (Monotone.f g x)
 
   mono-max-r : ∀ {A B : Set} {PA : Preorder-str A} {PB : Preorder-str B}
-             → (PMA : Preorder-max-str PA) → (PMB : Preorder-max-str PB) → (l r : Monotone A B PA PB) → ≤mono PA PB r (mono-max PMA PMB l r)
-  mono-max-r PMA PMB f g = λ x → Preorder-max-str.max-r PMB (Monotone.f f x) (Monotone.f g x)
+             → (PMB : Preorder-max-str PB) → (l r : Monotone A B PA PB) → ≤mono PA PB r (mono-max PMB l r)
+  mono-max-r PMB f g = λ x → Preorder-max-str.max-r PMB (Monotone.f f x) (Monotone.f g x)
 
   mono-max-lub : ∀ {A B : Set} {PA : Preorder-str A} {PB : Preorder-str B}
-                → (PMA : Preorder-max-str PA) 
-                → (PMB : Preorder-max-str PB) 
-                → (k l r : Monotone A B PA PB) 
-                → ≤mono PA PB l k → ≤mono PA PB r k → ≤mono PA PB (mono-max PMA PMB l r) k
-  mono-max-lub PMA PMB f g h p q = λ x → Preorder-max-str.max-lub PMB (Monotone.f f x) (Monotone.f g x) (Monotone.f h x) (p x) (q x)
+               → (PMB : Preorder-max-str PB) 
+               → (k l r : Monotone A B PA PB) 
+               → ≤mono PA PB l k → ≤mono PA PB r k → ≤mono PA PB (mono-max PMB l r) k
+  mono-max-lub PMB f g h p q = λ x → Preorder-max-str.max-lub PMB (Monotone.f f x) (Monotone.f g x) (Monotone.f h x) (p x) (q x)
 
   mono-pM : ∀ {A B : Set} {PA : Preorder-str A} {PB : Preorder-str B}
-          → Preorder-max-str PA → Preorder-max-str PB → Preorder-max-str (mono-p A B PA PB)
-  mono-pM PMA PMB = preorder-max (mono-max PMA PMB) (mono-max-l PMA PMB) (mono-max-r PMA PMB) (mono-max-lub PMA PMB)
+          → Preorder-max-str PB → Preorder-max-str (mono-p A B PA PB)
+  mono-pM PMB = preorder-max (mono-max PMB) (mono-max-l PMB) (mono-max-r PMB) (mono-max-lub PMB)
 
   --???
   PREORDER-MAX = (Σ (λ (A : Set) → (PA : Preorder-str A) → Preorder-max-str PA))
