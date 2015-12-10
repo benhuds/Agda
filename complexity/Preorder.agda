@@ -84,6 +84,29 @@ module Preorder where
   bool-p : Preorder-str Bool
   bool-p = preorder ≤b b-refl b-trans
 
+  --list
+  ≤list : ∀ {A : Set} → List A → List A → Set
+  ≤list [] [] = Unit
+  ≤list [] (x :: l2) = Unit
+  ≤list (x :: l1) [] = Void
+  ≤list (x :: l1) (x₁ :: l2) = ≤list l1 l2
+
+  l-refl : ∀ {A : Set} (l : List A) → ≤list l l
+  l-refl [] = <>
+  l-refl (x :: l) = l-refl l
+
+  l-trans : ∀ {A : Set} (l1 l2 l3 : List A) → ≤list l1 l2 → ≤list l2 l3 → ≤list l1 l3
+  l-trans [] [] [] x x₁ = <>
+  l-trans [] [] (x :: l3) x₁ x₂ = <>
+  l-trans [] (x :: l2) [] x₁ ()
+  l-trans [] (x :: l2) (x₁ :: l3) x₂ x₃ = <>
+  l-trans (x :: l1) [] l3 () x₂
+  l-trans (x :: l1) (x₁ :: l2) [] x₂ ()
+  l-trans (x :: l1) (x₁ :: l2) (x₂ :: l3) x₃ x₄ = l-trans l1 l2 l3 x₃ x₄
+
+  list-p : ∀ {A : Set} → Preorder-str (List A)
+  list-p = preorder ≤list l-refl l-trans
+
 ------------------------------------------
 
   -- Task 2: Show that the product of two preorders is a preorder
@@ -150,6 +173,9 @@ module Preorder where
 
   PN : PREORDER
   PN = Nat , nat-p
+
+  PL : (A : Set) → PREORDER
+  PL A = (List A) , list-p
   
   -- some operations
   _×p_ : PREORDER → PREORDER → PREORDER
