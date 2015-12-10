@@ -13,7 +13,7 @@ module Interpretation where
   [ nat ]t = Nat , ♭nat-p
   [ τ ->c τ₁ ]t = [ τ ]t ->p [ τ₁ ]t
   [ τ ×c τ₁ ]t = [ τ ]t ×p [ τ₁ ]t
-  [ list τ ]t = (List (fst [ τ ]t)) , list-p
+  [ list τ ]t = (List (fst [ τ ]t)) , list-p (snd [ τ ]t)
   [ bool ]t = Bool , bool-p
   [ C ]t = Nat , nat-p
   [ rnat ]t = Nat , nat-p
@@ -94,8 +94,12 @@ module Interpretation where
   interpE (l-proj e) = fst' (interpE e)
   interpE (r-proj e) = snd' (interpE e)
   interpE nil = monotone (λ x → []) (λ x y x₁ → <>)
-  interpE (e ::c e₁) = monotone (λ x → Monotone.f (interpE e) x :: Monotone.f (interpE e₁) x) (λ x y x₁ → Monotone.is-monotone (interpE e₁) x y x₁)
-  interpE (listrec e e₁ e₂) = monotone (λ x → lrec (Monotone.f (interpE e₁) x) {!!} {!!}) {!!}
+  interpE (e ::c e₁) =
+    monotone (λ x → Monotone.f (interpE e) x :: Monotone.f (interpE e₁) x)
+             (λ x y x₁ → (Monotone.is-monotone (interpE e) x y x₁) , Monotone.is-monotone (interpE e₁) x y x₁)
+  interpE (listrec e e₁ e₂) =
+    monotone (λ x → lrec (Monotone.f (interpE e) x) (Monotone.f (interpE e₁) x) (λ h t x₃ → Monotone.f (interpE e₂) (((x , x₃) , t) , h)))
+             (λ x y x₁ → {!!})
   interpE true = monotone (λ x → True) (λ x y x₁ → <>)
   interpE false = monotone (λ x → False) (λ x y x₁ → <>)
   interpE (max runit e1 e2) = monotone (λ x → <>) (λ x y x₁ → <>)
@@ -142,7 +146,7 @@ module Interpretation where
   ren-eq-lem ρ (r-proj e) k = ap snd (ren-eq-lem ρ e k)
   ren-eq-lem ρ nil k = Refl
   ren-eq-lem ρ (e ::c e₁) k = ap2 _::_ (ren-eq-lem ρ e k) (ren-eq-lem ρ e₁ k)
-  ren-eq-lem ρ (listrec e e₁ e₂) k = {!!}
+  ren-eq-lem ρ (listrec e e₁ e₂) k = ap3 lrec (ren-eq-lem ρ e k) (ren-eq-lem ρ e₁ k) {!!}
   ren-eq-lem ρ true k = Refl
   ren-eq-lem ρ false k = Refl
   ren-eq-lem ρ (max runit e e₁) k = Refl
@@ -170,7 +174,7 @@ module Interpretation where
   subst-eq-lem Θ (r-proj e) k = ap snd (subst-eq-lem Θ e k)
   subst-eq-lem Θ nil k = Refl
   subst-eq-lem Θ (e ::c e₁) k = ap2 _::_ (subst-eq-lem Θ e k) (subst-eq-lem Θ e₁ k)
-  subst-eq-lem Θ (listrec e e₁ e₂) k = {!!}
+  subst-eq-lem Θ (listrec e e₁ e₂) k = ap3 lrec (subst-eq-lem Θ e k) (subst-eq-lem Θ e₁ k) {!!}
   subst-eq-lem Θ true k = Refl
   subst-eq-lem Θ false k = Refl
   subst-eq-lem Θ (max x e e₁) k = {!!}
@@ -202,9 +206,9 @@ module Interpretation where
   sound {Γ} {τ} ._ ._ (lam-s {.Γ} {τ'} {.τ} {e} {e2}) k = {!!}
   sound {Γ} {τ} e ._ (l-proj-s {.Γ}) k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
   sound {Γ} {τ} e ._ (r-proj-s {.Γ}) k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
-  sound {_} {τ} e ._ rec-steps-z k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k) --Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
+  sound {_} {τ} e ._ rec-steps-z k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
   sound ._ ._ rec-steps-s k = {!!}
-  sound e ._ listrec-steps-nil k = {!!}
+  sound {Γ} {τ} e ._ listrec-steps-nil k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
   sound ._ ._ listrec-steps-cons k = {!!}
   sound .(ren (ren e ρ2) ρ1) ._ (ren-comp-l ρ1 ρ2 e) k = {!!}
   sound ._ .(ren (ren e ρ2) ρ1) (ren-comp-r ρ1 ρ2 e) k = {!!}

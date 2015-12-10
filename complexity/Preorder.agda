@@ -85,27 +85,26 @@ module Preorder where
   bool-p = preorder ≤b b-refl b-trans
 
   --list
-  ≤list : ∀ {A : Set} → List A → List A → Set
-  ≤list [] [] = Unit
-  ≤list [] (x :: l2) = Unit
-  ≤list (x :: l1) [] = Void
-  ≤list (x :: l1) (x₁ :: l2) = ≤list l1 l2
+  ≤list : ∀ {A : Set} → Preorder-str A → List A → List A → Set
+  ≤list PA [] [] = Unit
+  ≤list PA [] (x :: l2) = Void
+  ≤list PA (x :: l1) [] = Void
+  ≤list PA (x :: l1) (x₁ :: l2) = Preorder-str.≤ PA x x₁ × ≤list PA l1 l2
 
-  l-refl : ∀ {A : Set} (l : List A) → ≤list l l
-  l-refl [] = <>
-  l-refl (x :: l) = l-refl l
+  l-refl : ∀ {A : Set} → (PA : Preorder-str A) → (l : List A) → ≤list PA l l
+  l-refl PA [] = <>
+  l-refl PA (x :: l) = (Preorder-str.refl PA x) , (l-refl PA l)
 
-  l-trans : ∀ {A : Set} (l1 l2 l3 : List A) → ≤list l1 l2 → ≤list l2 l3 → ≤list l1 l3
-  l-trans [] [] [] x x₁ = <>
-  l-trans [] [] (x :: l3) x₁ x₂ = <>
-  l-trans [] (x :: l2) [] x₁ ()
-  l-trans [] (x :: l2) (x₁ :: l3) x₂ x₃ = <>
-  l-trans (x :: l1) [] l3 () x₂
-  l-trans (x :: l1) (x₁ :: l2) [] x₂ ()
-  l-trans (x :: l1) (x₁ :: l2) (x₂ :: l3) x₃ x₄ = l-trans l1 l2 l3 x₃ x₄
+  l-trans : ∀ {A : Set} → (PA : Preorder-str A) → (l1 l2 l3 : List A) → ≤list PA l1 l2 → ≤list PA l2 l3 → ≤list PA l1 l3
+  l-trans PA [] [] [] p q = <>
+  l-trans PA [] [] (x :: l3) p ()
+  l-trans PA [] (x :: l2) l3 () q
+  l-trans PA (x :: l1) [] l3 () q
+  l-trans PA (x :: l1) (x₁ :: l2) [] p ()
+  l-trans PA (x :: l1) (x₁ :: l2) (x₂ :: l3) p q = (Preorder-str.trans PA x x₁ x₂ (fst p) (fst q)) , (l-trans PA l1 l2 l3 (snd p) (snd q))
 
-  list-p : ∀ {A : Set} → Preorder-str (List A)
-  list-p = preorder ≤list l-refl l-trans
+  list-p : ∀ {A : Set} (PA : Preorder-str A) → Preorder-str (List A)
+  list-p PA = preorder (≤list PA) (l-refl PA) (l-trans PA)
 
 ------------------------------------------
 
@@ -174,9 +173,9 @@ module Preorder where
   PN : PREORDER
   PN = Nat , nat-p
 
-  PL : (A : Set) → PREORDER
-  PL A = (List A) , list-p
-  
+  PL : PREORDER → PREORDER
+  PL (A , PA) = (List A) , list-p PA
+
   -- some operations
   _×p_ : PREORDER → PREORDER → PREORDER
   (A , PA) ×p (B , PB) = A × B , axb-p A B PA PB
@@ -225,10 +224,9 @@ module Preorder where
   suc' : ∀ {PΓ} → MONOTONE PΓ PN → MONOTONE PΓ PN
   suc' {Γ , preorder ≤ refl trans} (monotone f f-is-monotone) = monotone (λ x → S (f x)) (λ x y x₁ → f-is-monotone x y x₁)
 
-  --is this even correct
-  lrec : ∀ {A C : Set} → (nil : C) → (cons : A → List A → List C → C) → (l : List A) → C
-  lrec nil cons [] = nil
-  lrec nil cons (x :: l) = cons x l (lrec nil cons l :: [])
+  lrec : ∀ {A C : Set} → (l : List A) → (nil : C) → (cons : A → List A → C → C) → C
+  lrec [] nil cons = nil
+  lrec (x :: l) nil cons = cons x l (lrec l nil cons)
 
   natrec : ∀{C : Set} → (base : C) → (step : Nat → C → C) → (n : Nat) → C
   natrec base step Z = base
