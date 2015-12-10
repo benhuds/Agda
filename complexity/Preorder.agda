@@ -225,6 +225,11 @@ module Preorder where
   suc' : ∀ {PΓ} → MONOTONE PΓ PN → MONOTONE PΓ PN
   suc' {Γ , preorder ≤ refl trans} (monotone f f-is-monotone) = monotone (λ x → S (f x)) (λ x y x₁ → f-is-monotone x y x₁)
 
+  --is this even correct
+  lrec : ∀ {A C : Set} → (nil : C) → (cons : A → List A → List C → C) → (l : List A) → C
+  lrec nil cons [] = nil
+  lrec nil cons (x :: l) = cons x l (lrec nil cons l :: [])
+
   natrec : ∀{C : Set} → (base : C) → (step : Nat → C → C) → (n : Nat) → C
   natrec base step Z = base
   natrec base step (S n) = step n (natrec base step n)

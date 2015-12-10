@@ -13,7 +13,7 @@ module Interpretation where
   [ nat ]t = Nat , ♭nat-p
   [ τ ->c τ₁ ]t = [ τ ]t ->p [ τ₁ ]t
   [ τ ×c τ₁ ]t = [ τ ]t ×p [ τ₁ ]t
-  [ list τ ]t = {!!}
+  [ list τ ]t = (List (fst [ τ ]t)) , list-p
   [ bool ]t = Bool , bool-p
   [ C ]t = Nat , nat-p
   [ rnat ]t = Nat , nat-p
@@ -93,9 +93,9 @@ module Interpretation where
   interpE (prod e e₁) = pair' (interpE e) (interpE e₁)
   interpE (l-proj e) = fst' (interpE e)
   interpE (r-proj e) = snd' (interpE e)
-  interpE nil = monotone (λ x → Z) (λ x y x₁ → <>)
-  interpE (e ::c e₁) = {!how to interpret list stuff?!}
-  interpE (listrec e e₁ e₂) = {!!}
+  interpE nil = monotone (λ x → []) (λ x y x₁ → <>)
+  interpE (e ::c e₁) = monotone (λ x → Monotone.f (interpE e) x :: Monotone.f (interpE e₁) x) (λ x y x₁ → Monotone.is-monotone (interpE e₁) x y x₁)
+  interpE (listrec e e₁ e₂) = monotone (λ x → lrec (Monotone.f (interpE e₁) x) {!!} {!!}) {!!}
   interpE true = monotone (λ x → True) (λ x y x₁ → <>)
   interpE false = monotone (λ x → False) (λ x y x₁ → <>)
   interpE (max runit e1 e2) = monotone (λ x → <>) (λ x y x₁ → <>)
@@ -141,7 +141,7 @@ module Interpretation where
   ren-eq-lem ρ (l-proj e) k = ap fst (ren-eq-lem ρ e k)
   ren-eq-lem ρ (r-proj e) k = ap snd (ren-eq-lem ρ e k)
   ren-eq-lem ρ nil k = Refl
-  ren-eq-lem ρ (e ::c e₁) k = {!!}
+  ren-eq-lem ρ (e ::c e₁) k = ap2 _::_ (ren-eq-lem ρ e k) (ren-eq-lem ρ e₁ k)
   ren-eq-lem ρ (listrec e e₁ e₂) k = {!!}
   ren-eq-lem ρ true k = Refl
   ren-eq-lem ρ false k = Refl
@@ -169,7 +169,7 @@ module Interpretation where
   subst-eq-lem Θ (l-proj e) k = ap fst (subst-eq-lem Θ e k)
   subst-eq-lem Θ (r-proj e) k = ap snd (subst-eq-lem Θ e k)
   subst-eq-lem Θ nil k = Refl
-  subst-eq-lem Θ (e ::c e₁) k = {!!}
+  subst-eq-lem Θ (e ::c e₁) k = ap2 _::_ (subst-eq-lem Θ e k) (subst-eq-lem Θ e₁ k)
   subst-eq-lem Θ (listrec e e₁ e₂) k = {!!}
   subst-eq-lem Θ true k = Refl
   subst-eq-lem Θ false k = Refl
