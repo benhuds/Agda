@@ -240,17 +240,31 @@ module Interpretation where
   cong {Γ} {nat} e e' k p | Z | Z = <>
   cong {Γ} {nat} e e' k () | Z | S n
   cong {Γ} {nat} e e' k () | S m | Z
-  cong {Γ} {nat} e e' k Refl | S m | S .m = {!!}
-  cong {τ = τ ->c τ₁} e e' k p x = {!!}
-  cong {τ = τ ×c τ₁} e e' k p = {!!}
-  cong {τ = list τ} e e' k p = {!!}
+  cong {Γ} {nat} e e' k Refl | S m | S .m = ♭nat-refl m
+  cong {τ = τ ->c τ₁} e e' k p x with (Monotone.f (interpE e) k) | (Monotone.f (interpE e') k) 
+  cong {Γ} {τ ->c τ₁} e e' k Refl x | monotone f f-is-monotone | monotone .f .f-is-monotone = Preorder-str.refl (snd [ τ₁ ]t) (f x)
+  cong {τ = τ ×c τ₁} e e' k p with (Monotone.f (interpE e) k) | (Monotone.f (interpE e') k)
+  cong {Γ} {τ ×c τ₁} e e' k Refl | a , b | .(a , b) = (Preorder-str.refl (snd [ τ ]t) a) , (Preorder-str.refl (snd [ τ₁ ]t) b)
+  cong {τ = list τ} e e' k p with (Monotone.f (interpE e) k) | (Monotone.f (interpE e') k) 
+  cong {Γ} {list τ} e e' k p | [] | [] = <>
+  cong {Γ} {list τ} e e' k () | x :: c | []
+  cong {Γ} {list τ} e e' k () | [] | x :: d
+  cong {Γ} {list τ} e e' k Refl | x :: c | .x :: .c = (Preorder-str.refl (snd [ τ ]t) x) , (Preorder-str.refl (list-p (snd [ τ ]t)) c)
   cong {τ = bool} e e' k p with (Monotone.f (interpE e) k) | (Monotone.f (interpE e') k)
   cong {Γ} {bool} e e' k p | True | True = <>
   cong {Γ} {bool} e e' k () | True | False
   cong {Γ} {bool} e e' k () | False | True
   cong {Γ} {bool} e e' k p | False | False = <>
-  cong {τ = C} e e' k p = {!!}
-  cong {τ = rnat} e e' k p = {!!}
+  cong {τ = C} e e' k p with (Monotone.f (interpE e) k) | (Monotone.f (interpE e') k) 
+  cong {Γ} {C} e e' k p | Z | Z = <>
+  cong {Γ} {C} e e' k () | Z | S n
+  cong {Γ} {C} e e' k () | S m | Z
+  cong {Γ} {C} e e' k Refl | S m | S .m = nat-refl m
+  cong {τ = rnat} e e' k p with (Monotone.f (interpE e) k) | (Monotone.f (interpE e') k) 
+  cong {Γ} {rnat} e e' k p | Z | Z = <>
+  cong {Γ} {rnat} e e' k () | Z | S n 
+  cong {Γ} {rnat} e e' k () | S m | Z
+  cong {Γ} {rnat} e e' k Refl | S m | S .m = nat-refl m
 
 {- Preorder-str.≤ (snd [ τ ]t)
       (Monotone.f (interpE (ren e1 (λ {.τ} → ρ))) k)
