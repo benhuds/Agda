@@ -193,21 +193,17 @@ module Preorder where
 
   -- composition preserves monotonicity
   comp : ∀ {PA PB PC} → MONOTONE PA PB → MONOTONE PB PC → MONOTONE PA PC
-  comp (monotone f f-ismono) (monotone g g-ismono) =
-          monotone (λ x → g (f x)) (λ x y x₁ → g-ismono (f x) (f y) (f-ismono x y x₁))
+  comp (monotone f f-ismono) (monotone g g-ismono) = monotone (λ x → g (f x)) (λ x y x₁ → g-ismono (f x) (f y) (f-ismono x y x₁))
 
   -- proofs that types like pairs etc. with preorders are monotone
   pair' : ∀ {PΓ PA PB} → MONOTONE PΓ PA → MONOTONE PΓ PB → MONOTONE PΓ (PA ×p PB)
-  pair' (monotone f f-ismono) (monotone g g-ismono) =
-          monotone (λ x → f x , g x) (λ x y z → f-ismono x y z , g-ismono x y z)
+  pair' (monotone f f-ismono) (monotone g g-ismono) = monotone (λ x → f x , g x) (λ x y z → f-ismono x y z , g-ismono x y z)
 
   fst' : ∀ {PΓ PA PB} → MONOTONE PΓ (PA ×p PB) → MONOTONE PΓ PA
-  fst' (monotone f f-ismono) = 
-          monotone (λ x → fst (f x)) (λ x y z → fst (f-ismono x y z))
+  fst' (monotone f f-ismono) = monotone (λ x → fst (f x)) (λ x y z → fst (f-ismono x y z))
 
   snd' : ∀ {PΓ PA PB} → MONOTONE PΓ (PA ×p PB) → MONOTONE PΓ PB
-  snd' (monotone f f-ismono) = 
-          monotone (λ x → snd (f x)) (λ x y z → snd (f-ismono x y z))
+  snd' (monotone f f-ismono) = monotone (λ x → snd (f x)) (λ x y z → snd (f-ismono x y z))
 
   lam' : ∀ {PΓ PA PB} → MONOTONE (PΓ ×p PA) PB → MONOTONE PΓ (PA ->p PB)
   lam' {Γ , preorder ≤Γ reflΓ transΓ} {a , preorder ≤a refla transa} {b , preorder ≤b reflb transb} (monotone f f-ismono) =

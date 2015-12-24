@@ -130,12 +130,12 @@ module Interpretation where
   ren-eq-lem ρ (var (iS x)) k = ren-eq-lem (throw-r ρ) (var x) k
   ren-eq-lem ρ z k = Refl
   ren-eq-lem ρ (s e) k = ap S (ren-eq-lem ρ e k)
-  ren-eq-lem ρ (rec e e₁ e₂) k = {!!}
+  ren-eq-lem ρ (rec e e₁ e₂) k = ap3 natrec (ren-eq-lem ρ e₁ k) (λ= (λ n → λ= (λ x₂ → {!!}))) (ren-eq-lem ρ e k)
   ren-eq-lem ρ (lam e) k = {!!}
   ren-eq-lem ρ (app e e₁) k = ap2 (λ x x₁ → Monotone.f x x₁) (ren-eq-lem ρ e k) (ren-eq-lem ρ e₁ k)
   ren-eq-lem ρ rz k = Refl
   ren-eq-lem ρ (rsuc e) k = ap S (ren-eq-lem ρ e k)
-  ren-eq-lem ρ (rrec e e₁ e₂ P) k = {!!}
+  ren-eq-lem ρ (rrec e e₁ e₂ P) k = ap3 natrec (ren-eq-lem ρ e₁ k) (λ= (λ n → λ= (λ x₂ → {!!}))) (ren-eq-lem ρ e k)
   ren-eq-lem ρ (prod e e₁) k = ap2 (λ x x₁ → x , x₁) (ren-eq-lem ρ e k) (ren-eq-lem ρ e₁ k)
   ren-eq-lem ρ (l-proj e) k = ap fst (ren-eq-lem ρ e k)
   ren-eq-lem ρ (r-proj e) k = ap snd (ren-eq-lem ρ e k)
@@ -164,12 +164,12 @@ module Interpretation where
   subst-eq-lem Θ (var (iS x)) k = subst-eq-lem (throw-s Θ) (var x) k
   subst-eq-lem Θ z k = Refl
   subst-eq-lem Θ (s e) k = ap S (subst-eq-lem Θ e k)
-  subst-eq-lem Θ (rec e e₁ e₂) k = ap3 natrec (subst-eq-lem Θ e₁ k) {!!} (subst-eq-lem Θ e k)
+  subst-eq-lem Θ (rec e e₁ e₂) k = ap3 natrec (subst-eq-lem Θ e₁ k) (λ= (λ n → λ= (λ x₂ → {!!}))) (subst-eq-lem Θ e k)
   subst-eq-lem Θ (lam e) k = {!!}
   subst-eq-lem Θ (app e e₁) k = ap2 (λ x x₁ → Monotone.f x x₁) (subst-eq-lem Θ e k) (subst-eq-lem Θ e₁ k)
   subst-eq-lem Θ rz k = Refl
   subst-eq-lem Θ (rsuc e) k = ap S (subst-eq-lem Θ e k)
-  subst-eq-lem Θ (rrec e e₁ e₂ P) k = ap3 natrec (subst-eq-lem Θ e₁ k) {!!} (subst-eq-lem Θ e k)
+  subst-eq-lem Θ (rrec e e₁ e₂ P) k = ap3 natrec (subst-eq-lem Θ e₁ k) (λ= (λ n → λ= (λ x₂ → {!!}))) (subst-eq-lem Θ e k)
   subst-eq-lem Θ (prod e e₁) k = ap2 (λ x x₁ → x , x₁) (subst-eq-lem Θ e k) (subst-eq-lem Θ e₁ k)
   subst-eq-lem Θ (l-proj e) k = ap fst (subst-eq-lem Θ e k)
   subst-eq-lem Θ (r-proj e) k = ap snd (subst-eq-lem Θ e k)
@@ -189,18 +189,18 @@ module Interpretation where
   rs-lem Θ ρ (var x) k = Refl
   rs-lem Θ ρ z k = Refl
   rs-lem Θ ρ (s e) k = ap S (rs-lem Θ ρ e k)
-  rs-lem Θ ρ (rec e e₁ e₂) k = {!!}
+  rs-lem Θ ρ (rec e e₁ e₂) k = ap3 natrec (rs-lem Θ ρ e₁ k) (λ= (λ n → λ= (λ x₂ → {!!}))) (rs-lem Θ ρ e k)
   rs-lem Θ ρ (lam e) k = {!!}
   rs-lem Θ ρ (app e e₁) k = ap2 (λ x x₁ → Monotone.f x x₁) (rs-lem Θ ρ e k) (rs-lem Θ ρ e₁ k)
   rs-lem Θ ρ rz k = Refl
   rs-lem Θ ρ (rsuc e) k = ap S (rs-lem Θ ρ e k)
-  rs-lem Θ ρ (rrec e e₁ e₂ P) k = {!!}
+  rs-lem Θ ρ (rrec e e₁ e₂ P) k = ap3 natrec (rs-lem Θ ρ e₁ k) (λ= (λ n → λ= (λ x₂ → {!!}))) (rs-lem Θ ρ e k)
   rs-lem Θ ρ (prod e e₁) k = ap2 (λ x x₁ → x , x₁) (rs-lem Θ ρ e k) (rs-lem Θ ρ e₁ k)
   rs-lem Θ ρ (l-proj e) k = ap fst (rs-lem Θ ρ e k)
   rs-lem Θ ρ (r-proj e) k = ap snd (rs-lem Θ ρ e k)
   rs-lem Θ ρ nil k = Refl
   rs-lem Θ ρ (e ::c e₁) k = ap2 _::_ (rs-lem Θ ρ e k) (rs-lem Θ ρ e₁ k)
-  rs-lem Θ ρ (listrec e e₁ e₂) k = {!!}
+  rs-lem Θ ρ (listrec e e₁ e₂) k = ap3 lrec (rs-lem Θ ρ e k) (rs-lem Θ ρ e₁ k) {!!}
   rs-lem Θ ρ true k = Refl
   rs-lem Θ ρ false k = Refl
   rs-lem Θ ρ (max τ e e₁) k = ap2 (Preorder-max-str.max [ τ ]tm) (rs-lem Θ ρ e k) (rs-lem Θ ρ e₁ k)
@@ -214,18 +214,18 @@ module Interpretation where
   sr-lem Θ ρ (var x) k = Refl
   sr-lem Θ ρ z k = Refl
   sr-lem Θ ρ (s e) k = ap S (sr-lem Θ ρ e k)
-  sr-lem Θ ρ (rec e e₁ e₂) k = {!!}
+  sr-lem Θ ρ (rec e e₁ e₂) k = ap3 natrec (sr-lem Θ ρ e₁ k) (λ= (λ n → λ= (λ x₂ → {!!}))) (sr-lem Θ ρ e k)
   sr-lem Θ ρ (lam e) k = {!!}
   sr-lem Θ ρ (app e e₁) k = ap2 (λ x x₁ → Monotone.f x x₁) (sr-lem Θ ρ e k) (sr-lem Θ ρ e₁ k)
   sr-lem Θ ρ rz k = Refl
   sr-lem Θ ρ (rsuc e) k = ap S (sr-lem Θ ρ e k)
-  sr-lem Θ ρ (rrec e e₁ e₂ P) k = {!!}
+  sr-lem Θ ρ (rrec e e₁ e₂ P) k = ap3 natrec (sr-lem Θ ρ e₁ k) (λ= (λ n → λ= (λ x₂ → {!!}))) (sr-lem Θ ρ e k)
   sr-lem Θ ρ (prod e e₁) k = ap2 (λ x x₁ → x , x₁) (sr-lem Θ ρ e k) (sr-lem Θ ρ e₁ k)
   sr-lem Θ ρ (l-proj e) k =  ap fst (sr-lem Θ ρ e k)
   sr-lem Θ ρ (r-proj e) k =  ap snd (sr-lem Θ ρ e k)
   sr-lem Θ ρ nil k = Refl
   sr-lem Θ ρ (e ::c e₁) k =  ap2 _::_ (sr-lem Θ ρ e k) (sr-lem Θ ρ e₁ k)
-  sr-lem Θ ρ (listrec e e₁ e₂) k = {!!}
+  sr-lem Θ ρ (listrec e e₁ e₂) k = ap3 lrec (sr-lem Θ ρ e k) (sr-lem Θ ρ e₁ k) {!!}
   sr-lem Θ ρ true k = Refl
   sr-lem Θ ρ false k = Refl
   sr-lem Θ ρ (max τ e e₁) k =  ap2 (Preorder-max-str.max [ τ ]tm) (sr-lem Θ ρ e k) (sr-lem Θ ρ e₁ k)
@@ -239,18 +239,18 @@ module Interpretation where
   ss-lem Θ1 Θ2 (var x) k = Refl
   ss-lem Θ1 Θ2 z k = Refl
   ss-lem Θ1 Θ2 (s e) k = ap S (ss-lem Θ1 Θ2 e k)
-  ss-lem Θ1 Θ2 (rec e e₁ e₂) k = {!!}
+  ss-lem Θ1 Θ2 (rec e e₁ e₂) k = ap3 natrec (ss-lem Θ1 Θ2 e₁ k) (λ= (λ n → λ= (λ x₂ → {!!}))) (ss-lem Θ1 Θ2 e k)
   ss-lem Θ1 Θ2 (lam e) k = {!!}
   ss-lem Θ1 Θ2 (app e e₁) k = ap2 (λ x x₁ → Monotone.f x x₁) (ss-lem Θ1 Θ2 e k) (ss-lem Θ1 Θ2 e₁ k)
   ss-lem Θ1 Θ2 rz k = Refl
   ss-lem Θ1 Θ2 (rsuc e) k = ap S (ss-lem Θ1 Θ2 e k)
-  ss-lem Θ1 Θ2 (rrec e e₁ e₂ P) k = {!!}
+  ss-lem Θ1 Θ2 (rrec e e₁ e₂ P) k = ap3 natrec (ss-lem Θ1 Θ2 e₁ k) (λ= (λ n → λ= (λ x₂ → {!!}))) (ss-lem Θ1 Θ2 e k)
   ss-lem Θ1 Θ2 (prod e e₁) k = ap2 (λ x x₁ → x , x₁) (ss-lem Θ1 Θ2 e k) (ss-lem Θ1 Θ2 e₁ k)
   ss-lem Θ1 Θ2 (l-proj e) k = ap fst (ss-lem Θ1 Θ2 e k)
   ss-lem Θ1 Θ2 (r-proj e) k = ap snd (ss-lem Θ1 Θ2 e k)
   ss-lem Θ1 Θ2 nil k = Refl
   ss-lem Θ1 Θ2 (e ::c e₁) k = ap2 _::_ (ss-lem Θ1 Θ2 e k) (ss-lem Θ1 Θ2 e₁ k)
-  ss-lem Θ1 Θ2 (listrec e e₁ e₂) k = {!!}
+  ss-lem Θ1 Θ2 (listrec e e₁ e₂) k = ap3 lrec (ss-lem Θ1 Θ2 e k) (ss-lem Θ1 Θ2 e₁ k) {!!}
   ss-lem Θ1 Θ2 true k = Refl
   ss-lem Θ1 Θ2 false k = Refl
   ss-lem Θ1 Θ2 (max τ e e₁) k = ap2 (Preorder-max-str.max [ τ ]tm) (ss-lem Θ1 Θ2 e k) (ss-lem Θ1 Θ2 e₁ k)
@@ -263,7 +263,7 @@ module Interpretation where
   subst-id-lem (var x) k = Refl
   subst-id-lem z k = Refl
   subst-id-lem (s e) k = ap S (subst-id-lem e k)
-  subst-id-lem (rec e e₁ e₂) k = {!!}
+  subst-id-lem (rec e e₁ e₂) k = ap3 natrec (subst-id-lem e₁ k) (λ= (λ n → λ= (λ x₂ → {!!}))) (subst-id-lem e k)
 --    ap3 natrec (subst-id-lem e₁ k) (λ= (λ x → λ= (λ x₁ → ap (λ x₂ → Monotone.f (interpE x₂) ((k , x₁) , x)) (ap {!!} extend-id-twice ∘ {!!})))) (subst-id-lem e k) --(ap (subst e₂) extend-id-twice ∘ subst-id e₂)
   subst-id-lem {Γ} (lam e) k = {!!}
 --ap2 Monotone.f (ap lam' {!!}) Refl
@@ -279,16 +279,20 @@ module Interpretation where
   subst-id-lem (app e e₁) k = ap2 (λ x x₁ → Monotone.f x x₁) (subst-id-lem e k) (subst-id-lem e₁ k)
   subst-id-lem rz k = Refl
   subst-id-lem (rsuc e) k = ap S (subst-id-lem e k)
-  subst-id-lem (rrec e e₁ e₂ P) k = {!!}
+  subst-id-lem (rrec e e₁ e₂ P) k = ap3 natrec (subst-id-lem e₁ k) (λ= (λ n → λ= (λ x₂ → {!!}))) (subst-id-lem e k)
   subst-id-lem (prod e e₁) k = ap2 (λ x x₁ → x , x₁) (subst-id-lem e k) (subst-id-lem e₁ k)
   subst-id-lem (l-proj e) k = ap fst (subst-id-lem e k)
   subst-id-lem (r-proj e) k = ap snd (subst-id-lem e k)
   subst-id-lem nil k = Refl
   subst-id-lem (e ::c e₁) k = ap2 _::_ (subst-id-lem e k) (subst-id-lem e₁ k)
-  subst-id-lem (listrec e e₁ e₂) k = {!!}
+  subst-id-lem (listrec e e₁ e₂) k = ap3 lrec (subst-id-lem e k) (subst-id-lem e₁ k) {!!}
   subst-id-lem true k = Refl
   subst-id-lem false k = Refl
   subst-id-lem (max τ e e₁) k = ap2 (Preorder-max-str.max [ τ ]tm) (subst-id-lem e k) (subst-id-lem e₁ k)
+
+  subst-comp-lem : ∀ {Γ Γ' τ τ'} → (Θ : sctx Γ Γ') → (v : Γ |- τ') → (e : τ' :: Γ' |- τ) → (k : fst [ Γ ]c)
+                 → (Monotone.f (interpE (subst (subst e (s-extend Θ)) (q v))) k) == (Monotone.f (interpE (subst e (lem3' Θ v))) k)
+  subst-comp-lem Θ v e k = {!!}
 
   cong : ∀ {Γ τ} → (e e' : Γ |- τ) → (k : fst [ Γ ]c) → Monotone.f (interpE e) k == Monotone.f (interpE e') k
        → Preorder-str.≤ (snd [ τ ]t) (Monotone.f (interpE e) k) (Monotone.f (interpE e') k)

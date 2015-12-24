@@ -206,66 +206,22 @@ equations that define ren and subst are true in the semantics-}
 
   extend-ren-comp ρ1 ρ2 = λ=i (λ τ → λ= (λ x → extend-ren-comp-lemma x ρ1 ρ2))
 
-  postulate
-    ren-comp : ∀ {Γ Γ' Γ'' τ} → (ρ1 : rctx Γ Γ') → (ρ2 : rctx Γ' Γ'') → (e : Γ'' |- τ) → (ren (ren e ρ2) ρ1) == (ren e (ρ1 ∙rr ρ2))
-{-
-  ren-comp ρ1 ρ2 unit = Refl
-  ren-comp ρ1 ρ2 0C = Refl
-  ren-comp ρ1 ρ2 1C = Refl
-  ren-comp ρ1 ρ2 (plusC e e₁) = ap2 plusC (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
-  ren-comp ρ1 ρ2 (var x) = ap var (rename-var-∙ ρ1 ρ2 x)
-  ren-comp ρ1 ρ2 z = Refl
-  ren-comp ρ1 ρ2 (s e) = ap s (ren-comp ρ1 ρ2 e)
-  ren-comp ρ1 ρ2 (rec e e₁ e₂) = ap3 rec (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
-                                     (ap (ren e₂) (ap r-extend (extend-ren-comp ρ1 ρ2) ∘
-                                       extend-ren-comp (r-extend ρ1) (r-extend ρ2)) ∘
-                                       ren-comp (r-extend (r-extend ρ1)) (r-extend (r-extend ρ2)) e₂)
-  ren-comp ρ1 ρ2 (lam e) = ap lam ((ap (ren e) (extend-ren-comp ρ1 ρ2)) ∘ ren-comp (r-extend ρ1) (r-extend ρ2) e)
-  ren-comp ρ1 ρ2 (app e e₁) = ap2 app (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
-  ren-comp ρ1 ρ2 rz = Refl
-  ren-comp ρ1 ρ2 (rsuc e) = ap rsuc (ren-comp ρ1 ρ2 e)
-  ren-comp ρ1 ρ2 (rrec e e₁ e₂ P) = {!!}
-  ren-comp ρ1 ρ2 (prod e e₁) = ap2 prod (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
-  ren-comp ρ1 ρ2 (l-proj e) = ap l-proj (ren-comp ρ1 ρ2 e)
-  ren-comp ρ1 ρ2 (r-proj e) = ap r-proj (ren-comp ρ1 ρ2 e)
-  ren-comp ρ1 ρ2 nil = Refl
-  ren-comp ρ1 ρ2 (e ::c e₁) = ap2 _::c_ (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
-  ren-comp ρ1 ρ2 (listrec e e₁ e₂) = ap3 listrec (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
-                                         (ap (ren e₂) (ap r-extend (ap r-extend (extend-ren-comp ρ1 ρ2)) ∘
-                                         (ap r-extend (extend-ren-comp (r-extend ρ1) (r-extend ρ2)) ∘
-                                         extend-ren-comp (r-extend (r-extend ρ1)) (r-extend (r-extend ρ2)))) ∘
-                                         ren-comp (r-extend (r-extend (r-extend ρ1)))
-                                                  (r-extend (r-extend (r-extend ρ2))) e₂)
-  ren-comp ρ1 ρ2 true = Refl
-  ren-comp ρ1 ρ2 false = Refl
-  ren-comp ρ1 ρ2 (max x e e₁) = ap2 (max x) (ren-comp ρ1 ρ2 e) (ren-comp ρ1 ρ2 e₁)
--}
   -- weakening a context
-
   wkn e = ren e iS
-
-  --lem2 (addvar)
-
+  -- parallel extension
   s-extend Θ i0 = var i0
   s-extend Θ (iS x) = wkn (Θ x)
-
-
+  -- identity substitution
   ids x = var x
-
   -- weakening with substitution
-
   q∙ Θ = λ x → wkn (Θ x)
-
 
   lem3' Θ e i0 = e
   lem3' Θ e (iS i) = Θ i
-
   --lem3
-
   q e = lem3' ids e
 
---   subst-var
-
+  -- subst-var
   svar Θ i = q (Θ i) i0
 
   lem4' Θ a b = lem3' (lem3' Θ b) a
@@ -306,27 +262,6 @@ equations that define ren and subst are true in the semantics-}
   _ss_ Θ1 Θ2 x = subst (subst (var x) Θ2) Θ1
   _sr_ Θ ρ x = subst (ren (var x) ρ) Θ
 
-  --free stuff
-{-
-  svar-rs : ∀ {A B C τ} (ρ : rctx A B) (Θ : sctx B C) (x : τ ∈ C)
-          → svar (ρ rs Θ) x == ren (svar Θ x) ρ
-  svar-rs = λ ρ Θ x → Refl
-
-  svar-ss : ∀ {A B C τ} (Θ1 : sctx A B) (Θ2 : sctx B C) (x : τ ∈ C)
-          → svar (Θ1 ss Θ2) x == subst (svar Θ2 x) Θ1
-  svar-ss = λ Θ1 Θ2 x → Refl
-
-  svar-sr : ∀ {A B C τ} (Θ : sctx A B) (ρ : rctx B C) (x : τ ∈ C)
-          → svar Θ (rename-var ρ x) == svar (Θ sr ρ) x
-  svar-sr = λ Θ ρ x → Refl
-
-  svar-id : ∀ {Γ τ} → (x : τ ∈ Γ) → var x == svar ids x
-  svar-id = λ x → Refl
-
-  rsr-assoc : ∀ {A B C D} → (ρ1 : rctx A B) (Θ : sctx B C) (ρ2 : rctx C D)
-            → Id {_} {sctx A D} ((ρ1 rs Θ) sr ρ2) (ρ1 rs (Θ sr ρ2))
-  rsr-assoc = λ ρ1 Θ ρ2 → Refl
--}
   extend-id-once-lemma : ∀ {Γ τ τ'} → (x : τ ∈ τ' :: Γ) → _==_ {_} {τ' :: Γ |- τ}
                        (ids {τ' :: Γ} {τ} x) (s-extend {Γ} {Γ} {τ'} (ids {Γ}) {τ} x)
   extend-id-once-lemma i0 = Refl
@@ -338,38 +273,15 @@ equations that define ren and subst are true in the semantics-}
   extend-id-twice : ∀ {Γ τ1 τ2} → Id {_} {sctx (τ1 :: τ2 :: Γ) (τ1 :: τ2 :: Γ)} (ids {τ1 :: τ2 :: Γ}) (s-extend (s-extend ids))
   extend-id-twice = ap s-extend extend-id-once ∘ extend-id-once
 
-  postulate
-    subst-id : ∀ {Γ τ} (e : Γ |- τ) → e == subst e ids
-{-  subst-id unit = Refl
-  subst-id 0C = Refl
-  subst-id 1C = Refl
-  subst-id (plusC e e₁) = ap2 plusC (subst-id e) (subst-id e₁)
-  subst-id (var x) = Refl
-  subst-id z = Refl
-  subst-id (s e) = ap s (subst-id e)
-  subst-id (rec e e₁ e₂) = ap3 rec (subst-id e) (subst-id e₁) (ap (subst e₂) extend-id-twice ∘ subst-id e₂)
-  subst-id (lam e) = ap lam (ap (subst e) extend-id-once ∘ subst-id e)
-  subst-id (app e e₁) = ap2 app (subst-id e) (subst-id e₁)
-  subst-id rz = Refl
-  subst-id (rsuc e) = ap rsuc (subst-id e)
-  subst-id (rrec e e₁ e₂ P) = {!!}
-  subst-id (prod e e₁) = ap2 prod (subst-id e) (subst-id e₁)
-  subst-id (l-proj e) = ap l-proj (subst-id e)
-  subst-id (r-proj e) = ap r-proj (subst-id e)
-  subst-id nil = Refl
-  subst-id (e ::c e₁) = ap2 _::c_ (subst-id e) (subst-id e₁)
-  subst-id true = Refl
-  subst-id false = Refl
-  subst-id (listrec e e₁ e₂) = ap3 listrec (subst-id e) (subst-id e₁) (ap (subst e₂) (ap s-extend (ap s-extend extend-id-once) ∘ extend-id-twice) ∘ subst-id e₂)
--}
+{- lemmas I may or may not need later
 
-  extend-rs-once-lemma : ∀ {A B C τ τ'} → (x : τ ∈ τ' :: B) (ρ : rctx C A) (Θ : sctx A B) → _==_ {_} {τ' :: C |- τ}
+extend-rs-once-lemma : ∀ {A B C τ τ'} → (x : τ ∈ τ' :: B) (ρ : rctx C A) (Θ : sctx A B) → _==_ {_} {τ' :: C |- τ}
                        (_rs_ {τ' :: C} {τ' :: A} {τ' :: B} (r-extend {C} {A} {τ'} ρ)
                          (s-extend {A} {B} {τ'} Θ) {τ} x)
                          (s-extend {C} {B} {τ'} (_rs_ {C} {A} {B} ρ Θ) {τ} x)
   extend-rs-once-lemma i0 ρ Θ = Refl
   extend-rs-once-lemma (iS x) ρ Θ = ! (ren-comp iS ρ (Θ x)) ∘ ren-comp (r-extend ρ) iS (Θ x)
-{-
+
   extend-rs-once : ∀ {A B C τ} → (ρ : rctx C A) (Θ : sctx A B)
                  → Id {_} {sctx (τ :: C) (τ :: B)} (r-extend ρ rs s-extend Θ) (s-extend (ρ rs Θ))
   extend-rs-once ρ Θ = λ=i (λ τ → λ= (λ x → extend-rs-once-lemma x ρ Θ))
@@ -377,32 +289,6 @@ equations that define ren and subst are true in the semantics-}
   extend-rs-twice : ∀ {A B C τ τ'} → (ρ : rctx C A) (Θ : sctx A B)
                   → Id {_} {sctx (τ :: τ' :: C) (τ :: τ' :: B)} ((r-extend (r-extend ρ)) rs (s-extend (s-extend Θ))) ((s-extend (s-extend (ρ rs Θ))))
   extend-rs-twice ρ Θ = ap s-extend (extend-rs-once ρ Θ) ∘ extend-rs-once (r-extend ρ) (s-extend Θ)
-
-  subst-rs : ∀ {A B C τ} → (ρ : rctx C A) (Θ : sctx A B) (e : B |- τ)
-           → ren (subst e Θ) ρ == subst e (ρ rs Θ)
-  subst-rs ρ Θ unit = Refl
-  subst-rs ρ Θ 0C = Refl
-  subst-rs ρ Θ 1C = Refl
-  subst-rs ρ Θ (plusC e e₁) = ap2 plusC (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
-  subst-rs ρ Θ (var x) = svar-rs ρ Θ x
-  subst-rs ρ Θ z = Refl
-  subst-rs ρ Θ (suc e) = ap suc (subst-rs ρ Θ e)
-  subst-rs ρ Θ (rec e e₁ e₂) = ap3 rec (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
-                                 (ap (subst e₂) (extend-rs-twice ρ Θ) ∘
-                                 subst-rs (r-extend (r-extend ρ)) (s-extend (s-extend Θ)) e₂)
-  subst-rs ρ Θ (lam e) = ap lam (ap (subst e) (extend-rs-once ρ Θ) ∘ subst-rs (r-extend ρ) (s-extend Θ) e)
-  subst-rs ρ Θ (app e e₁) = ap2 app (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
-  subst-rs ρ Θ (prod e e₁) = ap2 prod (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
-  subst-rs ρ Θ (l-proj e) = ap l-proj (subst-rs ρ Θ e)
-  subst-rs ρ Θ (r-proj e) = ap r-proj (subst-rs ρ Θ e)
-  subst-rs ρ Θ nil = Refl
-  subst-rs ρ Θ (e ::c e₁) = ap2 _::c_ (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
-  subst-rs ρ Θ true = Refl
-  subst-rs ρ Θ false = Refl
-  subst-rs ρ Θ (listrec e e₁ e₂) = ap3 listrec (subst-rs ρ Θ e) (subst-rs ρ Θ e₁)
-                                       (ap (subst e₂) (ap s-extend (ap s-extend (extend-rs-once ρ Θ)) ∘
-                                       extend-rs-twice (r-extend ρ) (s-extend Θ)) ∘
-                                       subst-rs (r-extend (r-extend (r-extend ρ))) (s-extend (s-extend (s-extend Θ))) e₂)
 
   extend-sr-once-lemma : ∀ {A B C τ τ'} → (Θ : sctx A B) (ρ : rctx B C) (x : τ ∈ τ' :: C)
                        → _==_ {_} {τ' :: A |- τ} (s-extend (_sr_ Θ ρ) x) (_sr_ (s-extend Θ) (r-extend ρ) x)
@@ -418,35 +304,6 @@ equations that define ren and subst are true in the semantics-}
                    (s-extend (s-extend Θ) sr r-extend (r-extend ρ)) (s-extend (s-extend (Θ sr ρ)))
   extend-sr-twice Θ ρ = ap s-extend (extend-sr-once Θ ρ) ∘ extend-sr-once (s-extend Θ) (r-extend ρ)
 
-  sr-comp : ∀ {Γ Γ' Γ'' τ} → (Θ : sctx Γ Γ') → (ρ : rctx Γ' Γ'') → (e : Γ'' |- τ)
-          → (subst (ren e ρ) Θ) == subst e (Θ sr ρ)
-  sr-comp Θ ρ unit = Refl
-  sr-comp Θ ρ 0C = Refl
-  sr-comp Θ ρ 1C = Refl
-  sr-comp Θ ρ (plusC e e₁) = ap2 plusC (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
-  sr-comp Θ ρ (var x) = svar-sr Θ ρ x
-  sr-comp Θ ρ z = Refl
-  sr-comp Θ ρ (suc e) = ap suc (sr-comp Θ ρ e)
-  sr-comp Θ ρ (rec e e₁ e₂) = ap3 rec (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
-                                      (ap (subst e₂) (ap s-extend (extend-sr-once Θ ρ) ∘
-                                      extend-sr-once (s-extend Θ) (r-extend ρ)) ∘
-                                      sr-comp (s-extend (s-extend Θ)) (r-extend (r-extend ρ)) e₂)
-  sr-comp Θ ρ (lam e) = ap lam (ap (subst e) (extend-sr-once Θ ρ) ∘ sr-comp (s-extend Θ) (r-extend ρ) e)
-  sr-comp Θ ρ (app e e₁) = ap2 app (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
-  sr-comp Θ ρ (prod e e₁) = ap2 prod (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
-  sr-comp Θ ρ (l-proj e) = ap l-proj (sr-comp Θ ρ e)
-  sr-comp Θ ρ (r-proj e) = ap r-proj (sr-comp Θ ρ e)
-  sr-comp Θ ρ nil = Refl
-  sr-comp Θ ρ (e ::c e₁) = ap2 _::c_ (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
-  sr-comp Θ ρ (listrec e e₁ e₂) = ap3 listrec (sr-comp Θ ρ e) (sr-comp Θ ρ e₁)
-                                              (ap (subst e₂) (ap s-extend (ap s-extend (extend-sr-once Θ ρ)) ∘
-                                              extend-sr-twice (s-extend Θ) (r-extend ρ)) ∘
-                                                 sr-comp (s-extend (s-extend (s-extend Θ)))
-                                                 (r-extend (r-extend (r-extend ρ))) e₂)
-                                              
-  sr-comp Θ ρ true = Refl
-  sr-comp Θ ρ false = Refl
-
   extend-ss-once-lemma : ∀ {A B C τ τ'} → (Θ1 : sctx A B) (Θ2 : sctx B C) (x : τ ∈ τ' :: C)
                        → _==_ {_} {τ' :: A |- τ} (s-extend (_ss_ Θ1 Θ2) x) (_ss_ (s-extend Θ1) (s-extend Θ2) x)
   extend-ss-once-lemma Θ1 Θ2 i0 = Refl
@@ -457,34 +314,6 @@ equations that define ren and subst are true in the semantics-}
               ((s-extend Θ1) ss
               (s-extend Θ2))
   extend-ss-once Θ1 Θ2 = λ=i (λ τ → λ= (λ x → extend-ss-once-lemma Θ1 Θ2 x))
-
-  subst-ss : ∀ {A B C τ} → (Θ1 : sctx A B) (Θ2 : sctx B C) (e : C |- τ)
-           → subst e (Θ1 ss Θ2) == subst (subst e Θ2) Θ1
-  subst-ss Θ1 Θ2 unit = Refl
-  subst-ss Θ1 Θ2 0C = Refl
-  subst-ss Θ1 Θ2 1C = Refl
-  subst-ss Θ1 Θ2 (plusC e e₁) = ap2 plusC (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
-  subst-ss Θ1 Θ2 (var x) = svar-ss Θ1 Θ2 x
-  subst-ss Θ1 Θ2 z = Refl
-  subst-ss Θ1 Θ2 (suc e) = ap suc (subst-ss Θ1 Θ2 e)
-  subst-ss Θ1 Θ2 (rec e e₁ e₂) = ap3 rec (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
-                                 (subst-ss (s-extend (s-extend Θ1)) (s-extend (s-extend Θ2)) e₂ ∘
-                                 ap (subst e₂) (extend-ss-once (s-extend Θ1) (s-extend Θ2) ∘
-                                 ap s-extend (extend-ss-once Θ1 Θ2)))
-  subst-ss Θ1 Θ2 (lam e) = ap lam (subst-ss (s-extend Θ1) (s-extend Θ2) e ∘ ap (subst e) (extend-ss-once Θ1 Θ2))
-  subst-ss Θ1 Θ2 (app e e₁) = ap2 app (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
-  subst-ss Θ1 Θ2 (prod e e₁) = ap2 prod (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
-  subst-ss Θ1 Θ2 (l-proj e) = ap l-proj (subst-ss Θ1 Θ2 e)
-  subst-ss Θ1 Θ2 (r-proj e) = ap r-proj (subst-ss Θ1 Θ2 e)
-  subst-ss Θ1 Θ2 nil = Refl
-  subst-ss Θ1 Θ2 (e ::c e₁) = ap2 _::c_ (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
-  subst-ss Θ1 Θ2 true = Refl
-  subst-ss Θ1 Θ2 false = Refl
-  subst-ss Θ1 Θ2 (listrec e e₁ e₂) = ap3 listrec (subst-ss Θ1 Θ2 e) (subst-ss Θ1 Θ2 e₁)
-                                     (subst-ss (s-extend (s-extend (s-extend Θ1))) (s-extend (s-extend (s-extend Θ2))) e₂ ∘
-                                     ap (subst e₂) (extend-ss-once (s-extend (s-extend Θ1)) (s-extend (s-extend Θ2)) ∘
-                                     ap s-extend (extend-ss-once (s-extend Θ1) (s-extend Θ2) ∘
-                                     ap s-extend (extend-ss-once Θ1 Θ2))))
 
   throw : ∀ {Γ Γ' τ} → sctx Γ (τ :: Γ') → sctx Γ Γ'
   throw Θ x = Θ (iS x)
@@ -503,10 +332,6 @@ equations that define ren and subst are true in the semantics-}
   subst-compose-lemma : ∀ {Γ Γ' τ} (v : Γ |- τ) (Θ : sctx Γ Γ')
                       → _==_ {_} {sctx Γ (τ :: Γ')} ((q v) ss (s-extend Θ)) (lem3' Θ v)
   subst-compose-lemma v Θ = λ=i (λ τ → λ= (λ x → subst-compose-lemma-lemma v Θ x))
-
-  subst-compose : ∀ {Γ Γ' τ τ1} (Θ : sctx Γ Γ') (v : Γ |- τ) (e : (τ :: Γ' |- τ1) )
-                → subst (subst e (s-extend Θ)) (q v) == subst e (lem3' Θ v)
-  subst-compose Θ v e = ap (subst e) (subst-compose-lemma v Θ) ∘ (! (subst-ss (q v) (s-extend Θ) e))
 
   fuse2 : ∀ {Γ Γ' τ τ1 τ2} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (Θ : sctx Γ Γ') (x : τ ∈ τ2 :: Γ')
         → (lem4 v1 v2 ss throw (s-extend (s-extend Θ))) x == (lem3' Θ v2) x
@@ -538,19 +363,6 @@ equations that define ren and subst are true in the semantics-}
                       → _==_ {_} {sctx Γ (τ1 :: τ2 :: Γ')} (Θ ss lem4 v1 v2) (lem4' Θ (subst v1 Θ) (subst v2 Θ))
   subst-compose3-lemma Θ e1 v1 v2 = λ=i (λ τ → λ= (λ x → subst-compose3-lemma-lemma Θ e1 v1 v2 x))
 
-  subst-compose2 : ∀ {Γ Γ' τ τ1 τ2} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ |- τ1) (v2 : Γ |- τ2)
-                 → subst (subst e1 (s-extend (s-extend Θ))) (lem4 v1 v2) == subst e1 (lem4' Θ v1 v2)
-  subst-compose2 Θ e1 v1 v2 = ap (subst e1) (subst-compose2-lemma v1 v2 e1 Θ) ∘
-                           ! (subst-ss (lem4 v1 v2) (s-extend (s-extend Θ)) e1)
-
-  subst-compose3 : ∀ {Γ Γ' τ τ1 τ2} (Θ : sctx Γ Γ') (e1 : (τ1 :: (τ2 :: Γ')) |- τ) (v1 : Γ' |- τ1) (v2 : Γ' |- τ2)
-                 → subst (subst e1 (lem4 v1 v2)) Θ == subst e1 (lem4' Θ (subst v1 Θ) (subst v2 Θ))
-  subst-compose3 Θ e1 v1 v2 = ap (subst e1) (subst-compose3-lemma Θ e1 v1 v2) ∘ ! (subst-ss Θ (lem4 v1 v2) e1)
-
-  subst-compose4 : ∀ {Γ Γ' τ} (Θ : sctx Γ Γ') (v' : Γ |- nat) (r : Γ |- τ) (e2 : (nat :: (τ :: Γ')) |- τ)
-                 → subst (subst e2 (s-extend (s-extend Θ))) (lem4 v' r) == subst e2 (lem4' Θ v' r)
-  subst-compose4 Θ v' r e2 = subst-compose2 Θ e2 v' r
-
   fuse4-lemma : ∀ {Γ Γ' τ τ1 τ2 τ3} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (v3 : Γ |- τ3) (Θ : sctx Γ Γ') (x : τ ∈ Γ')
               → (lem3' (lem3' ids v3) v2 ss q∙ (q∙ Θ)) x == Θ x
   fuse4-lemma v1 v2 v3 Θ x = subst (ren (wkn (Θ x)) iS) (lem3' (q v3) v2) =⟨ sr-comp (lem3' (q v3) v2) iS (wkn (Θ x)) ⟩
@@ -579,12 +391,6 @@ equations that define ren and subst are true in the semantics-}
   subst-compose5-lemma : ∀ {Γ Γ' τ τ1 τ2 τ3} (v1 : Γ |- τ1) (v2 : Γ |- τ2) (v3 : Γ |- τ3) (e : τ1 :: τ2 :: τ3 :: Γ' |- τ) (Θ : sctx Γ Γ')
                        → _==_ {_} {sctx Γ (τ1 :: τ2 :: τ3 :: Γ')} (lem5 v1 v2 v3 ss (s-extend (s-extend (s-extend Θ)))) (lem5' Θ v1 v2 v3)
   subst-compose5-lemma v1 v2 v3 e Θ = λ=i (λ τ → λ= (λ x → subst-compose5-lemma-lemma v1 v2 v3 e Θ x))
-
-  subst-compose5 : ∀ {Γ Γ' τ τ1 τ2 τ3} (Θ : sctx Γ Γ') (e : (τ1 :: (τ2 :: (τ3 :: Γ'))) |- τ) (v1 : Γ |- τ1) (v2 : Γ |- τ2) (v3 : Γ |- τ3)
-                 → subst (subst e (s-extend (s-extend (s-extend (Θ))))) (lem5 v1 v2 v3) == subst e (lem5' Θ v1 v2 v3)
-  subst-compose5 Θ e v1 v2 v3 = ap (subst e) (subst-compose5-lemma v1 v2 v3 e Θ) ∘
-                                ! (subst-ss (lem5 v1 v2 v3) (s-extend (s-extend (s-extend Θ))) e)
-
 -}
 
   _+C_ : ∀ {Γ τ} → Γ |- C  → Γ |- (C ×c τ)→ Γ |- (C ×c τ)
