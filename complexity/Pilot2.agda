@@ -97,14 +97,13 @@ equations that define ren and subst are true in the semantics-}
   data _≤s_ where
     refl-s : ∀ {Γ T} → {e : Γ |- T} → e ≤s e
     trans-s : ∀ {Γ T} → {e e' e'' : Γ |- T} → e ≤s e' → e' ≤s e'' → e ≤s e''
-    plus-s : ∀ {Γ} → {e1 e2 n1 n2 : Γ |- C} → e1 ≤s n1 → e2 ≤s n2 → (plusC e1 e2) ≤s (plusC n1 n2)
     cong-refl : ∀ {Γ τ} {e e' : Γ |- τ} → e == e' → e ≤s e'
     +-unit-l : ∀ {Γ} {e : Γ |- C} → (plusC 0C e) ≤s e
     +-unit-l' : ∀ {Γ} {e : Γ |- C} → e ≤s (plusC 0C e) 
     +-unit-r : ∀ {Γ} {e : Γ |- C} → (plusC e 0C) ≤s e
     +-unit-r' : ∀ {Γ} {e : Γ |- C} → e ≤s (plusC e 0C) 
     +-assoc : ∀ {Γ} {e1 e2 e3 : Γ |- C} → (plusC e1 (plusC e2 e3)) ≤s (plusC (plusC e1 e2) e3)
-    +-assoc' : ∀ {Γ} {e1 e2 e3 : Γ |- C} → (plusC e1 (plusC e2 e3)) ≤s (plusC (plusC e1 e2) e3)
+    +-assoc' : ∀ {Γ} {e1 e2 e3 : Γ |- C} → (plusC (plusC e1 e2) e3) ≤s (plusC e1 (plusC e2 e3))
     refl-+ : ∀ {Γ} {e0 e1 : Γ |- C} → (plusC e0 e1) ≤s (plusC e1 e0)
     cong-+ : ∀ {Γ} {e0 e1 e0' e1' : Γ |- C} → e0 ≤s e0' → e1 ≤s e1' → (plusC e0 e1) ≤s (plusC e0' e1')    
     cong-lproj : ∀ {Γ τ τ'} {e e' : Γ |- (τ ×c τ')} → e ≤s e' → (l-proj e) ≤s (l-proj e')    
