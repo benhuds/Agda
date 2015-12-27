@@ -324,6 +324,11 @@ module Interpretation where
                   → (Monotone.f (interpE (subst (subst e1 (s-extend (s-extend Θ))) (lem4 v1 v2))) k) == (Monotone.f (interpE (subst e1 (lem4' Θ v1 v2))) k)
   subst-comp2-lem Θ v1 v2 e1 k = {!!}
 
+  cong-with-ren : ∀ {Γ Γ' τ} → (e : Γ' |- τ) → (ρ : rctx Γ Γ') → (k : fst [ Γ ]c)
+                → Monotone.f (interpE (ren e ρ)) k == Monotone.f (interpE e) (Monotone.f (interpR ρ) k)
+                → Preorder-str.≤ (snd [ τ ]t) (Monotone.f (interpE (ren e ρ)) k) (Monotone.f (interpE e) (Monotone.f (interpR ρ) k))
+  cong-with-ren e ρ k p = {!!}
+
   cong-with-subst : ∀ {Γ Γ' τ} → (e : Γ' |- τ) → (Θ : sctx Γ Γ') → (k : fst [ Γ ]c)
                   → Monotone.f (interpE (subst e Θ)) k == Monotone.f (interpE e) (Monotone.f (interpS Θ) k)
                   → Preorder-str.≤ (snd [ τ ]t) (Monotone.f (interpE (subst e Θ)) k) (Monotone.f (interpE e) (Monotone.f (interpS Θ) k))
@@ -337,7 +342,11 @@ module Interpretation where
   cong-with-subst {Γ} {Γ'} {bool} e Θ k () | True | False
   cong-with-subst {Γ} {Γ'} {bool} e Θ k () | False | True
   cong-with-subst {Γ} {Γ'} {bool} e Θ k p | False | False = <>
-  cong-with-subst {τ = C} e Θ k p = {!!}
+  cong-with-subst {τ = C} e Θ k p with (Monotone.f (interpE (subst e Θ)) k) | Monotone.f (interpE e) (Monotone.f (interpS Θ) k)
+  cong-with-subst {Γ} {Γ'} {C} e Θ k p | Z | Z = <>
+  cong-with-subst {Γ} {Γ'} {C} e Θ k () | Z | S n
+  cong-with-subst {Γ} {Γ'} {C} e Θ k () | S m | Z
+  cong-with-subst {Γ} {Γ'} {C} e Θ k Refl | S m | S .m = nat-refl m
   cong-with-subst {τ = rnat} e Θ k p = {!!}
 
   cong : ∀ {Γ τ} → (e e' : Γ |- τ) → (k : fst [ Γ ]c) → Monotone.f (interpE e) k == Monotone.f (interpE e') k
@@ -401,7 +410,7 @@ module Interpretation where
       (Monotone.f (interpE (ren e1 ρ)) k)
       (Monotone.f (interpE e1) (Monotone.f (interpR ρ) k))
       (Monotone.f (interpE (ren e2 ρ)) k)
-        {!!}
+        (cong-with-ren e1 ρ k (ren-eq-lem ρ e1 k))
         (Preorder-str.trans (snd [ τ ]t)
         (Monotone.f (interpE e1) (Monotone.f (interpR ρ) k))
         (Monotone.f (interpE e2) (Monotone.f (interpR ρ) k))
