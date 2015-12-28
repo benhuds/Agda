@@ -264,7 +264,6 @@ module Preorder where
                        h-lem2-lem {Γ , preorder ≤ refl trans} {C , preorder ≤c reflc transc}
                          (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) (x , n) p)))
 
-
   h-lem2 : ∀ {PΓ PC} → (e0 : MONOTONE PΓ PC) → (e1 : MONOTONE (PΓ ×p (PN ×p PC)) PC) → (x y : fst (PΓ ×p PN))
          → (∀ x → Preorder-str.≤ (snd PC) (Monotone.f e0 x) (Monotone.f e1 (x , (0 , Monotone.f e0 x))))
          → Preorder-str.≤ (snd PN) (snd x) (snd y)

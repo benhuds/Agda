@@ -86,6 +86,10 @@ module Interpretation where
     plus-lem (S a) b (S c) d p q = plus-lem a b c d p q
 
   interpE : ∀{Γ τ} → Γ |- τ → el ([ Γ ]c ->p [ τ ]t)
+  fix-x : ∀ {Γ τ} → (e : Γ |- nat) → (e₁ : Γ |- τ) → (e₂ : nat :: τ :: Γ |- τ) → (x y : fst [ Γ ]c) → (x₁ : Preorder-str.≤ (snd [ Γ ]c) x y)
+        → Preorder-str.≤ (snd [ τ ]t)
+          (natrec (Monotone.f (interpE e₁) x) (λ n x₂ → Monotone.f (interpE e₂) ((x , x₂) , n)) (Monotone.f (interpE e) x))
+          (natrec (Monotone.f (interpE e₁) y) (λ n x₂ → Monotone.f (interpE e₂) ((y , x₂) , n)) (Monotone.f (interpE e) x))
   interpE unit = monotone (λ x → <>) (λ x y x₁ → <>)
   interpE 0C = monotone (λ x → Z) (λ x y x₁ → <>)
   interpE 1C = monotone (λ x → S Z) (λ x y x₁ → <>)
@@ -103,7 +107,7 @@ module Interpretation where
                  (natrec (Monotone.f (interpE e₁) x) (λ n x₂ → Monotone.f (interpE e₂) ((x , x₂) , n)) (Monotone.f (interpE e) x))
                  (natrec (Monotone.f (interpE e₁) y) (λ n x₂ → Monotone.f (interpE e₂) ((y , x₂) , n)) (Monotone.f (interpE e) x))
                  (natrec (Monotone.f (interpE e₁) y) (λ n x₂ → Monotone.f (interpE e₂) ((y , x₂) , n)) (Monotone.f (interpE e) y))
-                 {!!}
+                 (fix-x e e₁ e₂ x y x₁)
                  {!!})
   interpE (lam e) = lam' (interpE e)
   interpE (app e e₁) = app' (interpE e) (interpE e₁)
@@ -130,6 +134,12 @@ module Interpretation where
       (Preorder-max-str.max [ τ ]tm (Monotone.f (interpE e1) y) (Monotone.f (interpE e2) y))
         {!!}
         {!!})
+  fix-x {Γ} {τ} e e₁ e₂ x y p with (Monotone.f (interpE e) x)
+  fix-x e e₁ e₂ x y p | Z = Monotone.is-monotone (interpE e₁) x y p
+  fix-x e e₁ e₂ x y p | S m = Monotone.is-monotone (interpE e₂)
+    ((x , natrec (Monotone.f (interpE e₁) x) (λ n x₂ → Monotone.f (interpE e₂) ((x , x₂) , n)) m) , m)
+    ((y , natrec (Monotone.f (interpE e₁) y) (λ n x₂ → Monotone.f (interpE e₂) ((y , x₂) , n)) m) , m)
+      ((p , {!!}) , (♭nat-refl m))
 
   throw-r : ∀ {Γ Γ' τ} → rctx Γ (τ :: Γ') → rctx Γ Γ'
   throw-r d = λ x → d (iS x)
