@@ -359,32 +359,78 @@ module Interpretation where
     ren-comp-lem ρ1 ρ2 (max x e e₁) k = ap2 (Preorder-max-str.max [ x ]tm) (ren-comp-lem ρ1 ρ2 e k) (ren-comp-lem ρ1 ρ2 e₁ k)
 -}
 
-{-
-  rs-lem : ∀ {Γ Γ' Γ'' τ} → (Θ : sctx Γ Γ') → (ρ : rctx Γ'' Γ) → (e : Γ' |- τ) → (k : fst [ Γ'' ]c)
-         → (Monotone.f (interpE (ren (subst e Θ) ρ)) k) == (Monotone.f (interpE (subst e (ρ rs Θ))) k)
-  rs-lem Θ ρ unit k = Refl
-  rs-lem Θ ρ 0C k = Refl
-  rs-lem Θ ρ 1C k = Refl
-  rs-lem Θ ρ (plusC e e₁) k = ap2 _+_ (rs-lem Θ ρ e k) (rs-lem Θ ρ e₁ k)
-  rs-lem Θ ρ (var x) k = Refl
-  rs-lem Θ ρ z k = Refl
-  rs-lem Θ ρ (s e) k = ap S (rs-lem Θ ρ e k)
-  rs-lem Θ ρ (rec e e₁ e₂) k = ap3 natrec (rs-lem Θ ρ e₁ k) (λ= (λ n → λ= (λ x₂ → {!!}))) (rs-lem Θ ρ e k)
-  rs-lem Θ ρ (lam e) k = {!!}
-  rs-lem Θ ρ (app e e₁) k = ap2 (λ x x₁ → Monotone.f x x₁) (rs-lem Θ ρ e k) (rs-lem Θ ρ e₁ k)
-  rs-lem Θ ρ rz k = Refl
-  rs-lem Θ ρ (rsuc e) k = ap S (rs-lem Θ ρ e k)
-  rs-lem Θ ρ (rrec e e₁ e₂ P) k = ap3 natrec (rs-lem Θ ρ e₁ k) (λ= (λ n → λ= (λ x₂ → {!!}))) (rs-lem Θ ρ e k)
-  rs-lem Θ ρ (prod e e₁) k = ap2 (λ x x₁ → x , x₁) (rs-lem Θ ρ e k) (rs-lem Θ ρ e₁ k)
-  rs-lem Θ ρ (l-proj e) k = ap fst (rs-lem Θ ρ e k)
-  rs-lem Θ ρ (r-proj e) k = ap snd (rs-lem Θ ρ e k)
-  rs-lem Θ ρ nil k = Refl
-  rs-lem Θ ρ (e ::c e₁) k = ap2 _::_ (rs-lem Θ ρ e k) (rs-lem Θ ρ e₁ k)
-  rs-lem Θ ρ (listrec e e₁ e₂) k = ap3 lrec (rs-lem Θ ρ e k) (rs-lem Θ ρ e₁ k) (λ= (λ h → λ= (λ t → λ= (λ x₃ → {!!}))))
-  rs-lem Θ ρ true k = Refl
-  rs-lem Θ ρ false k = Refl
-  rs-lem Θ ρ (max τ e e₁) k = ap2 (Preorder-max-str.max [ τ ]tm) (rs-lem Θ ρ e k) (rs-lem Θ ρ e₁ k)
+  extend-rs-once-lemma : ∀ {A B C τ τ'} → (x : τ ∈ τ' :: B) (ρ : rctx C A) (Θ : sctx A B)
+                       → _==_ {_} {τ' :: C |- τ} (_rs_ {τ' :: C} {τ' :: A} {τ' :: B} (r-extend {C} {A} {τ'} ρ)
+                         (s-extend {A} {B} {τ'} Θ) {τ} x) (s-extend {C} {B} {τ'} (_rs_ {C} {A} {B} ρ Θ) {τ} x)
+  extend-rs-once-lemma i0 ρ Θ = Refl
+  extend-rs-once-lemma (iS x) ρ Θ = {!!}
 
+  extend-rs-once : ∀ {A B C τ} → (ρ : rctx C A) (Θ : sctx A B)
+                 → Id {_} {sctx (τ :: C) (τ :: B)} (r-extend ρ rs s-extend Θ) (s-extend (ρ rs Θ))
+  extend-rs-once ρ Θ = λ=i (λ τ → λ= (λ x → extend-rs-once-lemma x ρ Θ))
+
+  extend-rs-twice : ∀ {A B C τ τ'} → (ρ : rctx C A) (Θ : sctx A B)
+                  → Id {_} {sctx (τ :: τ' :: C) (τ :: τ' :: B)} ((r-extend (r-extend ρ)) rs (s-extend (s-extend Θ))) ((s-extend (s-extend (ρ rs Θ))))
+  extend-rs-twice ρ Θ = ap s-extend (extend-rs-once ρ Θ) ∘ extend-rs-once (r-extend ρ) (s-extend Θ)
+
+  extend-rs-thrice : ∀ {A B C τ τ' τ''} → (ρ : rctx C A) (Θ : sctx A B)
+                  → Id {_} {sctx (τ :: τ' :: τ'' :: C) (τ :: τ' :: τ'' :: B)}
+                    ((r-extend (r-extend (r-extend ρ))) rs (s-extend (s-extend (s-extend Θ)))) ((s-extend (s-extend (s-extend (ρ rs Θ)))))
+  extend-rs-thrice ρ Θ = ap s-extend (extend-rs-twice ρ Θ) ∘ extend-rs-once (r-extend (r-extend ρ)) (s-extend (s-extend Θ))
+
+  postulate
+    rs-lem' : ∀ {Γ Γ' Γ'' τ τ'} → (Θ : sctx Γ Γ') → (ρ : rctx Γ'' Γ) → (e : τ' :: Γ' |- τ) → (k : fst [ Γ'' ]c)
+            → (λ p₁ → Monotone.f (interpE (ren (subst e (s-extend Θ)) (r-extend ρ))) (k , p₁)) ==
+              (λ p₁ → Monotone.f (interpE (subst e (s-extend (λ {τ} x → ren (Θ x) ρ)))) (k , p₁))
+            → monotone (λ p₁ → Monotone.f (interpE (ren (subst e (s-extend Θ)) (r-extend ρ))) (k , p₁))
+              (λ a b c → Monotone.is-monotone (interpE (ren (subst e (s-extend Θ)) (r-extend ρ))) (k , a) (k , b)
+                (Preorder-str.refl (snd [ Γ'' ]c) k , c)) ==
+              monotone (λ p₁ → Monotone.f (interpE (subst e (s-extend (λ {τ} x → ren (Θ x) ρ)))) (k , p₁))
+              (λ a b c → Monotone.is-monotone (interpE (subst e (s-extend (λ {τ} x → ren (Θ x) ρ)))) (k , a) (k , b)
+                (Preorder-str.refl (snd [ Γ'' ]c) k , c))
+
+  mutual
+    rs-lem-abs : ∀ {Γ Γ' Γ'' τ τ'} → (Θ : sctx Γ Γ') → (ρ : rctx Γ'' Γ) → (e : τ' :: Γ' |- τ) → (k : fst [ Γ'' ]c) → (p₁ : fst [ τ' ]t)
+               → Monotone.f (interpE (ren (subst e (s-extend Θ)) (r-extend ρ))) (k , p₁) ==
+                 Monotone.f (interpE (subst e (s-extend (λ x → ren (Θ x) ρ)))) (k , p₁)
+    rs-lem-abs Θ ρ e k p₁ = Monotone.f (interpE (ren (subst e (s-extend Θ)) (r-extend ρ))) (k , p₁) =⟨ rs-lem (s-extend Θ) (r-extend ρ) e (k , p₁) ⟩
+                            Monotone.f (interpE (subst e (r-extend ρ rs s-extend Θ))) (k , p₁) =⟨ ap2 Monotone.f (ap interpE (ap (subst e) (extend-rs-once ρ Θ))) Refl ⟩
+                            (Monotone.f (interpE (subst e (s-extend (λ x → ren (Θ x) ρ)))) (k , p₁) ∎)
+
+    rs-lem-rec : ∀ {Γ Γ' Γ'' τ} → (Θ : sctx Γ Γ') → (ρ : rctx Γ'' Γ) → (e₂ : nat :: τ :: Γ' |- τ) → (k : fst [ Γ'' ]c) → (n : Nat) → (x₂ : fst [ τ ]t)
+               → Monotone.f (interpE (ren (subst e₂ (s-extend (s-extend Θ))) (r-extend (r-extend ρ)))) ((k , x₂) , n) ==
+                 Monotone.f (interpE (subst e₂ (s-extend (s-extend (ρ rs Θ))))) ((k , x₂) , n)
+    rs-lem-rec Θ ρ e₂ k n x₂ = Monotone.f (interpE (ren (subst e₂ (s-extend (s-extend Θ))) (r-extend (r-extend ρ)))) ((k , x₂) , n)
+                                 =⟨ rs-lem (s-extend (s-extend Θ)) (r-extend (r-extend ρ)) e₂ ((k , x₂) , n) ⟩
+                               Monotone.f (interpE (subst e₂ ((r-extend (r-extend ρ)) rs (s-extend (s-extend Θ))))) ((k , x₂) , n)
+                                 =⟨ ap2 Monotone.f (ap interpE (ap (subst e₂) (extend-rs-twice ρ Θ))) Refl ⟩
+                               (Monotone.f (interpE (subst e₂ (s-extend (s-extend (ρ rs Θ))))) ((k , x₂) , n) ∎)
+
+    rs-lem : ∀ {Γ Γ' Γ'' τ} → (Θ : sctx Γ Γ') → (ρ : rctx Γ'' Γ) → (e : Γ' |- τ) → (k : fst [ Γ'' ]c)
+           → (Monotone.f (interpE (ren (subst e Θ) ρ)) k) == (Monotone.f (interpE (subst e (ρ rs Θ))) k)
+    rs-lem Θ ρ unit k = Refl
+    rs-lem Θ ρ 0C k = Refl
+    rs-lem Θ ρ 1C k = Refl
+    rs-lem Θ ρ (plusC e e₁) k = ap2 _+_ (rs-lem Θ ρ e k) (rs-lem Θ ρ e₁ k)
+    rs-lem Θ ρ (var x) k = Refl
+    rs-lem Θ ρ z k = Refl
+    rs-lem Θ ρ (s e) k = ap S (rs-lem Θ ρ e k)
+    rs-lem Θ ρ (rec e e₁ e₂) k = ap3 natrec (rs-lem Θ ρ e₁ k) (λ= (λ n → λ= (λ x₂ → rs-lem-rec Θ ρ e₂ k n x₂))) (rs-lem Θ ρ e k)
+    rs-lem Θ ρ (lam e) k = rs-lem' Θ ρ e k (λ= (λ p₁ → rs-lem-abs Θ ρ e k p₁))
+    rs-lem Θ ρ (app e e₁) k = ap2 (λ x x₁ → Monotone.f x x₁) (rs-lem Θ ρ e k) (rs-lem Θ ρ e₁ k)
+    rs-lem Θ ρ rz k = Refl
+    rs-lem Θ ρ (rsuc e) k = ap S (rs-lem Θ ρ e k)
+    rs-lem Θ ρ (rrec e e₁ e₂ P) k = ap3 natrec (rs-lem Θ ρ e₁ k) (λ= (λ n → λ= (λ x₂ → {!!}))) (rs-lem Θ ρ e k)
+    rs-lem Θ ρ (prod e e₁) k = ap2 (λ x x₁ → x , x₁) (rs-lem Θ ρ e k) (rs-lem Θ ρ e₁ k)
+    rs-lem Θ ρ (l-proj e) k = ap fst (rs-lem Θ ρ e k)
+    rs-lem Θ ρ (r-proj e) k = ap snd (rs-lem Θ ρ e k)
+    rs-lem Θ ρ nil k = Refl
+    rs-lem Θ ρ (e ::c e₁) k = ap2 _::_ (rs-lem Θ ρ e k) (rs-lem Θ ρ e₁ k)
+    rs-lem Θ ρ (listrec e e₁ e₂) k = ap3 lrec (rs-lem Θ ρ e k) (rs-lem Θ ρ e₁ k) (λ= (λ h → λ= (λ t → λ= (λ x₃ → {!!}))))
+    rs-lem Θ ρ true k = Refl
+    rs-lem Θ ρ false k = Refl
+    rs-lem Θ ρ (max τ e e₁) k = ap2 (Preorder-max-str.max [ τ ]tm) (rs-lem Θ ρ e k) (rs-lem Θ ρ e₁ k)
+{-
   sr-lem : ∀ {Γ Γ' Γ'' τ} → (Θ : sctx Γ Γ') → (ρ : rctx Γ' Γ'') → (e : Γ'' |- τ) → (k : fst [ Γ ]c)
          → (Monotone.f (interpE (subst (ren e ρ) Θ)) k) == (Monotone.f (interpE (subst e (Θ sr ρ))) k)
   sr-lem Θ ρ unit k = Refl
