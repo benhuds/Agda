@@ -118,7 +118,18 @@ module Interpretation where
   interpE (app e e₁) = app' (interpE e) (interpE e₁)
   interpE rz = z'
   interpE (rsuc e) = suc' (interpE e)
-  interpE (rrec e e₁ e₂ P) = comp (pair' id (interpE e)) (rec' (interpE e₁) (comp {!!} {!!}) (λ x → {!!}))
+-- comp' : MONOTONE PA PB → MONOTONE PB PC → MONOTONE PA PC
+-- rec' is MONOTONE (PΓ ×p PN) PC
+-- want (e0 : MONOTONE PΓ PC) → (e1 : MONOTONE (PΓ ×p (PN ×p PC)) PC)
+-- have interpE e1 == PΓ PC
+-- have interpE e2 == PΓ (PN -> PC -> PC)
+-- turn PΓ (PN -> PC -> PC) into (PΓ ×p (PN ×p PC)) PC)
+-- comp → PΓ (PΓ × PN) → (PΓ × PN) PC → PΓ PC
+-- (e2 : MONOTONE (PΓ ×p (PN ×p PC)) PC)
+-- have : .Γ |- (rnat ->c (.τ ->c .τ))
+{-MONOTONE ((fst [ .Γ ]c , snd [ .Γ ]c) ×p (PN ×p (fst [ .τ ]t , snd [ .τ ]t)))
+           (fst [ .τ ]t , snd [ .τ ]t)-}
+  interpE (rrec e e₁ e₂ P) = comp (pair' id (interpE e)) (rec' (interpE e₁) (comp {!!} (app' (app' (interpE e₂) z') (interpE e₁))) (λ x → sound e₁ (app (app e₂ rz) e₁) P x))
   interpE (prod e e₁) = pair' (interpE e) (interpE e₁)
   interpE (l-proj e) = fst' (interpE e)
   interpE (r-proj e) = snd' (interpE e)
@@ -166,13 +177,14 @@ module Interpretation where
                              (λ x y x₁ → Monotone.is-monotone (interpS (throw-s Θ)) x y x₁ , (Monotone.is-monotone (interpE (Θ i0)) x y x₁))
 {-
   postulate
-    ren-eq-lem' : ∀ {Γ Γ' τ1 τ2} → (ρ : rctx Γ Γ') → (e : τ1 :: Γ' |- τ2) → (k : fst [ Γ ]c) → ((λ p₁ → Monotone.f (interpE (ren e (r-extend ρ))) (k , p₁)) == (λ p₁ → Monotone.f (interpE e) (Monotone.f (interpR ρ) k , p₁))) 
-     → monotone (λ p₁ → Monotone.f (interpE (ren e (r-extend ρ))) (k , p₁))
-       (λ a b c → Monotone.is-monotone (interpE (ren e (r-extend ρ))) (k , a) (k , b)
-         (Preorder-str.refl (snd [ Γ ]c) k , c)) ==
-       monotone (λ p₁ → Monotone.f (interpE e) (Monotone.f (interpR ρ) k , p₁))
-       (λ a b c → Monotone.is-monotone (interpE e) (Monotone.f (interpR ρ) k , a) (Monotone.f (interpR ρ) k , b)
-         (Preorder-str.refl (snd [ Γ' ]c) (Monotone.f (interpR ρ) k) , c))
+    ren-eq-lem' : ∀ {Γ Γ' τ1 τ2} → (ρ : rctx Γ Γ') → (e : τ1 :: Γ' |- τ2) → (k : fst [ Γ ]c)
+                → ((λ p₁ → Monotone.f (interpE (ren e (r-extend ρ))) (k , p₁)) == (λ p₁ → Monotone.f (interpE e) (Monotone.f (interpR ρ) k , p₁))) 
+                → monotone (λ p₁ → Monotone.f (interpE (ren e (r-extend ρ))) (k , p₁))
+                  (λ a b c → Monotone.is-monotone (interpE (ren e (r-extend ρ))) (k , a) (k , b)
+                    (Preorder-str.refl (snd [ Γ ]c) k , c)) ==
+                  monotone (λ p₁ → Monotone.f (interpE e) (Monotone.f (interpR ρ) k , p₁))
+                  (λ a b c → Monotone.is-monotone (interpE e) (Monotone.f (interpR ρ) k , a) (Monotone.f (interpR ρ) k , b)
+                    (Preorder-str.refl (snd [ Γ' ]c) (Monotone.f (interpR ρ) k) , c))
 
   mutual
     ren-eq-abs : ∀ {Γ Γ' τ1 τ2} → (ρ : rctx Γ Γ') → (e : τ1 :: Γ' |- τ2) → (p₁ : fst [ τ1 ]t) → (k : fst [ Γ ]c)
@@ -357,7 +369,7 @@ module Interpretation where
     ren-comp-lem ρ1 ρ2 true k = Refl
     ren-comp-lem ρ1 ρ2 false k = Refl
     ren-comp-lem ρ1 ρ2 (max x e e₁) k = ap2 (Preorder-max-str.max [ x ]tm) (ren-comp-lem ρ1 ρ2 e k) (ren-comp-lem ρ1 ρ2 e₁ k)
-
+-}
   extend-rs-once-lemma : ∀ {A B C τ τ'} → (x : τ ∈ τ' :: B) (ρ : rctx C A) (Θ : sctx A B)
                        → _==_ {_} {τ' :: C |- τ} (_rs_ {τ' :: C} {τ' :: A} {τ' :: B} (r-extend {C} {A} {τ'} ρ)
                          (s-extend {A} {B} {τ'} Θ) {τ} x) (s-extend {C} {B} {τ'} (_rs_ {C} {A} {B} ρ Θ) {τ} x)
@@ -439,7 +451,7 @@ module Interpretation where
     rs-lem Θ ρ true k = Refl
     rs-lem Θ ρ false k = Refl
     rs-lem Θ ρ (max τ e e₁) k = ap2 (Preorder-max-str.max [ τ ]tm) (rs-lem Θ ρ e k) (rs-lem Θ ρ e₁ k)
-
+{-
   extend-sr-once-lemma : ∀ {A B C τ τ'} → (Θ : sctx A B) (ρ : rctx B C) (x : τ ∈ τ' :: C)
                        → _==_ {_} {τ' :: A |- τ} (s-extend (_sr_ Θ ρ) x) (_sr_ (s-extend Θ) (r-extend ρ) x)
   extend-sr-once-lemma Θ ρ i0 = Refl
