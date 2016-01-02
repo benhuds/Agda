@@ -303,18 +303,19 @@ module Preorder where
                   (h-lem2 {Γ , preorder ≤ refl trans} {C , preorder ≤c reflc transc}
                      (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) (fst y , snd x) (fst y , snd y) (λ x₂ → p x₂) (snd x₁)))
 
-{-
-  plus' : ∀ {PΓ} → (e0 : MONOTONE PΓ PN) → (e1 : MONOTONE PΓ PN)
-        → MONOTONE PΓ PN
-  plus' {Γ , preorder ≤ refl trans} (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) =
-        monotone (λ x → e0 x + e1 x)
-          (λ x y x₁ → Preorder-str.trans (snd PN)
-                      (e0 x + e1 x)
-                      (e0 y + e1 x)
-                      (e0 y + e1 y)
-                        {!!}
-                        {!!})
--}
+  ♭h-lem : ∀ {PΓ PC} → (e0 : MONOTONE PΓ PC) → (e1 : MONOTONE (PΓ ×p ((Nat , ♭nat-p) ×p PC)) PC) → (x y : fst (PΓ ×p (Nat , ♭nat-p)))
+         → Preorder-str.≤ (snd PΓ) (fst x) (fst y)
+         → Preorder-str.≤ (snd PC)
+             (natrec (Monotone.f e0 (fst x)) (λ n x₂ → Monotone.f e1 (fst x , n , x₂)) (snd x))
+             (natrec (Monotone.f e0 (fst y)) (λ n x₂ → Monotone.f e1 (fst y , n , x₂)) (snd x))
+  ♭h-lem (monotone e0 e0-is-monotone) e1 (x , Z) (y , m) p = e0-is-monotone x y p
+  ♭h-lem {fst , preorder ≤ refl trans} {fst₁ , preorder ≤₁ refl₁ trans₁} (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) (x , S n) (y , m) p =
+    e1-is-monotone (x , n , natrec (e0 x) (λ n₁ x₂ → e1 (x , n₁ , x₂)) n)
+                   (y , n , natrec (e0 y) (λ n₁ x₂ → e1 (y , n₁ , x₂)) n)
+                     (p , Preorder-str.refl ♭nat-p n ,
+                     ♭h-lem {fst , preorder ≤ refl trans} {fst₁ , preorder ≤₁ refl₁ trans₁}
+                     (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) (x , n) (y , m) p)
+
 --- extend Preorders so you can impose max on them if type has maximums
 
   record Preorder-max-str {A : Set} (PA : Preorder-str A) : Set where

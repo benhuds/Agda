@@ -125,11 +125,14 @@ module Interpretation where
 -- have interpE e2 == PΓ (PN -> PC -> PC)
 -- turn PΓ (PN -> PC -> PC) into (PΓ ×p (PN ×p PC)) PC)
 -- comp → PΓ (PΓ × PN) → (PΓ × PN) PC → PΓ PC
--- (e2 : MONOTONE (PΓ ×p (PN ×p PC)) PC)
+-- want (e2 : MONOTONE (PΓ ×p (PN ×p PC)) PC)
+-- comp → PΓ 
 -- have : .Γ |- (rnat ->c (.τ ->c .τ))
 {-MONOTONE ((fst [ .Γ ]c , snd [ .Γ ]c) ×p (PN ×p (fst [ .τ ]t , snd [ .τ ]t)))
            (fst [ .τ ]t , snd [ .τ ]t)-}
-  interpE (rrec e e₁ e₂ P) = comp (pair' id (interpE e)) (rec' (interpE e₁) (comp {!!} (app' (app' (interpE e₂) z') (interpE e₁))) (λ x → sound e₁ (app (app e₂ rz) e₁) P x))
+--(app' (app' (interpE e₂) z') (interpE e₁)) is MONOTONE PΓ PC
+  interpE (rrec e e₁ e₂ P) = comp (pair' id (interpE e)) (rec' (interpE e₁) {!!} (λ x → sound e₁ (app (app e₂ rz) e₁) P x))
+--(comp {!!} (app' (app' (interpE e₂) z') (interpE e₁)))
   interpE (prod e e₁) = pair' (interpE e) (interpE e₁)
   interpE (l-proj e) = fst' (interpE e)
   interpE (r-proj e) = snd' (interpE e)
