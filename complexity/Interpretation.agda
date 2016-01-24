@@ -136,10 +136,8 @@ module Interpretation where
   interpE (prod e e₁) = pair' (interpE e) (interpE e₁)
   interpE (l-proj e) = fst' (interpE e)
   interpE (r-proj e) = snd' (interpE e)
-  interpE nil = monotone (λ x → []) (λ x y x₁ → <>)
-  interpE (e ::c e₁) =
-    monotone (λ x → Monotone.f (interpE e) x :: Monotone.f (interpE e₁) x)
-             (λ x y x₁ → (Monotone.is-monotone (interpE e) x y x₁) , Monotone.is-monotone (interpE e₁) x y x₁)
+  interpE nil = nil'
+  interpE (e ::c e₁) = cons' (interpE e) (interpE e₁)
   interpE (listrec e e₁ e₂) =
     monotone (λ x → lrec (Monotone.f (interpE e) x) (Monotone.f (interpE e₁) x) (λ h t x₃ → Monotone.f (interpE e₂) (((x , x₃) , t) , h)))
              (λ x y x₁ → {!!})
@@ -579,7 +577,7 @@ module Interpretation where
     ss-lem Θ1 Θ2 (var x) k = Refl
     ss-lem Θ1 Θ2 z k = Refl
     ss-lem Θ1 Θ2 (s e) k = ap S (ss-lem Θ1 Θ2 e k)
-    ss-lem Θ1 Θ2 (rec e e₁ e₂) k = ap3 natrec (ss-lem Θ1 Θ2 e₁ k) (λ= (λ n → λ= (λ x₂ → {!!}))) (ss-lem Θ1 Θ2 e k)
+    ss-lem Θ1 Θ2 (rec e e₁ e₂) k = ap3 natrec (ss-lem Θ1 Θ2 e₁ k) (λ= (λ n → λ= (λ x₂ → {!ss-lem (s-extend (s-extend Θ1)) (s-extend (s-extend Θ2)) e₂ ((k , x₂) , n)!}))) (ss-lem Θ1 Θ2 e k)
     ss-lem Θ1 Θ2 (lam e) k = ss-lem' Θ1 Θ2 e k (λ= (λ p₁ → ss-abs Θ1 Θ2 e k p₁))
     ss-lem Θ1 Θ2 (app e e₁) k = ap2 (λ x x₁ → Monotone.f x x₁) (ss-lem Θ1 Θ2 e k) (ss-lem Θ1 Θ2 e₁ k)
     ss-lem Θ1 Θ2 rz k = Refl

@@ -220,9 +220,57 @@ module Preorder where
   suc' : ∀ {PΓ} → MONOTONE PΓ PN → MONOTONE PΓ PN
   suc' {Γ , preorder ≤ refl trans} (monotone f f-is-monotone) = monotone (λ x → S (f x)) (λ x y x₁ → f-is-monotone x y x₁)
 
+  nil' : ∀ {PΓ PA} → MONOTONE PΓ (PL PA)
+  nil' = monotone (λ x → []) (λ x y x₁ → <>)
+
+  cons' : ∀ {PΓ PA} → MONOTONE PΓ PA → MONOTONE PΓ (PL PA) → MONOTONE PΓ (PL PA)
+  cons' (monotone f is-monotone) (monotone f₁ is-monotone₁) = monotone (λ x → f x :: f₁ x) (λ x y x₁ → (is-monotone x y x₁) , (is-monotone₁ x y x₁))
+
   lrec : ∀ {A C : Set} → (l : List A) → (nil : C) → (cons : A → List A → C → C) → C
   lrec [] nil cons = nil
   lrec (x :: l) nil cons = cons x l (lrec l nil cons)
+
+  listrec-fix-args : ∀ {PΓ PA PC} → (enil : MONOTONE PΓ PC) → (econs : MONOTONE (PΓ ×p (PA ×p (PL PA ×p PC))) PC)
+                   → (x y : fst (PΓ ×p PL PA)) → (Preorder-str.≤ (snd (PΓ ×p PL PA)) x y)
+                   → Preorder-str.≤ (snd PC)
+                       (lrec (snd x) (Monotone.f enil (fst x)) (λ x₁ x₂ x₃ → Monotone.f econs (fst x , x₁ , x₂ , x₃)))
+                       (lrec (snd y) (Monotone.f enil (fst x)) (λ x₁ x₂ x₃ → Monotone.f econs (fst x , x₁ , x₂ , x₃)))
+  listrec-fix-args {_} {_} {fst₂ , preorder ≤₂ refl₂ trans₂} enil _ (x , []) (y , []) p = refl₂ (Monotone.f enil x)
+  listrec-fix-args _ _ (_ , []) (_ , x₁ :: ys) (_ , ())
+  listrec-fix-args _ _ (_ , x₁ :: xs) (_ , []) (_ , ())
+  listrec-fix-args {fst , preorder ≤ refl trans} {fst₁ , preorder ≤₁ refl₁ trans₁} {fst₂ , preorder ≤₂ refl₂ trans₂}
+    enil (monotone f is-monotone) (x , x₁ :: xs) (y , x₂ :: ys) (x≤y , (hlt , tlt)) =
+      is-monotone (x , x₁ , xs , lrec xs (Monotone.f enil x) (λ x₃ x₄ x₅ → f (x , x₃ , x₄ , x₅)))
+                  (x , x₂ , ys , lrec ys (Monotone.f enil x) (λ x₃ x₄ x₅ → f (x , x₃ , x₄ , x₅)))
+                    ((refl x) , (hlt , (tlt , listrec-fix-args enil (monotone f is-monotone) (x , xs) (y , ys) (x≤y , tlt))))
+
+  listrec-fix-el : ∀ {PΓ PA PC} → (enil : MONOTONE PΓ PC) → (econs : MONOTONE (PΓ ×p (PA ×p (PL PA ×p PC))) PC)
+                 → (x y : fst (PΓ ×p PL PA)) → (Preorder-str.≤ (snd (PΓ ×p PL PA)) x y)
+                 → Preorder-str.≤ (snd PC)
+                     (lrec (snd y) (Monotone.f enil (fst x)) (λ x₁ x₂ x₃ → Monotone.f econs (fst x , x₁ , x₂ , x₃)))
+                     (lrec (snd y) (Monotone.f enil (fst y)) (λ x₁ x₂ x₃ → Monotone.f econs (fst y , x₁ , x₂ , x₃)))
+  listrec-fix-el (monotone f is-monotone) (monotone f₁ is-monotone₁) (fst₃ , []) (fst₄ , []) (x≤y , <>) = is-monotone fst₃ fst₄ x≤y
+  listrec-fix-el _ _ (_ , []) (_ , x₁ :: ys) (_ , ())
+  listrec-fix-el _ _ (_ , x₁ :: xs) (_ , []) (_ , ())
+  listrec-fix-el {fst , preorder ≤ refl trans} {fst₁ , preorder ≤₁ refl₁ trans₁} {fst₂ , preorder ≤₂ refl₂ trans₂}
+    (monotone f is-monotone) (monotone f₁ is-monotone₁) (fst₃ , x :: xs) (fst₄ , y :: ys) (x≤y , hlt , tlt) =
+      is-monotone₁ (fst₃ , y , ys , lrec ys (f fst₃) (λ x₁ x₂ x₃ → f₁ (fst₃ , x₁ , x₂ , x₃)))
+                   (fst₄ , y , ys , lrec ys (f fst₄) (λ x₁ x₂ x₃ → f₁ (fst₄ , x₁ , x₂ , x₃)))
+                     (x≤y , ((refl₁ y) , (l-refl (preorder ≤₁ refl₁ trans₁) ys ,
+                     listrec-fix-el {fst , preorder ≤ refl trans} {fst₁ , preorder ≤₁ refl₁ trans₁} {fst₂ , preorder ≤₂ refl₂ trans₂}
+                       (monotone f is-monotone) (monotone f₁ is-monotone₁) (fst₃ , xs) (fst₄ , ys) (x≤y , tlt))))
+
+  lrec' : ∀ {PΓ PA PC} → (enil : MONOTONE PΓ PC) → (econs : MONOTONE (PΓ ×p (PA ×p (PL PA ×p PC))) PC) → MONOTONE (PΓ ×p PL PA) PC
+  lrec' {Γ , preorder ≤Γ reflΓ transΓ} {A , preorder ≤A reflA transA} {C , preorder ≤C reflC transC} (monotone enil is-monotone) (monotone econs is-monotone₁) =
+          monotone (λ x → lrec (snd x) (enil (fst x)) (λ x₁ x₂ x₃ → econs ((fst x) , (x₁ , (x₂ , x₃)))))
+          (λ x y x₁ → transC
+            (lrec (snd x) (enil (fst x)) (λ x₂ x₃ x₄ → econs (fst x , x₂ , x₃ , x₄)))
+            (lrec (snd y) (enil (fst x)) (λ x₂ x₃ x₄ → econs (fst x , x₂ , x₃ , x₄)))
+            (lrec (snd y) (enil (fst y)) (λ x₂ x₃ x₄ → econs (fst y , x₂ , x₃ , x₄)))
+              (listrec-fix-args {Γ , preorder ≤Γ reflΓ transΓ} {A , preorder ≤A reflA transA} {C , preorder ≤C reflC transC}
+                (monotone enil is-monotone) (monotone econs is-monotone₁) x y x₁)
+              (listrec-fix-el {Γ , preorder ≤Γ reflΓ transΓ} {A , preorder ≤A reflA transA} {C , preorder ≤C reflC transC}
+                (monotone enil is-monotone) (monotone econs is-monotone₁) x y x₁))
 
   natrec : ∀{C : Set} → (base : C) → (step : Nat → C → C) → (n : Nat) → C
   natrec base step Z = base
