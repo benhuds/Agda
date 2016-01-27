@@ -462,3 +462,10 @@ module Preorder where
 
   --???
   PREORDER-MAX = (Σ (λ (A : Set) → (PA : Preorder-str A) → Preorder-max-str PA))
+
+{-i think i may need one of these lemmas?
+  pre-ap2 : {A B C : Set} {PA : Preorder-str A} {PB : Preorder-str B} {PC : Preorder-str C}
+          → {x y : A} {x' y' : B}
+          → (f : A → B → C) → Preorder-str.≤ PA x y → Preorder-str.≤ PB x' y' → Preorder-str.≤ PC (f x x') (f y y')
+  pre-ap2 {PC = PC} {x = x} {y = y} {x' = x'} {y' = y'} f p1 p2 = Preorder-str.trans PC (f x x') (f x y') (f y y') (Monotone.is-monotone {!!} x' y' p1) {!!}
+-}
