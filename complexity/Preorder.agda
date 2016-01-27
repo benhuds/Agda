@@ -469,3 +469,57 @@ module Preorder where
           → (f : A → B → C) → Preorder-str.≤ PA x y → Preorder-str.≤ PB x' y' → Preorder-str.≤ PC (f x x') (f y y')
   pre-ap2 {PC = PC} {x = x} {y = y} {x' = x'} {y' = y'} f p1 p2 = Preorder-str.trans PC (f x x') (f x y') (f y y') (Monotone.is-monotone {!!} x' y' p1) {!!}
 -}
+
+  -- stuff I need for monotonicity of plus
+
+  nat-lemma3 : ∀ (x : Nat) → ≤nat x (S x)
+  nat-lemma3 Z = <>
+  nat-lemma3 (S x) = nat-lemma3 x
+
+  plus-lem' : ∀ (a b c : Nat) → ≤nat a b → ≤nat a (b + c)
+  plus-lem' Z Z Z <> = <>
+  plus-lem' Z Z (S c) <> = <>
+  plus-lem' Z (S b) c x = <>
+  plus-lem' (S a) Z c ()
+  plus-lem' (S a) (S b) c x = plus-lem' a b c x
+
+  plus-rh-S : (n m : Nat) → ≤nat (S (n + m)) (n + S m)
+  plus-rh-S Z m = nat-refl m
+  plus-rh-S (S n) m = plus-rh-S n m
+
+  +-unit : ∀ (a : Nat) → ≤nat (a + 0) a
+  +-unit Z = <>
+  +-unit (S a) = +-unit a
+
+  +-comm : ∀ (a b : Nat) → ≤nat (a + b) (b + a)
+  +-comm Z b = plus-lem' b b Z (nat-refl b)
+  +-comm (S a) b = nat-trans (S (a + b)) (S (b + a)) (b + S a) (+-comm a b) (plus-rh-S b a)
+
+  plus-assoc : ∀ (a b c : Nat) → ≤nat (a + (b + c)) ((a + b) + c)
+  plus-assoc Z b c = nat-refl (b + c)
+  plus-assoc (S a) b c = plus-assoc a b c
+
+  plus-assoc' : ∀ (a b c : Nat) → ≤nat ((a + b) + c) (a + (b + c))
+  plus-assoc' Z b c = nat-refl (b + c)
+  plus-assoc' (S a) b c = plus-assoc' a b c
+
+  mutual
+    plus-lem'' : ∀ (a b : Nat) → ≤nat a (b + a)
+    plus-lem'' a Z = nat-refl a
+    plus-lem'' Z (S b) = <>
+    plus-lem'' (S a) (S b) = nat-trans a (b + a) (b + S a) (plus-lem'' a b) (plus-lem b a b (S a) (nat-refl b) (nat-lemma3 a))
+
+    plus-lem : ∀ (a b c d : Nat) → ≤nat a c → ≤nat b d → ≤nat (a + b) (c + d)
+    plus-lem Z b Z d p q = q
+    plus-lem Z Z (S c) Z p q = <>
+    plus-lem Z (S b) (S c) Z p ()
+    plus-lem Z Z (S c) (S d) p q = <>
+    plus-lem Z (S b) (S c) (S d) p q = nat-trans b d (c + S d) q (nat-trans d (S d) (c + S d) (nat-lemma3 d) (plus-lem'' (S d) c))
+    plus-lem (S a) b Z d () q
+    plus-lem (S a) b (S c) d p q = plus-lem a b c d p q
+
+  el : PREORDER → Set
+  el = fst
+
+  PREORDER≤ : (PA : PREORDER) → el PA → el PA → Set
+  PREORDER≤ PA = Preorder-str.≤ (snd PA)
