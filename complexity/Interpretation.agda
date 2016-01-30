@@ -49,7 +49,7 @@ module Interpretation where
   interpE (plusC e e₁) =
     monotone (λ x → Monotone.f (interpE e) x + Monotone.f (interpE e₁) x)
              (λ x y x₁ → plus-lem (Monotone.f (interpE e) x) (Monotone.f (interpE e₁) x) (Monotone.f (interpE e) y) (Monotone.f (interpE e₁) y)
-               (Monotone.is-monotone (interpE e) x y x₁) {!!}) --(Monotone.is-monotone (interpE e) x y x₁) (Monotone.is-monotone (interpE e₁) x y x₁))
+               (Monotone.is-monotone (interpE e) x y x₁) (Monotone.is-monotone (interpE e₁) x y x₁))
   interpE (var x) = lookup x
   interpE z = monotone (λ x → Z) (λ x y x₁ → <>)
   interpE (s e) = monotone (λ x → S (Monotone.f (interpE e) x)) (λ x y x₁ → Monotone.is-monotone (interpE e) x y x₁)
