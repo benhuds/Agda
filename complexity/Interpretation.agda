@@ -35,14 +35,6 @@ module Interpretation where
 
   interpE : ∀{Γ τ} → Γ |- τ → el ([ Γ ]c ->p [ τ ]t)
   sound : ∀ {Γ τ} (e e' : Γ |- τ) → e ≤s e' → PREORDER≤ ([ Γ ]c ->p [ τ ]t) (interpE e) (interpE e')
-  fix-x : ∀ {Γ τ} → (e : Γ |- nat) → (e₁ : Γ |- τ) → (e₂ : nat :: τ :: Γ |- τ) → (x y : fst [ Γ ]c) → (x₁ : Preorder-str.≤ (snd [ Γ ]c) x y)
-        → Preorder-str.≤ (snd [ τ ]t)
-          (natrec (Monotone.f (interpE e₁) x) (λ n x₂ → Monotone.f (interpE e₂) ((x , x₂) , n)) (Monotone.f (interpE e) x))
-          (natrec (Monotone.f (interpE e₁) y) (λ n x₂ → Monotone.f (interpE e₂) ((y , x₂) , n)) (Monotone.f (interpE e) x))
-  fix-branch : ∀ {Γ τ} → (e : Γ |- nat) → (e₁ : Γ |- τ) → (e₂ : nat :: τ :: Γ |- τ) → (x y : fst [ Γ ]c) → (x₁ : Preorder-str.≤ (snd [ Γ ]c) x y)
-             → Preorder-str.≤ (snd [ τ ]t)
-               (natrec (Monotone.f (interpE e₁) y) (λ n x₂ → Monotone.f (interpE e₂) ((y , x₂) , n)) (Monotone.f (interpE e) x))
-               (natrec (Monotone.f (interpE e₁) y) (λ n x₂ → Monotone.f (interpE e₂) ((y , x₂) , n)) (Monotone.f (interpE e) y))
   interpE unit = monotone (λ x → <>) (λ x y x₁ → <>)
   interpE 0C = monotone (λ x → Z) (λ x y x₁ → <>)
   interpE 1C = monotone (λ x → S Z) (λ x y x₁ → <>)
@@ -53,15 +45,7 @@ module Interpretation where
   interpE (var x) = lookup x
   interpE z = monotone (λ x → Z) (λ x y x₁ → <>)
   interpE (s e) = monotone (λ x → S (Monotone.f (interpE e) x)) (λ x y x₁ → Monotone.is-monotone (interpE e) x y x₁)
-  interpE {Γ} {τ} (rec e e₁ e₂) =
-    monotone (λ x → natrec (Monotone.f (interpE e₁) x) (λ n x₂ → Monotone.f (interpE e₂) ((x , x₂) , n)) (Monotone.f (interpE e) x))
-             (λ x y x₁ →
-               Preorder-str.trans (snd [ τ ]t)
-                 (natrec (Monotone.f (interpE e₁) x) (λ n x₂ → Monotone.f (interpE e₂) ((x , x₂) , n)) (Monotone.f (interpE e) x))
-                 (natrec (Monotone.f (interpE e₁) y) (λ n x₂ → Monotone.f (interpE e₂) ((y , x₂) , n)) (Monotone.f (interpE e) x))
-                 (natrec (Monotone.f (interpE e₁) y) (λ n x₂ → Monotone.f (interpE e₂) ((y , x₂) , n)) (Monotone.f (interpE e) y))
-                 (fix-x e e₁ e₂ x y x₁)
-                 (fix-branch e e₁ e₂ x y x₁))
+  interpE {Γ} {τ} (rec e e₁ e₂) = comp (pair' id (interpE e)) (♭rec' (interpE e₁) {!interpE e₂!})
   interpE (lam e) = lam' (interpE e)
   interpE (app e e₁) = app' (interpE e) (interpE e₁)
   interpE rz = z'
@@ -99,13 +83,6 @@ module Interpretation where
                 (Preorder-str.trans (snd [ τ' ]t) (Monotone.f (interpE e2) x) (Monotone.f (interpE e2) y)
                 (Preorder-max-str.max [ τ ]tm (Monotone.f (interpE e1) y) (Monotone.f (interpE e2) y))
                   (Monotone.is-monotone (interpE e2) x y x₁) (Preorder-max-str.max-r [ τ ]tm (Monotone.f (interpE e1) y) (Monotone.f (interpE e2) y))))
-  fix-x {Γ} {τ} e e₁ e₂ x y p with (Monotone.f (interpE e) x)
-  fix-x e e₁ e₂ x y p | Z = Monotone.is-monotone (interpE e₁) x y p
-  fix-x e e₁ e₂ x y p | S m = Monotone.is-monotone (interpE e₂)
-    ((x , natrec (Monotone.f (interpE e₁) x) (λ n x₂ → Monotone.f (interpE e₂) ((x , x₂) , n)) m) , m)
-    ((y , natrec (Monotone.f (interpE e₁) y) (λ n x₂ → Monotone.f (interpE e₂) ((y , x₂) , n)) m) , m)
-      ((p , {!!}) , (♭nat-refl m))
-  fix-branch {Γ} {τ} e e₁ e₂ x y p = {!!}
 
   throw-r : ∀ {Γ Γ' τ} → rctx Γ (τ :: Γ') → rctx Γ Γ'
   throw-r d = λ x → d (iS x)
