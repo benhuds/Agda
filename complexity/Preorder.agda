@@ -363,20 +363,20 @@ module Preorder where
     is-monotone₁ (x , natrec (f x) (λ n₁ x₂ → g (x , x₂ , n₁)) m , m) (x , natrec (f x) (λ n₁ x₂ → g (x , x₂ , n₁)) n , n)
       ((refl x) , ((♭h-fix-args {fst , preorder ≤ refl trans} {fst₁ , preorder ≤₁ refl₁ trans₁} (monotone f is-monotone) (monotone g is-monotone₁) (x , m) (y , n) p) , p))
 
-{-
-  ♭h-fix-el : ∀ {PΓ PC} → (e0 : MONOTONE PΓ PC) → (e1 : MONOTONE (PΓ ×p ((Nat , ♭nat-p) ×p PC)) PC) → (x y : fst (PΓ ×p (Nat , ♭nat-p)))
+  ♭h-fix-el : ∀ {PΓ PC} → (e0 : MONOTONE PΓ PC) → (e1 : MONOTONE (PΓ ×p (PC ×p (Nat , ♭nat-p))) PC) → (x y : fst (PΓ ×p (Nat , ♭nat-p)))
            → Preorder-str.≤ (snd (PΓ ×p (Nat , ♭nat-p))) x y
            → Preorder-str.≤ (snd PC)
-              (natrec (Monotone.f e0 (fst x)) (λ n x₂ → Monotone.f e1 (fst x , n , x₂)) (snd y))
-              (natrec (Monotone.f e0 (fst y)) (λ n x₂ → Monotone.f e1 (fst y , n , x₂)) (snd y))
+              (natrec (Monotone.f e0 (fst x)) (λ n x₂ → Monotone.f e1 (fst x , x₂ , n)) (snd y))
+              (natrec (Monotone.f e0 (fst y)) (λ n x₂ → Monotone.f e1 (fst y , x₂ , n)) (snd y))
   ♭h-fix-el {fst , preorder ≤ refl trans} {_} (monotone f is-monotone) (monotone f₁ is-monotone₁) (fst₂ , Z) (fst₃ , Z) (p1 , p2) = is-monotone fst₂ fst₃ p1
   ♭h-fix-el (monotone f is-monotone) (monotone f₁ is-monotone₁) (fst₂ , Z) (fst₃ , S n) (fst₄ , ())
   ♭h-fix-el (monotone f is-monotone) (monotone f₁ is-monotone₁) (fst₂ , S m) (fst₃ , Z) (fst₄ , ())
   ♭h-fix-el {fst , preorder ≤ refl trans} {fst₁ , preorder ≤₁ refl₁ trans₁} (monotone f is-monotone) (monotone f₁ is-monotone₁) (fst₂ , S m) (fst₃ , S n) (fst₄ , snd) =
-    is-monotone₁ (fst₂ , n , natrec (f fst₂) (λ n₁ x₂ → f₁ (fst₂ , n₁ , x₂)) n) (fst₃ , n , natrec (f fst₃) (λ n₁ x₂ → f₁ (fst₃ , n₁ , x₂)) n)
-      (fst₄ , ((♭nat-refl n) ,
-        (♭h-fix-el {fst , preorder ≤ refl trans} {fst₁ , preorder ≤₁ refl₁ trans₁} (monotone f is-monotone) (monotone f₁ is-monotone₁) (fst₂ , m) (fst₃ , n) (fst₄ , snd))))
--}
+    is-monotone₁ (fst₂ , natrec (f fst₂) (λ n₁ x₂ → f₁ (fst₂ , x₂ , n₁)) n , n) (fst₃ , natrec (f fst₃) (λ n₁ x₂ → f₁ (fst₃ , x₂ , n₁)) n , n)
+      (fst₄ ,
+        ((♭h-fix-el {fst , preorder ≤ refl trans} {fst₁ , preorder ≤₁ refl₁ trans₁} (monotone f is-monotone) (monotone f₁ is-monotone₁) (fst₂ , m) (fst₃ , n) (fst₄ , snd)) ,
+          (♭nat-refl n)))
+
   ♭rec' : ∀ {PΓ PC} → (e0 : MONOTONE PΓ PC) → (e1 : MONOTONE (PΓ ×p (PC ×p (Nat , ♭nat-p))) PC) → MONOTONE (PΓ ×p (Nat , ♭nat-p)) PC
   ♭rec' {Γ , preorder ≤ refl trans} {C , preorder ≤c reflc transc} (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) =
     monotone (λ x → natrec (e0 (fst x)) (λ n x₂ → e1 (fst x , x₂ , n)) (snd x))
@@ -385,16 +385,8 @@ module Preorder where
       (natrec (e0 (fst x)) (λ n x₂ → e1 (fst x , x₂ , n)) (snd y))
       (natrec (e0 (fst y)) (λ n x₂ → e1 (fst y , x₂ , n)) (snd y))
         (♭h-fix-args {Γ , preorder ≤ refl trans} {C , preorder ≤c reflc transc} (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) x y (snd x₁))
-        {!!})
-{-
-    monotone (λ x → natrec (e0 (fst x)) (λ n x₂ → e1 (fst x , n , x₂)) (snd x))
-    (λ x y x₁ → transc
-      (natrec (e0 (fst x)) (λ n x₂ → e1 (fst x , n , x₂)) (snd x))
-      (natrec (e0 (fst x)) (λ n x₂ → e1 (fst x , n , x₂)) (snd y))
-      (natrec (e0 (fst y)) (λ n x₂ → e1 (fst y , n , x₂)) (snd y))
-        (♭h-fix-args {Γ , preorder ≤ refl trans} {C , preorder ≤c reflc transc} (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) x y (snd x₁))
         (♭h-fix-el {Γ , preorder ≤ refl trans} {C , preorder ≤c reflc transc} (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) x y x₁))
--}
+
 --- extend Preorders so you can impose max on them if type has maximums
 
   record Preorder-max-str {A : Set} (PA : Preorder-str A) : Set where
