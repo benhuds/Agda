@@ -63,14 +63,14 @@ module Interpretation where
 {-MONOTONE ((fst [ .Γ ]c , snd [ .Γ ]c) ×p (PN ×p (fst [ .τ ]t , snd [ .τ ]t)))
            (fst [ .τ ]t , snd [ .τ ]t)-}
 --(app' (app' (interpE e₂) z') (interpE e₁)) is MONOTONE PΓ PC
-  interpE (rrec e e₁ e₂ P) = comp (pair' id (interpE e)) (rec' (interpE e₁) {!!} (λ x → sound e₁ (app (app e₂ rz) e₁) P x))
+  interpE (rrec e e₁ e₂ P) = comp (pair' id (interpE e)) (rec' (interpE e₁) {!interpE e₂!} (λ x → sound e₁ (app (app e₂ rz) e₁) P x))
 --(comp {!!} (app' (app' (interpE e₂) z') (interpE e₁)))
   interpE (prod e e₁) = pair' (interpE e) (interpE e₁)
   interpE (l-proj e) = fst' (interpE e)
   interpE (r-proj e) = snd' (interpE e)
   interpE nil = nil'
   interpE (e ::c e₁) = cons' (interpE e) (interpE e₁)
-  interpE (listrec e e₁ e₂) = comp (pair' id (interpE e)) (lrec' (interpE e₁) {!!})
+  interpE (listrec e e₁ e₂) = comp (pair' id (interpE e)) (lrec' (interpE e₁) (interpE e₂))
   interpE true = monotone (λ x → True) (λ x y x₁ → <>)
   interpE false = monotone (λ x → False) (λ x y x₁ → <>)
   interpE {Γ} {τ'} (max τ e1 e2) =
