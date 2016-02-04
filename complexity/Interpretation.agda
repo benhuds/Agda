@@ -45,26 +45,12 @@ module Interpretation where
   interpE (var x) = lookup x
   interpE z = monotone (λ x → Z) (λ x y x₁ → <>)
   interpE (s e) = monotone (λ x → S (Monotone.f (interpE e) x)) (λ x y x₁ → Monotone.is-monotone (interpE e) x y x₁)
-  interpE {Γ} {τ} (rec e e₁ e₂) = comp (pair' id (interpE e)) (♭rec' (interpE e₁) {!!})
+  interpE {Γ} {τ} (rec e e₁ e₂) = comp (pair' id (interpE e)) (♭rec' (interpE e₁) (interpE e₂))
   interpE (lam e) = lam' (interpE e)
   interpE (app e e₁) = app' (interpE e) (interpE e₁)
   interpE rz = z'
   interpE (rsuc e) = suc' (interpE e)
--- comp' : MONOTONE PA PB → MONOTONE PB PC → MONOTONE PA PC
--- rec' is MONOTONE (PΓ ×p PN) PC
--- want (e0 : MONOTONE PΓ PC) → (e1 : MONOTONE (PΓ ×p (PN ×p PC)) PC)
--- have interpE e1 == PΓ PC
--- have interpE e2 == PΓ (PN -> PC -> PC)
--- turn PΓ (PN -> PC -> PC) into (PΓ ×p (PN ×p PC)) PC)
--- comp → PΓ (PΓ × PN) → (PΓ × PN) PC → PΓ PC
--- want (e2 : MONOTONE (PΓ ×p (PN ×p PC)) PC)
--- comp → PΓ 
--- have : .Γ |- (rnat ->c (.τ ->c .τ))
-{-MONOTONE ((fst [ .Γ ]c , snd [ .Γ ]c) ×p (PN ×p (fst [ .τ ]t , snd [ .τ ]t)))
-           (fst [ .τ ]t , snd [ .τ ]t)-}
---(app' (app' (interpE e₂) z') (interpE e₁)) is MONOTONE PΓ PC
-  interpE (rrec e e₁ e₂ P) = comp (pair' id (interpE e)) (rec' (interpE e₁) {!interpE e₂!} (λ x → sound e₁ (app (app e₂ rz) e₁) P x))
---(comp {!!} (app' (app' (interpE e₂) z') (interpE e₁)))
+  interpE (rrec e e₁ e₂ P) = comp (pair' id (interpE e)) (rec' (interpE e₁) (unlam' (unlam' (interpE e₂))) {!!}) --(λ x → sound e₁ (app (app e₂ rz) e₁) P x))
   interpE (prod e e₁) = pair' (interpE e) (interpE e₁)
   interpE (l-proj e) = fst' (interpE e)
   interpE (r-proj e) = snd' (interpE e)
@@ -130,7 +116,23 @@ module Interpretation where
     ren-eq-l {τ = τ} ρ (var (iS x)) k = ren-eq-l (throw-r ρ) (var x) k
     ren-eq-l ρ z k = <>
     ren-eq-l ρ (s e) k = ren-eq-l ρ e k
-    ren-eq-l ρ (rec e e₁ e₂) k = {!!}
+    ren-eq-l {Γ} {τ = τ} ρ (rec e e₁ e₂) k =
+      Preorder-str.trans (snd [ τ ]t)
+        (natrec
+          (Monotone.f (interpE (ren e₁ ρ)) k)
+          (λ n x₂ → Monotone.f (interpE (ren e₂ (r-extend (r-extend ρ)))) ((k , x₂) , n))
+          (Monotone.f (interpE (ren e ρ)) k))
+        (natrec
+          (Monotone.f (interpE (ren e₁ ρ)) k)
+          (λ n x₂ → Monotone.f (interpE (ren e₂ (r-extend (r-extend ρ)))) ((k , x₂) , n))
+          (Monotone.f (interpE e) (Monotone.f (interpR ρ) k)))
+        (natrec
+          (Monotone.f (interpE e₁) (Monotone.f (interpR ρ) k))
+          (λ n x₂ → Monotone.f (interpE e₂) ((Monotone.f (interpR ρ) k , x₂) , n))
+          (Monotone.f (interpE e) (Monotone.f (interpR ρ) k)))
+        (♭h-fix-args (interpE (ren e₁ ρ)) (interpE (ren e₂ (r-extend (r-extend ρ))))
+          (k , Monotone.f (interpE (ren e ρ)) k) (k , Monotone.f (interpE e) (Monotone.f (interpR ρ) k)) (ren-eq-l ρ e k))
+        {!!}
     ren-eq-l {Γ} {τ = τ1 ->c τ2} ρ (lam e) k x =
       Preorder-str.trans (snd [ τ2 ]t)
         (Monotone.f (Monotone.f (interpE (ren (lam e) ρ)) k) x)
@@ -528,10 +530,6 @@ module Interpretation where
           → Preorder-str.≤ (snd [ τ ]t) (Monotone.f (interpE (subst e Θ)) k) (Monotone.f (interpE (subst e Θ')) k)
   s-cong2 Θ Θ' e k x = ?
 -}
-
-{- Preorder-str.≤ (snd [ τ ]t)
-      (Monotone.f (interpE (ren e1 (λ {.τ} → ρ))) k)
-      (Monotone.f (interpE e1) (Monotone.f (interpR (λ {.τ} → ρ)) k))-}
 --  sound : ∀ {Γ τ} (e e' : Γ |- τ) → e ≤s e' → PREORDER≤ ([ Γ ]c ->p [ τ ]t) (interpE e) (interpE e')
   sound {_} {τ} e .e refl-s k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
   sound {Γ} {τ} e e' (trans-s {.Γ} {.τ} {.e} {e''} {.e'} d d₁) k =
@@ -577,9 +575,10 @@ module Interpretation where
              (sound e1 e2 d (Monotone.f (interpS Θ) k))
              (subst-eq-r Θ e2 k))
   sound {Γ} {τ} ._ ._ (subst-cong2 {.Γ} {Γ'} {.τ} {Θ} {Θ'} {e} x) k = {!!}
-  sound {Γ} {τ} ._ ._ (cong-rec {.Γ} {.τ} {e} {e'} {e0} {e1} d) k = {!!}
-    --♭h-fix-args (interpE e0) (monotone (λ v → _) (_)) (k , (Monotone.f (interpE e) k)) (k , Monotone.f (interpE e') k) (sound e e' d k)
-  sound {Γ} {τ} ._ ._ (cong-listrec {.Γ} {τ'} {.τ} {e} {e'} {e0} {e1} d) k = {!!}
+  sound {Γ} {τ} ._ ._ (cong-rec {.Γ} {.τ} {e} {e'} {e0} {e1} d) k =
+    ♭h-fix-args (interpE e0) (interpE e1) (k , Monotone.f (interpE e) k) (k , Monotone.f (interpE e') k) (sound e e' d k)
+  sound {Γ} {τ} ._ ._ (cong-listrec {.Γ} {τ'} {.τ} {e} {e'} {e0} {e1} d) k =
+    listrec-fix-args (interpE e0) (interpE e1) (k , (Monotone.f (interpE e) k)) (k , Monotone.f (interpE e') k) ((Preorder-str.refl (snd [ Γ ]c) k) , (sound e e' d k))
   sound {Γ} {τ} ._ ._ (lam-s {.Γ} {τ'} {.τ} {e} {e2}) k = {!!}
   sound {Γ} {τ} e ._ (l-proj-s {.Γ}) k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
   sound {Γ} {τ} e ._ (r-proj-s {.Γ}) k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
