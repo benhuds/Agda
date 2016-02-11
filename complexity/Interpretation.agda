@@ -1,5 +1,7 @@
 {- INTERPRETATION OF NEW COMPLEXITY LANGUAGE -}
 
+{-# OPTIONS --no-termination-check #-}
+
 open import Preliminaries
 --open import Preorder-Max
 open import Preorder
@@ -551,11 +553,12 @@ module Interpretation where
         (s-id-l (Θ i0) k)
         (s-sr-r (q v) iS (Θ i0) k))
 
-  s-cong2-lem-lem : ∀ {Γ Γ' τ} (Θ Θ' : sctx Γ Γ') (e : Γ' |- τ) (x : (τ₁ : CTp) (x₁ : τ₁ ∈ Γ') → Θ x₁ ≤s Θ' x₁) (k : fst [ Γ ]c)
+  s-cong2-lem-lem : ∀ {Γ Γ' τ} (Θ Θ' : sctx Γ Γ') (x : (τ₁ : CTp) (x₁ : τ₁ ∈ Γ') → Θ x₁ ≤s Θ' x₁) (k : fst [ Γ ]c)
                   → Preorder-str.≤ (snd [ Γ' ]c) (Monotone.f (interpS Θ) k) (Monotone.f (interpS Θ') k)
-  s-cong2-lem-lem {Γ' = []} Θ Θ' e x k = <>
-  s-cong2-lem-lem {Γ' = x :: Γ'} Θ Θ' e x₁ k =
-    {!!} , --s-cong2-lem-lem (throw-s Θ) (throw-s Θ') {!!} (λ τ₁ x₂ → x₁ τ₁ (iS x₂)) k ,
+  s-cong2-lem-lem {Γ' = []} Θ Θ' x k = <>
+  s-cong2-lem-lem {Γ' = x :: Γ'} Θ Θ' x₁ k =
+    s-cong2-lem-lem (throw-s Θ) (throw-s Θ')
+      (λ τ₁ x₂ → x₁ τ₁ (iS x₂)) k , --s-cong2-lem-lem (throw-s Θ) (throw-s Θ') {!!} (λ τ₁ x₂ → x₁ τ₁ (iS x₂)) k ,
     sound (Θ i0) (Θ' i0) (x₁ x i0) k
 
   sound {_} {τ} e .e refl-s k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
@@ -611,7 +614,7 @@ module Interpretation where
           (Monotone.f (interpE e) (Monotone.f (interpS Θ') k))
           (Monotone.f (interpE (subst e Θ')) k)
             (Monotone.is-monotone (interpE e) (Monotone.f (interpS Θ) k)
-            (Monotone.f (interpS Θ') k) (s-cong2-lem-lem Θ Θ' e x k))
+            (Monotone.f (interpS Θ') k) (s-cong2-lem-lem Θ Θ' x k))
         (subst-eq-r Θ' e k))
   sound {Γ} {τ} ._ ._ (cong-rec {.Γ} {.τ} {e} {e'} {e0} {e1} d) k =
     ♭h-fix-args (interpE e0) (interpE e1) (k , Monotone.f (interpE e) k) (k , Monotone.f (interpE e') k) (sound e e' d k)
