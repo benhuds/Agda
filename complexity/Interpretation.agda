@@ -638,13 +638,25 @@ module Interpretation where
     Preorder-str.refl (snd [ x ]t) k1' --(k1 , k1') k2 = ?
  {-   {!!} ,
     (Preorder-str.refl (snd [ x ]t) k1')-}
-
-  lam-s-lem : ∀ {Γ τ'} (e2 : Γ |- τ') (k : fst [ Γ ]c) → Preorder-str.≤ (snd [ Γ ]c) (Monotone.f (interpS (throw-s (q e2))) k) k
-  lam-s-lem {Γ = []} e2 k = <>
-  lam-s-lem {Γ = x :: Γ} e2 (k1 , k2) =
-    {!!} ,
-    Preorder-str.refl (snd [ x ]t) k2
 -}
+
+{-Goal: Preorder-str.≤ (snd [ Γ ]c)
+      (Monotone.f (interpS (λ {.τ} x₁ → var (iS x₁))) (k1 , k2)) k1
+————————————————————————————————————————————————————————————
+k2 : fst [ x ]t
+k1 : fst [ Γ ]c
+Γ  : List CTp
+x  : CTp-}
+
+  lam-s-lem-lem : ∀ {Γ} (x : CTp) (k1 : fst [ Γ ]c) (k2 : fst [ x ]t)
+                → Preorder-str.≤ (snd [ Γ ]c) (Monotone.f (interpS {x :: Γ} {Γ} (throw-s ids)) (k1 , k2)) k1
+  lam-s-lem-lem {[]} x k1 k2 = <>
+  lam-s-lem-lem {x :: Γ} x₁ (k1 , k1') k2 = {!!} , Preorder-str.refl (snd [ x ]t) k1'
+
+  lam-s-lem : ∀ {Γ} (k : fst [ Γ ]c) → Preorder-str.≤ (snd [ Γ ]c) (Monotone.f (interpS {Γ} {Γ} ids) k) k
+  lam-s-lem {[]} k = <>
+  lam-s-lem {x :: Γ} (k1 , k2) = {!!}
+
   sound {_} {τ} e .e refl-s k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
   sound {Γ} {τ} e e' (trans-s {.Γ} {.τ} {.e} {e''} {.e'} d d₁) k =
     Preorder-str.trans (snd [ τ ]t) (Monotone.f (interpE e) k) (Monotone.f (interpE e'') k) (Monotone.f (interpE e') k) (sound e e'' d k) (sound e'' e' d₁ k)
