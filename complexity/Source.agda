@@ -1,7 +1,6 @@
 {- SOURCE LANGUAGE -}
 
 open import Preliminaries
-open import Preorder-Max
 
 module Source where
 
