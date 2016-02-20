@@ -394,15 +394,24 @@ module Preorder where
       (♭nat-refl n))
 
   ♭h-cong : ∀ {PΓ PC} → (e0 e0' : MONOTONE PΓ PC) → (e1 e1' : MONOTONE ((PΓ ×p PC) ×p (Nat , ♭nat-p)) PC) → (x : fst (PΓ ×p (Nat , ♭nat-p)))
-           → Preorder-str.≤ (snd PC) (Monotone.f e0 (fst x)) (Monotone.f e0' (fst x))
-           → ((n : Nat) → (Preorder-str.≤ (snd PC)
-               (Monotone.f e1 ((fst x , natrec (Monotone.f e0 (fst x)) (λ n₁ x₂ → Monotone.f e1 ((fst x , x₂) , n₁)) n) , n))
-               (Monotone.f e1' ((fst x , natrec (Monotone.f e0' (fst x)) (λ n₁ x₂ → Monotone.f e1' ((fst x , x₂) , n₁)) n) , n))))
+           → Preorder-str.≤ (snd (PΓ ->p PC)) e0 e0'
+           → Preorder-str.≤ (snd (((PΓ ×p PC) ×p (Nat , ♭nat-p)) ->p PC)) e1 e1'
            → Preorder-str.≤ (snd PC)
               (natrec (Monotone.f e0 (fst x)) (λ n x₂ → Monotone.f e1 ((fst x , x₂) , n)) (snd x))
               (natrec (Monotone.f e0' (fst x)) (λ n x₂ → Monotone.f e1' ((fst x , x₂) , n)) (snd x))
-  ♭h-cong {fst , preorder ≤ refl trans} {fst₁ , preorder ≤₁ refl₁ trans₁} e0 e0' e1 e1' (x , Z) p q = p
-  ♭h-cong {fst , preorder ≤ refl trans} {fst₁ , preorder ≤₁ refl₁ trans₁} e0 e0' e1 e1' (x , S n) p q = q n
+  ♭h-cong {fst , preorder ≤ refl trans} {fst₁ , preorder ≤₁ refl₁ trans₁} e0 e0' e1 e1' (x , Z) p q = p x
+  ♭h-cong {fst , preorder ≤ refl trans} {fst₁ , preorder ≤₁ refl₁ trans₁} e0 e0' (monotone e1 e1-is-monotone) (monotone e1' e1'-is-monotone) (x , S n) p q =
+    trans₁
+      (natrec (Monotone.f e0 x) (λ n₁ x₂ → e1 ((x , x₂) , n₁)) (S n))
+      (e1' ((x , natrec (Monotone.f e0 x) (λ n₁ x₂ → e1 ((x , x₂) , n₁)) n) , n))
+      (natrec (Monotone.f e0' x) (λ n₁ x₂ → e1' ((x , x₂) , n₁)) (S n))
+        (q ((x , natrec (Monotone.f e0 x) (λ n₁ x₂ → e1 ((x , x₂) , n₁)) n) , n))
+        (e1'-is-monotone
+          ((x , natrec (Monotone.f e0 x) (λ n₁ x₂ → e1 ((x , x₂) , n₁)) n) , n)
+          ((x , natrec (Monotone.f e0' x) (λ n₁ x₂ → e1' ((x , x₂) , n₁)) n) , n)
+          (((refl x) ,
+          ♭h-cong {fst , preorder ≤ refl trans} {fst₁ , preorder ≤₁ refl₁ trans₁} e0 e0' (monotone e1 e1-is-monotone) (monotone e1' e1'-is-monotone) (x , n) p q) ,
+          ♭nat-refl n))
 
   ♭rec' : ∀ {PΓ PC} → (e0 : MONOTONE PΓ PC) → (e1 : MONOTONE ((PΓ ×p PC) ×p (Nat , ♭nat-p)) PC) → MONOTONE (PΓ ×p (Nat , ♭nat-p)) PC
   ♭rec' {Γ , preorder ≤ refl trans} {C , preorder ≤c reflc transc} (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) =
