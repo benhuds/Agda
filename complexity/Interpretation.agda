@@ -1069,7 +1069,32 @@ Preorder-str.≤ (snd [ τ2 ]t)
 
   s-ss-r : ∀ {Γ B C τ} (Θ1 : sctx Γ B) (Θ2 : sctx B C) (e : C |- τ) (k : fst [ Γ ]c)
          → Preorder-str.≤ (snd [ τ ]t) (Monotone.f (interpE (subst (subst e Θ2) Θ1)) k) (Monotone.f (interpE (subst e (Θ1 ss Θ2))) k)
-  s-ss-r Θ1 Θ2 e k = {!!}
+  s-ss-r Θ1 Θ2 unit k = <>
+  s-ss-r Θ1 Θ2 0C k = <>
+  s-ss-r Θ1 Θ2 1C k = <>
+  s-ss-r Θ1 Θ2 (plusC e e₁) k =
+    plus-lem (Monotone.f (interpE (subst (subst e Θ2) Θ1)) k) (Monotone.f (interpE (subst (subst e₁ Θ2) Θ1)) k)
+             (Monotone.f (interpE (subst e (λ x → subst (Θ2 x) Θ1))) k) (Monotone.f (interpE (subst e₁ (λ x → subst (Θ2 x) Θ1))) k)
+               (s-ss-r Θ1 Θ2 e k)
+               (s-ss-r Θ1 Θ2 e₁ k)
+  s-ss-r {τ = τ} Θ1 Θ2 (var x) k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE (subst (Θ2 x) Θ1)) k)
+  s-ss-r Θ1 Θ2 z k = <>
+  s-ss-r Θ1 Θ2 (s e) k = s-ss-r Θ1 Θ2 e k
+  s-ss-r Θ1 Θ2 (rec e e₁ e₂) k = {!!}
+  s-ss-r Θ1 Θ2 (lam e) k x = {!!}
+  s-ss-r Θ1 Θ2 (app e e₁) k = {!!}
+  s-ss-r Θ1 Θ2 rz k = <>
+  s-ss-r Θ1 Θ2 (rsuc e) k = s-ss-r Θ1 Θ2 e k
+  s-ss-r Θ1 Θ2 (rrec e e₁ e₂ P) k = {!!}
+  s-ss-r Θ1 Θ2 (prod e e₁) k = (s-ss-r Θ1 Θ2 e k) , (s-ss-r Θ1 Θ2 e₁ k)
+  s-ss-r Θ1 Θ2 (l-proj e) k = fst (s-ss-r Θ1 Θ2 e k)
+  s-ss-r Θ1 Θ2 (r-proj e) k = snd (s-ss-r Θ1 Θ2 e k)
+  s-ss-r Θ1 Θ2 nil k = <>
+  s-ss-r Θ1 Θ2 (e ::c e₁) k = (s-ss-r Θ1 Θ2 e k) , (s-ss-r Θ1 Θ2 e₁ k)
+  s-ss-r Θ1 Θ2 (listrec e e₁ e₂) k = {!!}
+  s-ss-r Θ1 Θ2 true k = <>
+  s-ss-r Θ1 Θ2 false k = <>
+  s-ss-r Θ1 Θ2 (max x e e₁) k = {!!}
 
   s-comp-l-lem-lem : ∀ {Γ Γ' τ1} (x : CTp) (Θ : sctx Γ (x :: Γ')) (v : Γ |- τ1) (k : fst [ Γ ]c)
                    → Preorder-str.≤ (snd [ Γ' ]c)
