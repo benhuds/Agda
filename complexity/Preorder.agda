@@ -276,6 +276,28 @@ module Preorder where
                                       (monotone f is-monotone) (monotone f₁ is-monotone₁) (fst₃ , xs) (fst₄ , ys) (x≤y , tlt)) ,
                        l-refl (preorder ≤₁ refl₁ trans₁) ys) , (refl₁ y))
 
+  lrec-cong : ∀ {PΓ PA PC} → (enil enil' : MONOTONE PΓ PC) → (econs econs' : MONOTONE (((PΓ ×p PC) ×p PL PA) ×p PA) PC)
+            → (x : fst (PΓ ×p PL PA))
+            → Preorder-str.≤ (snd (PΓ ->p PC)) enil enil'
+            → Preorder-str.≤ (snd ((((PΓ ×p PC) ×p PL PA) ×p PA) ->p PC)) econs econs'
+            → Preorder-str.≤ (snd PC)
+                (lrec (snd x) (Monotone.f enil (fst x)) (λ x₁ x₂ x₃ → Monotone.f econs (((fst x , x₃) , x₂) , x₁)))
+                (lrec (snd x) (Monotone.f enil' (fst x)) (λ x₁ x₂ x₃ → Monotone.f econs' (((fst x , x₃) , x₂) , x₁)))
+  lrec-cong _ _ _ _ (x , []) p q = p x
+  lrec-cong {fst , preorder ≤ refl trans} {fst₁ , preorder ≤₁ refl₁ trans₁} {fst₂ , preorder ≤₂ refl₂ trans₂} en en' ec ec' (x , x₁ :: l) p q =
+    trans₂
+      (lrec (x₁ :: l) (Monotone.f en x) (λ x₂ x₃ x₄ → Monotone.f ec (((x , x₄) , x₃) , x₂)))
+      (Monotone.f ec' (((x , lrec l (Monotone.f en x) (λ x₂ x₃ x₄ → Monotone.f ec (((x , x₄) , x₃) , x₂))) , l) , x₁))
+      (lrec (x₁ :: l) (Monotone.f en' x) (λ x₂ x₃ x₄ → Monotone.f ec' (((x , x₄) , x₃) , x₂)))
+        (q (((x , lrec l (Monotone.f en x) (λ x₂ x₃ x₄ → Monotone.f ec (((x , x₄) , x₃) , x₂))) , l) , x₁))
+        (Monotone.is-monotone ec'
+          (((x , lrec l (Monotone.f en x) (λ x₂ x₃ x₄ → Monotone.f ec (((x , x₄) , x₃) , x₂))) , l) , x₁)
+          (((x , lrec l (Monotone.f en' x) (λ x₂ x₃ x₄ → Monotone.f ec' (((x , x₄) , x₃) , x₂))) , l) , x₁)
+          ((((refl x) ,
+          (lrec-cong {fst , preorder ≤ refl trans} {fst₁ , preorder ≤₁ refl₁ trans₁} {fst₂ , preorder ≤₂ refl₂ trans₂} en en' ec ec' (x , l) p q)) ,
+          (l-refl (preorder ≤₁ refl₁ trans₁) l)) ,
+          refl₁ x₁))
+
   lrec' : ∀ {PΓ PA PC} → (enil : MONOTONE PΓ PC) → (econs : MONOTONE (((PΓ ×p PC) ×p PL PA) ×p PA) PC) → MONOTONE (PΓ ×p PL PA) PC
   lrec' {Γ , preorder ≤Γ reflΓ transΓ} {A , preorder ≤A reflA transA} {C , preorder ≤C reflC transC} (monotone enil is-monotone) (monotone econs is-monotone₁) =
           monotone (λ x → lrec (snd x) (enil (fst x)) (λ x₁ x₂ x₃ → econs ((((fst x) , x₃) , x₂) , x₁)))
@@ -349,6 +371,26 @@ module Preorder where
              (((refl x) , q) ,
                (h-lem2 {Γ , preorder ≤ refl trans} {C , preorder ≤c reflc transc}
                  (monotone e0 e0-is-monotone) (monotone e1 e1-is-monotone) (x , m) (y , n) p q))
+
+  h-cong : ∀ {PΓ PC} → (e0 e0' : MONOTONE PΓ PC) → (e1 e1' : MONOTONE ((PΓ ×p PN) ×p PC) PC) → (x : fst (PΓ ×p PN))
+           → Preorder-str.≤ (snd (PΓ ->p PC)) e0 e0'
+           → Preorder-str.≤ (snd (((PΓ ×p PN) ×p PC) ->p PC)) e1 e1'
+           → Preorder-str.≤ (snd PC)
+              (natrec (Monotone.f e0 (fst x)) (λ n x₂ → Monotone.f e1 ((fst x , n) , x₂)) (snd x))
+              (natrec (Monotone.f e0' (fst x)) (λ n x₂ → Monotone.f e1' ((fst x , n) , x₂)) (snd x))
+  h-cong {fst , preorder ≤ refl trans} {fst₁ , preorder ≤₁ refl₁ trans₁} e0 e0' e1 e1' (x , Z) p q = p x
+  h-cong {fst , preorder ≤ refl trans} {fst₁ , preorder ≤₁ refl₁ trans₁} e0 e0' (monotone e1 e1-is-monotone) (monotone e1' e1'-is-monotone) (x , S n) p q =
+    trans₁
+      (natrec (Monotone.f e0 x) (λ n₁ x₂ → e1 ((x , n₁) , x₂)) (S n))
+      (e1' ((x , n) , natrec (Monotone.f e0 x) (λ n₁ x₂ → e1 ((x , n₁) , x₂)) n))
+      (natrec (Monotone.f e0' x) (λ n₁ x₂ → e1' ((x , n₁) , x₂)) (S n))
+        (q ((x , n) , natrec (Monotone.f e0 x) (λ n₁ x₂ → e1 ((x , n₁) , x₂)) n))
+        (e1'-is-monotone
+          ((x , n) , natrec (Monotone.f e0 x) (λ n₁ x₂ → e1 ((x , n₁) , x₂)) n)
+          ((x , n) , natrec (Monotone.f e0' x) (λ n₁ x₂ → e1' ((x , n₁) , x₂)) n)
+          (((refl x) ,
+          (nat-refl n)) ,
+          h-cong {fst , preorder ≤ refl trans} {fst₁ , preorder ≤₁ refl₁ trans₁} e0 e0' (monotone e1 e1-is-monotone) (monotone e1' e1'-is-monotone) (x , n) p q))
 
   rec' : ∀ {PΓ PC} → (e0 : MONOTONE PΓ PC) → (e1 : MONOTONE ((PΓ ×p PN) ×p PC) PC)
        → (∀ x → Preorder-str.≤ (snd PC) (Monotone.f e0 x) (Monotone.f e1 ((x , 0) , Monotone.f e0 x)))
