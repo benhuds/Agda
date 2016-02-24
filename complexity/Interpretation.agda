@@ -1164,7 +1164,8 @@ module Interpretation where
              (s-id-r e₁ k) (Preorder-max-str.max-r [ x ]tm (Monotone.f (interpE e) k) (Monotone.f (interpE e₁) k)))
 -}
 
-{- S-RR-L: ONLY RREC LEFT
+-- S-RR-L: ONLY RREC LEFT
+
   s-rr-l : ∀ {Γ Γ' Γ'' τ} → (e : Γ'' |- τ) (ρ1 : rctx Γ Γ') (ρ2 : rctx Γ' Γ'') → (k : fst [ Γ ]c)
          → Preorder-str.≤ (snd [ τ ]t) (Monotone.f (interpE (ren (ren e ρ2) ρ1)) k) (Monotone.f (interpE (ren e (ρ1 ∙rr ρ2))) k)
   s-rr-l unit ρ1 ρ2 k = <>
@@ -1246,7 +1247,8 @@ module Interpretation where
   s-rr-l rz ρ1 ρ2 k = <>
   s-rr-l (rsuc e) ρ1 ρ2 k = s-rr-l e ρ1 ρ2 k
   s-rr-l {Γ} {τ} (rrec {Γ''} {τ'} e e₁ e₂ P) ρ1 ρ2 k =
-    Preorder-str.trans (snd [ τ' ]t)
+    {!!}
+{-    Preorder-str.trans (snd [ τ' ]t)
       (natrec (Monotone.f (interpE (ren (ren e₁ ρ2) ρ1)) k) (λ n x₂ → Monotone.f (Monotone.f (Monotone.f (interpE (ren (ren e₂ ρ2) ρ1)) k) n) x₂)
         (Monotone.f (interpE (ren (ren e ρ2) ρ1)) k))
       (natrec (Monotone.f (interpE (ren (ren e₁ ρ2) ρ1)) k) (λ n x₂ → Monotone.f (unlam' (unlam' (interpE (ren (ren e₂ ρ2) ρ1)))) ((k , n) , x₂))
@@ -1258,7 +1260,7 @@ module Interpretation where
         (k , Monotone.f (interpE (ren e (λ x → ρ1 (ρ2 x)))) k)
           (λ x → sound (ren (ren e₁ ρ2) ρ1) (app (app (ren (ren e₂ ρ2) ρ1) rz) (ren (ren e₁ ρ2) ρ1)) (trans-s (ren-cong (ren-cong P)) (cong-app (cong-app refl-s))) x)
           (s-rr-l e ρ1 ρ2 k))
-      {!!}
+      {!!}-}
 {-
     (h-cong
       (interpE (ren (ren e₁ ρ2) ρ1))
@@ -1491,8 +1493,8 @@ module Interpretation where
            (Preorder-max-str.max [ x ]tm (Monotone.f (interpE (ren (ren e ρ2) ρ1)) k) (Monotone.f (interpE (ren (ren e₁ ρ2) ρ1)) k))
              (s-rr-r e₁ ρ1 ρ2 k)
              (Preorder-max-str.max-r [ x ]tm (Monotone.f (interpE (ren (ren e ρ2) ρ1)) k) (Monotone.f (interpE (ren (ren e₁ ρ2) ρ1)) k)))
--}
 
+{-
   s-rs-l-lam-lem-lem : ∀ {Γ A τ1} (x : CTp) (ρ : rctx Γ A) (k : fst [ Γ ]c) (x₁ : fst [ τ1 ]t)
                      → Preorder-str.≤ (snd [ A ]c)
                        (Monotone.f (interpR {τ1 :: A} {A} iS) (Monotone.f (interpR {τ1 :: Γ} {A} (λ x₂ → iS (ρ x₂))) (k , x₁) , x₁))
@@ -1919,6 +1921,7 @@ module Interpretation where
            (Preorder-max-str.max [ x ]tm (Monotone.f (interpE (ren (subst e Θ) ρ)) k) (Monotone.f (interpE (ren (subst e₁ Θ) ρ)) k))
              (s-rs-r ρ Θ e₁ k)
              (Preorder-max-str.max-r [ x ]tm (Monotone.f (interpE (ren (subst e Θ) ρ)) k) (Monotone.f (interpE (ren (subst e₁ Θ) ρ)) k)))
+-}
 
 {-
   s-sr-l : ∀ {Γ Γ' Γ'' τ} (Θ : sctx Γ Γ') (ρ : rctx Γ' Γ'') (e : Γ'' |- τ) (k : fst [ Γ ]c)
