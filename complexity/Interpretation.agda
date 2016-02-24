@@ -1641,7 +1641,53 @@ module Interpretation where
   s-rs-l ρ Θ (r-proj e) k = snd (s-rs-l ρ Θ e k)
   s-rs-l ρ Θ nil k = <>
   s-rs-l ρ Θ (e ::c e₁) k = (s-rs-l ρ Θ e k) ,  (s-rs-l ρ Θ e₁ k)
-  s-rs-l ρ Θ (listrec e e₁ e₂) k = {!!}
+  s-rs-l {Γ} {Γ'} {Γ''} {τ} ρ Θ (listrec {.Γ''} {τ'} {.τ} e e₁ e₂) k =
+    Preorder-str.trans (snd [ τ ]t)
+      (lrec (Monotone.f (interpE (ren (subst e Θ) ρ)) k)
+        (Monotone.f (interpE (ren (subst e₁ Θ) ρ)) k)
+        (λ x₁ x₂ x₃ → Monotone.f (interpE (ren (subst e₂ (s-extend (s-extend (s-extend Θ)))) (r-extend (r-extend (r-extend ρ))))) (((k , x₃) , x₂) , x₁)))
+      (lrec (Monotone.f (interpE (subst e (λ x → ren (Θ x) ρ))) k)
+        (Monotone.f (interpE (ren (subst e₁ Θ) ρ)) k)
+        (λ x₁ x₂ x₃ → Monotone.f (interpE (ren (subst e₂ (s-extend (s-extend (s-extend Θ)))) (r-extend (r-extend (r-extend ρ))))) (((k , x₃) , x₂) , x₁)))
+      (lrec (Monotone.f (interpE (subst e (λ x → ren (Θ x) ρ))) k)
+        (Monotone.f (interpE (subst e₁ (λ x → ren (Θ x) ρ))) k)
+        (λ x₁ x₂ x₃ → Monotone.f (interpE (subst e₂ (s-extend (s-extend (s-extend (λ x → ren (Θ x) ρ)))))) (((k , x₃) , x₂) , x₁)))
+      (listrec-fix-args
+        (interpE (ren (subst e₁ Θ) ρ))
+        (interpE (ren (subst e₂ (s-extend (s-extend (s-extend Θ)))) (r-extend (r-extend (r-extend ρ)))))
+        (k , (Monotone.f (interpE (ren (subst e Θ) ρ)) k))
+        (k , (Monotone.f (interpE (subst e (λ x → ren (Θ x) ρ))) k))
+        (Preorder-str.refl (snd [ Γ ]c) k , (s-rs-l ρ Θ e k)))
+      (lrec-cong
+        (interpE (ren (subst e₁ Θ) ρ))
+        (interpE (subst e₁ (λ x → ren (Θ x) ρ)))
+        (interpE (ren (subst e₂ (s-extend (s-extend (s-extend Θ)))) (r-extend (r-extend (r-extend ρ)))))
+        (interpE (subst e₂ (s-extend (s-extend (s-extend (λ x → ren (Θ x) ρ))))))
+        (k , Monotone.f (interpE (subst e (λ x → ren (Θ x) ρ))) k)
+          (λ x → s-rs-l ρ Θ e₁ x)
+          (λ x →
+            Preorder-str.trans (snd [ τ ]t)
+              (Monotone.f (interpE (ren (subst e₂ (s-extend (s-extend (s-extend Θ)))) (r-extend (r-extend (r-extend ρ))))) x)
+              (Monotone.f (interpE (subst e₂ (r-extend (r-extend (r-extend ρ)) rs s-extend (s-extend (s-extend Θ))))) x)
+              (Monotone.f (interpE (subst e₂ (s-extend (s-extend (s-extend (λ x₁ → ren (Θ x₁) ρ)))))) x)
+              (s-rs-l (r-extend (r-extend (r-extend ρ))) (s-extend (s-extend (s-extend Θ))) e₂ x)
+              (Preorder-str.trans (snd [ τ ]t)
+                (Monotone.f (interpE (subst e₂ (r-extend (r-extend (r-extend ρ)) rs s-extend (s-extend (s-extend Θ))))) x)
+                (Monotone.f (interpE e₂) (Monotone.f (interpS {τ' :: list τ' :: τ :: Γ} (s-extend (s-extend (s-extend (λ x₁ → ren (Θ x₁) ρ))))) x))
+                (Monotone.f (interpE (subst e₂ (s-extend (s-extend (s-extend (λ x₁ → ren (Θ x₁) ρ)))))) x)
+                (Preorder-str.trans (snd [ τ ]t)
+                  (Monotone.f (interpE (subst e₂ (r-extend (r-extend (r-extend ρ)) rs s-extend (s-extend (s-extend Θ))))) x)
+                  (Monotone.f (interpE e₂) (Monotone.f (interpS {τ' :: list τ' :: τ :: Γ} (r-extend (r-extend (r-extend ρ)) rs s-extend (s-extend (s-extend Θ)))) x))
+                  (Monotone.f (interpE e₂) (Monotone.f (interpS {τ' :: list τ' :: τ :: Γ} (s-extend (s-extend (s-extend (λ x₁ → ren (Θ x₁) ρ))))) x))
+                  (subst-eq-l (r-extend (r-extend (r-extend ρ)) rs s-extend (s-extend (s-extend Θ))) e₂ x)
+                  (Monotone.is-monotone (interpE e₂)
+                    (Monotone.f (interpS {τ' :: list τ' :: τ :: Γ} (r-extend (r-extend (r-extend ρ)) rs s-extend (s-extend (s-extend Θ)))) x)
+                    (Monotone.f (interpS {τ' :: list τ' :: τ :: Γ} (s-extend (s-extend (s-extend (λ x₁ → ren (Θ x₁) ρ))))) x)
+                      ((({!!} ,
+                      (Preorder-str.refl (snd [ τ ]t) (snd (fst (fst x))))) ,
+                      (l-refl (snd [ τ' ]t) (snd (fst x)))) ,
+                      (Preorder-str.refl (snd [ τ' ]t) (snd x)))))
+                (subst-eq-r (s-extend (s-extend (s-extend (λ x₁ → ren (Θ x₁) ρ)))) e₂ x))))
   s-rs-l ρ Θ true k = <>
   s-rs-l ρ Θ false k = <>
   s-rs-l {τ = τ} ρ Θ (max x e e₁) k =
