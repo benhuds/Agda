@@ -1273,12 +1273,16 @@ module Interpretation where
   s-rr-l (rsuc e) ρ1 ρ2 k = s-rr-l e ρ1 ρ2 k
   s-rr-l {Γ} {τ} (rrec {Γ''} {τ'} e e₁ e₂ P) ρ1 ρ2 k =
     Preorder-str.trans (snd [ τ' ]t)
-      (Monotone.f (comp (pair' id (interpE (ren (ren e (ρ2)) (ρ1)))) (rec' (interpE (ren (ren e₁ (ρ2)) (ρ1))) (unlam' (unlam' (interpE (ren (ren e₂ (ρ2)) ( ρ1)))))
-        (sound (ren (ren e₁ (ρ2)) (ρ1)) (app (app (ren (ren e₂ (ρ2)) (ρ1)) rz) (ren (ren e₁ (ρ2)) ( ρ1))) (ren-cong (ren-cong P))))) k)
+      (Monotone.f (comp (pair' id (interpE (ren (ren e ρ2) ρ1)))
+        (rec' (interpE (ren (ren e₁ ρ2) ρ1)) (unlam' (unlam' (interpE (ren (ren e₂ ρ2) ρ1))))
+        (sound (ren (ren e₁ ρ2) ρ1) (app (app (ren (ren e₂ ρ2) ρ1) rz) (ren (ren e₁ ρ2) ρ1)) (ren-cong (ren-cong P))))) k)
       (Monotone.f (rec' (interpE (ren (ren e₁ (ρ2)) (ρ1))) (unlam' (unlam' (interpE (ren (ren e₂ (ρ2)) (ρ1)))))
         (λ x₁ → sound (ren (ren e₁ (ρ2)) ( ρ1)) (app (app (ren (ren e₂ (ρ2)) (ρ1)) rz) (ren (ren e₁ (ρ2)) (ρ1))) (ren-cong (ren-cong P)) x₁))
         (k , Monotone.f (interpE (ren e (( ρ1) ∙rr (ρ2)))) k))
-    (Monotone.f (interpE (ren (rrec e e₁ e₂ P) (ρ1 ∙rr ρ2))) k)
+      (Monotone.f
+        (comp (pair' id (interpE (ren e (ρ1 ∙rr ρ2))))
+          (rec' (interpE (ren e₁ (ρ1 ∙rr ρ2))) (unlam' (unlam' (interpE (ren e₂ (ρ1 ∙rr ρ2)))))
+          (sound (ren e₁ (ρ1 ∙rr ρ2)) (app (app (ren e₂ (ρ1 ∙rr ρ2)) rz) (ren e₁ (ρ1 ∙rr ρ2))) (ren-cong P)))) k)
     (h-lem2 (interpE (ren (ren e₁ ρ2) ρ1)) (unlam' (unlam' (interpE (ren (ren e₂ ρ2) ρ1))))
       (k , Monotone.f (interpE (ren (ren e ρ2) ρ1)) k)
       (k , Monotone.f (interpE (ren e (λ x → ρ1 (ρ2 x)))) k)
