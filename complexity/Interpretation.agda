@@ -1625,7 +1625,6 @@ module Interpretation where
              (Preorder-max-str.max-r [ x ]tm (Monotone.f (interpE (ren (ren e ρ2) ρ1)) k) (Monotone.f (interpE (ren (ren e₁ ρ2) ρ1)) k)))
 -}
 
-{-
   s-rs-l-lam-lem-lem : ∀ {Γ A τ1} (x : CTp) (ρ : rctx Γ A) (k : fst [ Γ ]c) (x₁ : fst [ τ1 ]t)
                      → Preorder-str.≤ (snd [ A ]c)
                        (Monotone.f (interpR {τ1 :: A} {A} iS) (Monotone.f (interpR {τ1 :: Γ} {A} (λ x₂ → iS (ρ x₂))) (k , x₁) , x₁))
@@ -1680,6 +1679,64 @@ module Interpretation where
   s-rs-l-lam {B = []} ρ Θ k x = <>
   s-rs-l-lam {B = x :: B} ρ Θ k x₁ = (s-rs-l-lam ρ (throw-s Θ) k x₁) , s-rs-l-lam-lem x ρ Θ k x₁
 
+  s-rs-l-rec-lem-lem : ∀ {Γ Γ' Γ'' τ} (x : CTp) (ρ : rctx Γ Γ') (Θ : sctx Γ' (x :: Γ'')) (k : fst [ Γ ]c) (x₁ : fst (([ Γ ]c ×p [ τ ]t) ×p (Nat , ♭nat-p)))
+                     → Preorder-str.≤ (snd [ Γ' ]c)
+                       (Monotone.f (interpR {τ :: Γ'} {Γ'} iS) (Monotone.f (interpR {nat :: τ :: Γ'} {τ :: Γ'} iS)
+                         (Monotone.f (interpR {nat :: τ :: Γ} {nat :: τ :: Γ'} (r-extend (r-extend ρ))) x₁)))
+                       (Monotone.f (interpR ρ) (Monotone.f (interpR {τ :: Γ} {Γ} iS) (Monotone.f (interpR {nat :: τ :: Γ} {τ :: Γ} iS) x₁)))
+  s-rs-l-rec-lem-lem {Γ} {Γ'} {Γ''} {τ} x ρ Θ k x₁ = {!!}
+
+  s-rs-l-rec-lem : ∀ {Γ Γ' Γ'' τ} (x : CTp) (ρ : rctx Γ Γ') (Θ : sctx Γ' (x :: Γ'')) (k : fst [ Γ ]c) (x₁ : fst (([ Γ ]c ×p [ τ ]t) ×p (Nat , ♭nat-p)))
+                 → Preorder-str.≤ (snd [ x ]t)
+                   (Monotone.f (interpE {nat :: τ :: Γ} {x} (ren (ren (ren (Θ i0) iS) iS) (r-extend (r-extend ρ)))) x₁)
+                   (Monotone.f (interpE {nat :: τ :: Γ} {x} (ren (ren (ren (Θ i0) ρ) iS) iS)) x₁)
+  s-rs-l-rec-lem {Γ} {Γ'} {Γ''} {τ} x ρ Θ k x₁ =
+    Preorder-str.trans (snd [ x ]t)
+      (Monotone.f (interpE {nat :: τ :: Γ} {x} (ren (ren (ren (Θ i0) iS) iS) (r-extend (r-extend ρ)))) x₁)
+      (Monotone.f (interpE (ren (ren (Θ i0) iS) iS)) (Monotone.f (interpR {nat :: τ :: Γ} (r-extend (r-extend ρ))) x₁))
+      (Monotone.f (interpE {nat :: τ :: Γ} {x} (ren (ren (ren (Θ i0) ρ) iS) iS)) x₁)
+      (ren-eq-l (r-extend (r-extend ρ)) (ren (ren (Θ i0) iS) iS) x₁)
+      (Preorder-str.trans (snd [ x ]t)
+        (Monotone.f (interpE (ren (ren (Θ i0) iS) iS)) (Monotone.f (interpR {nat :: τ :: Γ} (r-extend (r-extend ρ))) x₁))
+        (Monotone.f (interpE (ren (ren (Θ i0) ρ) iS)) (Monotone.f (interpR {_} {τ :: Γ} iS) x₁))
+        (Monotone.f (interpE {nat :: τ :: Γ} {x} (ren (ren (ren (Θ i0) ρ) iS) iS)) x₁)
+        (Preorder-str.trans (snd [ x ]t)
+          (Monotone.f (interpE (ren (ren (Θ i0) iS) iS)) (Monotone.f (interpR {nat :: τ :: Γ} (r-extend (r-extend ρ))) x₁))
+          (Monotone.f (interpE (ren (Θ i0) iS)) (Monotone.f (interpR {_} {τ :: Γ'} iS) (Monotone.f (interpR {nat :: τ :: Γ} {nat :: τ :: Γ'} (r-extend (r-extend ρ))) x₁)))
+          (Monotone.f (interpE (ren (ren (Θ i0) ρ) iS)) (Monotone.f (interpR {_} {τ :: Γ} iS) x₁))
+          (ren-eq-l iS (ren (Θ i0) iS) (Monotone.f (interpR {nat :: τ :: Γ} (r-extend (r-extend ρ))) x₁))
+          (Preorder-str.trans (snd [ x ]t)
+            (Monotone.f (interpE (ren (Θ i0) iS)) (Monotone.f (interpR {_} {τ :: Γ'} iS) (Monotone.f (interpR {nat :: τ :: Γ} {nat :: τ :: Γ'} (r-extend (r-extend ρ))) x₁)))
+            (Monotone.f (interpE (ren (Θ i0) ρ)) (Monotone.f (interpR {_} {Γ} iS) (Monotone.f (interpR {nat :: τ :: Γ} {τ :: Γ} iS) x₁)))
+            (Monotone.f (interpE (ren (ren (Θ i0) ρ) iS)) (Monotone.f (interpR {_} {τ :: Γ} iS) x₁))
+            (Preorder-str.trans (snd [ x ]t)
+              (Monotone.f (interpE (ren (Θ i0) iS)) (Monotone.f (interpR {_} {τ :: Γ'} iS)
+                (Monotone.f (interpR {nat :: τ :: Γ} {nat :: τ :: Γ'} (r-extend (r-extend ρ))) x₁)))
+              (Monotone.f (interpE (Θ i0)) (Monotone.f (interpR {_} {Γ'} iS)
+                (Monotone.f (interpR {nat :: τ :: Γ'} {τ :: Γ'}iS) (Monotone.f (interpR {nat :: τ :: Γ} {nat :: τ :: Γ'} (r-extend (r-extend ρ))) x₁))))
+              (Monotone.f (interpE (ren (Θ i0) ρ)) (Monotone.f (interpR {_} {Γ} iS) (Monotone.f (interpR {nat :: τ :: Γ} {τ :: Γ} iS) x₁)))
+              (ren-eq-l iS (Θ i0) (Monotone.f (interpR {_} {τ :: Γ'} iS) (Monotone.f (interpR {nat :: τ :: Γ} {nat :: τ :: Γ'} (r-extend (r-extend ρ))) x₁)))
+              (Preorder-str.trans (snd [ x ]t)
+                (Monotone.f (interpE (Θ i0)) (Monotone.f (interpR {_} {Γ'} iS)
+                  (Monotone.f (interpR {nat :: τ :: Γ'} {τ :: Γ'} iS) (Monotone.f (interpR {nat :: τ :: Γ} {nat :: τ :: Γ'} (r-extend (r-extend ρ))) x₁))))
+                (Monotone.f (interpE (Θ i0)) (Monotone.f (interpR ρ) (Monotone.f (interpR {_} {Γ} iS) (Monotone.f (interpR {nat :: τ :: Γ} {τ :: Γ} iS) x₁))))
+                (Monotone.f (interpE (ren (Θ i0) ρ)) (Monotone.f (interpR {_} {Γ} iS) (Monotone.f (interpR {nat :: τ :: Γ} {τ :: Γ} iS) x₁)))
+                (Monotone.is-monotone (interpE (Θ i0))
+                  (Monotone.f (interpR {_} {Γ'} iS) (Monotone.f (interpR {nat :: τ :: Γ'} {τ :: Γ'} iS)
+                    (Monotone.f (interpR {nat :: τ :: Γ} {nat :: τ :: Γ'} (r-extend (r-extend ρ))) x₁)))
+                  (Monotone.f (interpR ρ) (Monotone.f (interpR {_} {Γ} iS) (Monotone.f (interpR {nat :: τ :: Γ} {τ :: Γ} iS) x₁)))
+                  {!!})
+                (ren-eq-r ρ (Θ i0) (Monotone.f (interpR {_} {Γ} iS) (Monotone.f (interpR {nat :: τ :: Γ} {τ :: Γ} iS) x₁)))))
+            (ren-eq-r iS (ren (Θ i0) ρ) (Monotone.f (interpR {_} {τ :: Γ} iS) x₁))))
+        (ren-eq-r iS (ren (ren (Θ i0) ρ) iS) x₁))
+
+  s-rs-l-rec : ∀ {Γ Γ' Γ'' τ} (ρ : rctx Γ Γ') (Θ : sctx Γ' Γ'') (k : fst [ Γ ]c) (x : fst (((fst [ Γ ]c , snd [ Γ ]c) ×p (fst [ τ ]t , snd [ τ ]t)) ×p (Nat , ♭nat-p)))
+             → Preorder-str.≤ (snd [ Γ'' ]c)
+               (Monotone.f (interpS {nat :: τ :: Γ} {Γ''} (λ x₁ → ren (ren (ren (Θ x₁) iS) iS) (r-extend (r-extend (ρ))))) x)
+               (Monotone.f (interpS {nat :: τ :: Γ} {Γ''} (λ x₁ → ren (ren (ren (Θ x₁) ρ) iS) iS)) x)
+  s-rs-l-rec {Γ'' = []} ρ Θ k x = <>
+  s-rs-l-rec {Γ} {Γ'} {Γ'' = x :: Γ''} {τ} ρ Θ k x₁ = (s-rs-l-rec ρ (throw-s Θ) k x₁) , {!!}
+
   s-rs-l : ∀ {Γ A B τ} (ρ : rctx Γ A) (Θ : sctx A B) (e : B |- τ) (k : fst [ Γ ]c)
          → Preorder-str.≤ (snd [ τ ]t) (Monotone.f (interpE (ren (subst e Θ) ρ)) k) (Monotone.f (interpE (subst e (ρ rs Θ))) k)
   s-rs-l ρ Θ unit k = <>
@@ -1732,7 +1789,7 @@ module Interpretation where
                   (Monotone.is-monotone (interpE e₂)
                     (Monotone.f (interpS {nat :: τ :: Γ} {nat :: τ :: Γ''} (r-extend (r-extend ρ) rs s-extend (s-extend Θ))) x)
                     (Monotone.f (interpS {nat :: τ :: Γ} {nat :: τ :: Γ''} (s-extend (s-extend (λ x₁ → ren (Θ x₁) ρ)))) x)
-                      (({!!} ,
+                      ((s-rs-l-rec ρ Θ k x ,
                       (Preorder-str.refl (snd [ τ ]t) (snd (fst x)))) ,
                       (♭nat-refl (snd x)))))
                 (subst-eq-r (s-extend (s-extend (λ x₁ → ren (Θ x₁) ρ))) e₂ x))))
@@ -2052,7 +2109,6 @@ module Interpretation where
            (Preorder-max-str.max [ x ]tm (Monotone.f (interpE (ren (subst e Θ) ρ)) k) (Monotone.f (interpE (ren (subst e₁ Θ) ρ)) k))
              (s-rs-r ρ Θ e₁ k)
              (Preorder-max-str.max-r [ x ]tm (Monotone.f (interpE (ren (subst e Θ) ρ)) k) (Monotone.f (interpE (ren (subst e₁ Θ) ρ)) k)))
--}
 
 {-
   s-sr-l : ∀ {Γ Γ' Γ'' τ} (Θ : sctx Γ Γ') (ρ : rctx Γ' Γ'') (e : Γ'' |- τ) (k : fst [ Γ ]c)
