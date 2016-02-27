@@ -74,9 +74,9 @@ module Pilot2 where
     rec : ∀ {Γ τ} → Γ |- nat → Γ |- τ → (nat :: (τ :: Γ)) |- τ → Γ |- τ
     lam : ∀ {Γ τ ρ} → (ρ :: Γ) |- τ → Γ |- (ρ ->c τ)
     app : ∀ {Γ τ1 τ2} → Γ |- (τ2 ->c τ1) → Γ |- τ2 → Γ |- τ1
-    rz : ∀ {Γ} → Γ |- rnat
-    rsuc : ∀ {Γ} → Γ |- rnat → Γ |- rnat
-    rrec : ∀ {Γ τ} → Γ |- rnat → (Z' : Γ |- τ) → (S' : Γ |- (rnat ->c (τ ->c τ))) → (P : Z' ≤s (app (app S' rz) Z')) → Γ |- τ
+ --   rz : ∀ {Γ} → Γ |- rnat
+--    rsuc : ∀ {Γ} → Γ |- rnat → Γ |- rnat
+  --  rrec : ∀ {Γ τ} → Γ |- rnat → (Z' : Γ |- τ) → (S' : Γ |- (rnat ->c (τ ->c τ))) → (P : Z' ≤s (app (app S' rz) Z')) → Γ |- τ
     --→ (S' : (nat≤ :: (τ :: Γ)) |- τ) → (P : Z' ≤s subst S' (lem3' (lem3' ids Z') z')) (what we're doing is the same but just avoids termination problems)
     prod : ∀ {Γ τ1 τ2} → Γ |- τ1 → Γ |- τ2 → Γ |- (τ1 ×c τ2)
     l-proj : ∀ {Γ τ1 τ2} → Γ |- (τ1 ×c τ2) → Γ |- τ1
@@ -195,9 +195,9 @@ equations that define ren and subst are true in the semantics-}
   ren true ρ = true
   ren false ρ = false
   ren (listrec e e₁ e₂) ρ = listrec (ren e ρ) (ren e₁ ρ) (ren e₂ (r-extend (r-extend (r-extend ρ))))
-  ren rz ρ = rz
-  ren (rsuc e) ρ = rsuc (ren e ρ)
-  ren (rrec e e₁ e₂ p) ρ = rrec (ren e ρ) (ren e₁ ρ) (ren e₂ ρ) (ren-cong p)
+--  ren rz ρ = rz
+--  ren (rsuc e) ρ = rsuc (ren e ρ)
+--  ren (rrec e e₁ e₂ p) ρ = rrec (ren e ρ) (ren e₁ ρ) (ren e₂ ρ) (ren-cong p)
   ren (max τ e1 e2) ρ = max τ (ren e1 ρ) (ren e2 ρ)
 
   extend-ren-comp-lemma i0 ρ1 ρ2 = Refl
@@ -249,9 +249,9 @@ equations that define ren and subst are true in the semantics-}
   subst true Θ = true
   subst false Θ = false
   subst (listrec e e₁ e₂) Θ = listrec (subst e Θ) (subst e₁ Θ) (subst e₂ (s-extend (s-extend (s-extend Θ))))
-  subst rz Θ = rz
-  subst (rsuc e) Θ = rsuc (subst e Θ)
-  subst (rrec e e₁ e₂ p) Θ = rrec (subst e Θ) (subst e₁ Θ) (subst e₂ Θ) (subst-cong p)
+--  subst rz Θ = rz
+--  subst (rsuc e) Θ = rsuc (subst e Θ)
+--  subst (rrec e e₁ e₂ p) Θ = rrec (subst e Θ) (subst e₁ Θ) (subst e₂ Θ) (subst-cong p)
   subst (max τ e1 e2) Θ = max τ (subst e1 Θ) (subst e2 Θ)
 
   subst1 : ∀ {Γ τ τ1} → Γ |- τ1 → (τ1 :: Γ) |- τ → Γ |- τ
