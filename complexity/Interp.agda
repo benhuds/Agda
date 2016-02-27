@@ -1410,7 +1410,33 @@ module Interp where
               (Preorder-str.refl (snd [ τ' ]t) (Monotone.f (interpE v) k))))
           (subst-eq-r (s-extend Θ) e (Monotone.f (interpS (q v)) k))))
       (subst-eq-r (q v) (subst e (s-extend Θ)) k)
-  sound ._ .(subst e1 (lem3' (lem3' Θ v2) v1)) (subst-compose2-l Θ e1 v1 v2) k = {!!}
+  sound {Γ} {τ} ._ .(subst e1 (lem3' (lem3' Θ v2) v1)) (subst-compose2-l {.Γ} {Γ'} {.τ} {τ'} {τ''} Θ e1 v1 v2) k =
+    Preorder-str.trans (snd [ τ ]t)
+      (Monotone.f (interpE (subst (subst e1 (s-extend (s-extend Θ))) (lem4 v1 v2))) k)
+      (Monotone.f (interpE (subst e1 (s-extend (s-extend Θ)))) (Monotone.f (interpS (lem4 v1 v2)) k))
+      (Monotone.f (interpE (subst e1 (lem4' Θ v1 v2))) k)
+      (subst-eq-l (lem4 v1 v2) (subst e1 (s-extend (s-extend Θ))) k)
+      (Preorder-str.trans (snd [ τ ]t)
+        (Monotone.f (interpE (subst e1 (s-extend (s-extend Θ)))) (Monotone.f (interpS (lem4 v1 v2)) k))
+        (Monotone.f (interpE e1) (Monotone.f (interpS (lem4' Θ v1 v2)) k))
+        (Monotone.f (interpE (subst e1 (lem4' Θ v1 v2))) k)
+        (Preorder-str.trans (snd [ τ ]t)
+          (Monotone.f (interpE (subst e1 (s-extend (s-extend Θ)))) (Monotone.f (interpS (lem4 v1 v2)) k))
+          (Monotone.f (interpE e1) (Monotone.f (interpS (s-extend (s-extend Θ))) (Monotone.f (interpS (lem4 v1 v2)) k)))
+          (Monotone.f (interpE e1) (Monotone.f (interpS (lem4' Θ v1 v2)) k))
+          (subst-eq-l (s-extend (s-extend Θ)) e1 (Monotone.f (interpS (lem4 v1 v2)) k))
+          (Monotone.is-monotone (interpE e1)
+            (Monotone.f (interpS (s-extend (s-extend Θ))) (Monotone.f (interpS (lem4 v1 v2)) k))
+            (Monotone.f (interpS (lem4' Θ v1 v2)) k)
+            ((Preorder-str.trans (snd [ Γ' ]c)
+              (Monotone.f (interpS (λ x → ren (ren (Θ x) iS) iS)) ((Monotone.f (interpS ids) k , Monotone.f (interpE v2) k) , Monotone.f (interpE v1) k))
+              (Monotone.f (interpS (λ x → subst (ren (Θ x) iS) (lem3' ids v2))) k)
+              (Monotone.f (interpS Θ) k)
+              {!!}
+              (interp-subst-comp-l Θ v2 k) ,
+            Preorder-str.refl (snd [ τ'' ]t) (Monotone.f (interpE v2) k)) ,
+            Preorder-str.refl (snd [ τ' ]t) (Monotone.f (interpE v1) k))))
+        (subst-eq-r (lem4' Θ v1 v2) e1 k))
   sound .(subst e1 (lem3' (lem3' Θ v2) v1)) ._ (subst-compose2-r Θ e1 v1 v2) k = {!!}
   sound ._ .(subst e1 (lem3' (lem3' Θ (subst v2 Θ)) (subst v1 Θ))) (subst-compose3-l Θ e1 v1 v2) k = {!!}
   sound .(subst e1 (lem3' (lem3' Θ (subst v2 Θ)) (subst v1 Θ))) ._ (subst-compose3-r Θ e1 v1 v2) k = {!!}
