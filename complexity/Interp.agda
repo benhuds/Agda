@@ -1236,8 +1236,20 @@ module Interp where
               (interp-rr-r ρ1 ρ2 k))
           (ren-eq-r ρ2 e (Monotone.f (interpR ρ1) k))))
       (ren-eq-r ρ1 (ren e ρ2) k)
-  sound {Γ} {τ} e ._ (subst-id-l .e) k = {!!}
-  sound ._ e' (subst-id-r .e') k = {!!}
+  sound {Γ} {τ} e ._ (subst-id-l .e) k =
+    Preorder-str.trans (snd [ τ ]t)
+      (Monotone.f (interpE e) k)
+      (Monotone.f (interpE e) (Monotone.f (interpS {Γ} {Γ} ids) k))
+      (Monotone.f (interpE (subst e ids)) k)
+      (Monotone.is-monotone (interpE e) k (Monotone.f (interpS {Γ} {Γ} ids) k) (lam-s-lem-r {Γ} k))
+      (subst-eq-r ids e k)
+  sound {Γ} {τ} ._ e' (subst-id-r .e') k =
+    Preorder-str.trans (snd [ τ ]t)
+      (Monotone.f (interpE (subst e' ids)) k)
+      (Monotone.f (interpE e') (Monotone.f (interpS {Γ} {Γ} ids) k))
+      (Monotone.f (interpE e') k)
+      (subst-eq-l ids e' k)
+      (Monotone.is-monotone (interpE e') (Monotone.f (interpS {Γ} {Γ} ids) k) k (lam-s-lem {Γ} k))
   sound {Γ} {τ} .(ren (subst e Θ) ρ) ._ (subst-rs-l ρ Θ e) k =
     Preorder-str.trans (snd [ τ ]t)
       (Monotone.f (interpE (ren (subst e Θ) ρ)) k)
