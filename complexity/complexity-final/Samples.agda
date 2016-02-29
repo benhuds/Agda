@@ -4,39 +4,258 @@
 
 open import Preliminaries
 open import Source
+open import Pilot2
+open import Translation
+open import Interp
+open import Preorder
 
 module Samples where
 
   {- dbl (n : nat) : nat = 2 * n -}
-  dbl : ∀ {Γ} → Γ |- (nat ->s nat)
+  dbl : ∀ {Γ} → Γ Source.|- (nat ->s nat)
   dbl = lam (rec (var i0) z (suc (suc (force (var (iS i0))))))
+
+  example1 : ∀ {Γ} → || dbl {Γ} ||e == {!!}
+  example1 = {!!} --copy and paste from this goal to the thing below
+
+  dbl-trans : ∀ {Γ} → ⟨⟨ Γ ⟩⟩c Pilot2.|- || nat ->s nat ||
+  dbl-trans = prod 0C
+                                     (lam
+                                      (prod
+                                       (plusC (l-proj (prod 0C (var i0)))
+                                        (l-proj
+                                         (rec (r-proj (prod 0C (var i0)))
+                                          (prod (plusC 1C (l-proj (prod 0C z))) (r-proj (prod 0C z)))
+                                          (prod
+                                           (plusC 1C
+                                            (l-proj
+                                             (prod
+                                              (l-proj
+                                               (prod
+                                                (l-proj
+                                                 (prod
+                                                  (plusC (l-proj (prod 0C (var (iS i0))))
+                                                   (l-proj (r-proj (prod 0C (var (iS i0))))))
+                                                  (r-proj (r-proj (prod 0C (var (iS i0)))))))
+                                                (s
+                                                 (r-proj
+                                                  (prod
+                                                   (plusC (l-proj (prod 0C (var (iS i0))))
+                                                    (l-proj (r-proj (prod 0C (var (iS i0))))))
+                                                   (r-proj (r-proj (prod 0C (var (iS i0))))))))))
+                                              (s
+                                               (r-proj
+                                                (prod
+                                                 (l-proj
+                                                  (prod
+                                                   (plusC (l-proj (prod 0C (var (iS i0))))
+                                                    (l-proj (r-proj (prod 0C (var (iS i0))))))
+                                                   (r-proj (r-proj (prod 0C (var (iS i0)))))))
+                                                 (s
+                                                  (r-proj
+                                                   (prod
+                                                    (plusC (l-proj (prod 0C (var (iS i0))))
+                                                     (l-proj (r-proj (prod 0C (var (iS i0))))))
+                                                    (r-proj (r-proj (prod 0C (var (iS i0))))))))))))))
+                                           (r-proj
+                                            (prod
+                                             (l-proj
+                                              (prod
+                                               (l-proj
+                                                (prod
+                                                 (plusC (l-proj (prod 0C (var (iS i0))))
+                                                  (l-proj (r-proj (prod 0C (var (iS i0))))))
+                                                 (r-proj (r-proj (prod 0C (var (iS i0)))))))
+                                               (s
+                                                (r-proj
+                                                 (prod
+                                                  (plusC (l-proj (prod 0C (var (iS i0))))
+                                                   (l-proj (r-proj (prod 0C (var (iS i0))))))
+                                                  (r-proj (r-proj (prod 0C (var (iS i0))))))))))
+                                             (s
+                                              (r-proj
+                                               (prod
+                                                (l-proj
+                                                 (prod
+                                                  (plusC (l-proj (prod 0C (var (iS i0))))
+                                                   (l-proj (r-proj (prod 0C (var (iS i0))))))
+                                                  (r-proj (r-proj (prod 0C (var (iS i0)))))))
+                                                (s
+                                                 (r-proj
+                                                  (prod
+                                                   (plusC (l-proj (prod 0C (var (iS i0))))
+                                                    (l-proj (r-proj (prod 0C (var (iS i0))))))
+                                                   (r-proj (r-proj (prod 0C (var (iS i0)))))))))))))))))
+                                       (r-proj
+                                        (rec (r-proj (prod 0C (var i0)))
+                                         (prod (plusC 1C (l-proj (prod 0C z))) (r-proj (prod 0C z)))
+                                         (prod
+                                          (plusC 1C
+                                           (l-proj
+                                            (prod
+                                             (l-proj
+                                              (prod
+                                               (l-proj
+                                                (prod
+                                                 (plusC (l-proj (prod 0C (var (iS i0))))
+                                                  (l-proj (r-proj (prod 0C (var (iS i0))))))
+                                                 (r-proj (r-proj (prod 0C (var (iS i0)))))))
+                                               (s
+                                                (r-proj
+                                                 (prod
+                                                  (plusC (l-proj (prod 0C (var (iS i0))))
+                                                   (l-proj (r-proj (prod 0C (var (iS i0))))))
+                                                  (r-proj (r-proj (prod 0C (var (iS i0))))))))))
+                                             (s
+                                              (r-proj
+                                               (prod
+                                                (l-proj
+                                                 (prod
+                                                  (plusC (l-proj (prod 0C (var (iS i0))))
+                                                   (l-proj (r-proj (prod 0C (var (iS i0))))))
+                                                  (r-proj (r-proj (prod 0C (var (iS i0)))))))
+                                                (s
+                                                 (r-proj
+                                                  (prod
+                                                   (plusC (l-proj (prod 0C (var (iS i0))))
+                                                    (l-proj (r-proj (prod 0C (var (iS i0))))))
+                                                   (r-proj (r-proj (prod 0C (var (iS i0))))))))))))))
+                                          (r-proj
+                                           (prod
+                                            (l-proj
+                                             (prod
+                                              (l-proj
+                                               (prod
+                                                (plusC (l-proj (prod 0C (var (iS i0))))
+                                                 (l-proj (r-proj (prod 0C (var (iS i0))))))
+                                                (r-proj (r-proj (prod 0C (var (iS i0)))))))
+                                              (s
+                                               (r-proj
+                                                (prod
+                                                 (plusC (l-proj (prod 0C (var (iS i0))))
+                                                  (l-proj (r-proj (prod 0C (var (iS i0))))))
+                                                 (r-proj (r-proj (prod 0C (var (iS i0))))))))))
+                                            (s
+                                             (r-proj
+                                              (prod
+                                               (l-proj
+                                                (prod
+                                                 (plusC (l-proj (prod 0C (var (iS i0))))
+                                                  (l-proj (r-proj (prod 0C (var (iS i0))))))
+                                                 (r-proj (r-proj (prod 0C (var (iS i0)))))))
+                                               (s
+                                                (r-proj
+                                                 (prod
+                                                  (plusC (l-proj (prod 0C (var (iS i0))))
+                                                   (l-proj (r-proj (prod 0C (var (iS i0))))))
+                                                  (r-proj (r-proj (prod 0C (var (iS i0))))))))))))))))))
+
+  aaa : ∀ {Γ} → interpE (r-proj (dbl-trans {Γ})) == {!!}
+  aaa = {!!}
+
+  interp-dbl-trans : ∀ {Γ} → Monotone (fst [ ⟨⟨ Γ ⟩⟩c ]c) (fst [ ⟨⟨ nat ->s nat ⟩⟩ ]t) (snd [ ⟨⟨ Γ ⟩⟩c ]c) (snd [ ⟨⟨ nat ->s nat ⟩⟩ ]t)
+  interp-dbl-trans {Γ} = monotone
+                           (λ x →
+                              monotone
+                              (λ p₁ →
+                                 (natrec (1 , 0) (λ n x₂ → S (fst x₂) , S (S (snd x₂))) p₁))
+                              (λ a b c →
+                                 nat-trans
+                                 (fst (natrec (1 , 0) (λ n x₂ → S (fst x₂) , S (S (snd x₂))) a))
+                                 (fst (natrec (1 , 0) (λ n x₂ → S (fst x₂) , S (S (snd x₂))) b))
+                                 (fst (natrec (1 , 0) (λ n x₂ → S (fst x₂) , S (S (snd x₂))) b))
+                                 (fst
+                                  (♭h-fix-args (monotone (λ x₁ → 1 , 0) (λ x₁ y z₁ → <> , <>))
+                                   (monotone
+                                    (λ x₁ → S (fst (snd (fst x₁))) , S (S (snd (snd (fst x₁)))))
+                                    (λ x₁ y z₁ → fst (snd (fst z₁)) , snd (snd (fst z₁))))
+                                   ((x , a) , a) ((x , b) , b) c))
+                                 (fst
+                                  (♭h-fix-el (monotone (λ x₁ → 1 , 0) (λ x₁ y z₁ → <> , <>))
+                                   (monotone
+                                    (λ x₁ → S (fst (snd (fst x₁))) , S (S (snd (snd (fst x₁)))))
+                                    (λ x₁ y z₁ → fst (snd (fst z₁)) , snd (snd (fst z₁))))
+                                   ((x , a) , a) ((x , b) , b)
+                                   ((Preorder-str.refl (snd [ ⟨⟨ Γ ⟩⟩c ]c) x , c) , c)))
+                                 ,
+                                 ♭nat-trans
+                                 (snd (natrec (1 , 0) (λ n x₂ → S (fst x₂) , S (S (snd x₂))) a))
+                                 (snd (natrec (1 , 0) (λ n x₂ → S (fst x₂) , S (S (snd x₂))) b))
+                                 (snd (natrec (1 , 0) (λ n x₂ → S (fst x₂) , S (S (snd x₂))) b))
+                                 (snd
+                                  (♭h-fix-args (monotone (λ x₁ → 1 , 0) (λ x₁ y z₁ → <> , <>))
+                                   (monotone
+                                    (λ x₁ → S (fst (snd (fst x₁))) , S (S (snd (snd (fst x₁)))))
+                                    (λ x₁ y z₁ → fst (snd (fst z₁)) , snd (snd (fst z₁))))
+                                   ((x , a) , a) ((x , b) , b) c))
+                                 (snd
+                                  (♭h-fix-el (monotone (λ x₁ → 1 , 0) (λ x₁ y z₁ → <> , <>))
+                                   (monotone
+                                    (λ x₁ → S (fst (snd (fst x₁))) , S (S (snd (snd (fst x₁)))))
+                                    (λ x₁ y z₁ → fst (snd (fst z₁)) , snd (snd (fst z₁))))
+                                   ((x , a) , a) ((x , b) , b)
+                                   ((Preorder-str.refl (snd [ ⟨⟨ Γ ⟩⟩c ]c) x , c) , c)))))
+                           (λ x y z₁ w →
+                              nat-trans
+                              (fst (natrec (1 , 0) (λ n x₂ → S (fst x₂) , S (S (snd x₂))) w))
+                              (fst (natrec (1 , 0) (λ n x₂ → S (fst x₂) , S (S (snd x₂))) w))
+                              (fst (natrec (1 , 0) (λ n x₂ → S (fst x₂) , S (S (snd x₂))) w))
+                              (fst
+                               (♭h-fix-args (monotone (λ x₁ → 1 , 0) (λ x₁ y₁ z₂ → <> , <>))
+                                (monotone
+                                 (λ x₁ → S (fst (snd (fst x₁))) , S (S (snd (snd (fst x₁)))))
+                                 (λ x₁ y₁ z₂ → fst (snd (fst z₂)) , snd (snd (fst z₂))))
+                                ((x , w) , w) ((y , w) , w) (♭nat-refl w)))
+                              (fst
+                               (♭h-fix-el (monotone (λ x₁ → 1 , 0) (λ x₁ y₁ z₂ → <> , <>))
+                                (monotone
+                                 (λ x₁ → S (fst (snd (fst x₁))) , S (S (snd (snd (fst x₁)))))
+                                 (λ x₁ y₁ z₂ → fst (snd (fst z₂)) , snd (snd (fst z₂))))
+                                ((x , w) , w) ((y , w) , w) ((z₁ , ♭nat-refl w) , ♭nat-refl w)))
+                              ,
+                              ♭nat-trans
+                              (snd (natrec (1 , 0) (λ n x₂ → S (fst x₂) , S (S (snd x₂))) w))
+                              (snd (natrec (1 , 0) (λ n x₂ → S (fst x₂) , S (S (snd x₂))) w))
+                              (snd (natrec (1 , 0) (λ n x₂ → S (fst x₂) , S (S (snd x₂))) w))
+                              (snd
+                               (♭h-fix-args (monotone (λ x₁ → 1 , 0) (λ x₁ y₁ z₂ → <> , <>))
+                                (monotone
+                                 (λ x₁ → S (fst (snd (fst x₁))) , S (S (snd (snd (fst x₁)))))
+                                 (λ x₁ y₁ z₂ → fst (snd (fst z₂)) , snd (snd (fst z₂))))
+                                ((x , w) , w) ((y , w) , w) (♭nat-refl w)))
+                              (snd
+                               (♭h-fix-el (monotone (λ x₁ → 1 , 0) (λ x₁ y₁ z₂ → <> , <>))
+                                (monotone
+                                 (λ x₁ → S (fst (snd (fst x₁))) , S (S (snd (snd (fst x₁)))))
+                                 (λ x₁ y₁ z₂ → fst (snd (fst z₂)) , snd (snd (fst z₂))))
+                                ((x , w) , w) ((y , w) , w) ((z₁ , ♭nat-refl w) , ♭nat-refl w))))
  
   {- add (m n : nat) : nat = m + n -}
-  add : ∀ {Γ} → Γ |- (nat ->s (nat ->s nat))
+  add : ∀ {Γ} → Γ Source.|- (nat ->s (nat ->s nat))
   add = lam (lam (rec (var (iS i0)) (var i0) (suc (force (var (iS i0))))))
 
   {- mult (m n : nat) : nat = m * n -}
-  mult : ∀ {Γ} → Γ |- (nat ->s (nat ->s nat))
+  mult : ∀ {Γ} → Γ Source.|- (nat ->s (nat ->s nat))
   mult = lam (lam (rec (var (iS i0)) z (app (app add (var (iS (iS i0)))) (force (var (iS i0))))))
 
   -- hack : instead of having bool case analysis just do natural number recursion and return 1/0
 
   {- iszero (n : nat) : nat = z -> 1 | _ -> 0 -}
-  isz : ∀ {Γ} → Γ |- (nat ->s nat)
+  isz : ∀ {Γ} → Γ Source.|- (nat ->s nat)
   isz = lam (rec (var i0) (suc z) z)
 
   {- leq (m n : nat) : nat = m ≤ n -}
-  leq : ∀ {Γ} → Γ |- (nat ->s (nat ->s nat))
+  leq : ∀ {Γ} → Γ Source.|- (nat ->s (nat ->s nat))
   leq = lam (lam (rec (var (iS i0))
           (app isz (var (iS i0)))
           (rec (var (iS (iS (iS i0)))) (suc z) (force (var (iS i0))))))
 
   {- len (l : list τ) : nat = [] -> z | x :: xs -> 1 + len xs -}
-  len : ∀ {Γ τ} → Γ |- (list τ ->s nat)
+  len : ∀ {Γ τ} → Γ Source.|- (list τ ->s nat)
   len = lam (listrec (var i0) z (suc (force (var (iS (iS i0))))))
 
   {- insert (l : list nat) (el : nat) : list nat = [] -> [el] | x :: xs -> (leq el x -> el :: x :: xs | x :: (insert el xs)) -}
-  insert : ∀ {Γ} → Γ |- (list nat ->s (nat ->s list nat))
+  insert : ∀ {Γ} → Γ Source.|- (list nat ->s (nat ->s list nat))
   insert = lam (lam (listrec (var (iS i0))
              (var i0 ::s nil)
              (rec (app (app leq (var (iS (iS (iS i0))))) (var i0))
@@ -44,11 +263,11 @@ module Samples where
                (var (iS (iS (iS (iS (iS i0))))) ::s var (iS (iS (iS (iS (iS (iS i0))))))))))
 
   {- insertion sort (l : list nat) : list nat = [] -> [] | x :: xs -> insert x (isort xs) -}
-  isort : ∀ {Γ} → Γ |- (list nat ->s list nat)
+  isort : ∀ {Γ} → Γ Source.|- (list nat ->s list nat)
   isort = lam (listrec (var i0) nil (app (app insert (force (var (iS (iS i0))))) (var i0)))
 
   {- halve (l : list nat) : (list nat * list nat) = splits a list in half -}
-  halve : ∀ {Γ} → Γ |- (list nat ->s (list nat ×s list nat))
+  halve : ∀ {Γ} → Γ Source.|- (list nat ->s (list nat ×s list nat))
   halve = lam (listrec (var i0)
             (prod nil nil)
             (listrec (var (iS i0))
@@ -64,7 +283,7 @@ module Samples where
            y :: ys ->
              x <= y -> x :: merge xs l2
              _ -> y :: merge l1 ys -}
-  merge : ∀ {Γ} → Γ |- ((list nat ×s list nat) ->s list nat)
+  merge : ∀ {Γ} → Γ Source.|- ((list nat ×s list nat) ->s list nat)
   merge = lam (listrec (split (var i0) (var i0))
             (split (var i0) (var (iS i0)))
             (listrec (split (var (iS (iS (iS i0)))) (var (iS i0)))
@@ -74,7 +293,7 @@ module Samples where
                 (var i0 ::s app merge (prod (split (var (iS (iS (iS (iS (iS (iS (iS (iS i0))))))))) (var (iS i0))) (var (iS (iS (iS i0))))))))) 
 
   {- mergesort (l : list nat) : list nat -}
-  msort : ∀ {Γ} → Γ |- (list nat ->s list nat)
+  msort : ∀ {Γ} → Γ Source.|- (list nat ->s list nat)
   msort = lam (listrec (var i0)
             nil
             (listrec (var (iS i0))
