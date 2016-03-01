@@ -26,6 +26,14 @@ module Samples where
   mult : ∀ {Γ} → Γ Source.|- (nat ->s (nat ->s nat))
   mult = lam (lam (rec (var (iS i0)) z (app (app add (var (iS (iS i0)))) (force (var (iS i0))))))
 
+  {- pred (n : nat) : nat = predecessor of n -}
+  pred : ∀ {Γ} → Γ Source.|- (nat ->s nat)
+  pred = lam (rec (var i0) z (force (var (iS i0))))
+
+  {- fib (n : nat) : nat = computes the nth fibonacci number (naive) -}
+  fib : ∀ {Γ} → Γ Source.|- (nat ->s nat)
+  fib = lam (rec (var i0) z (rec (var i0) z (app (app add (force (var (iS i0)))) (app fib (app pred (var i0))))))
+
   -- hack : instead of having bool case analysis just do natural number recursion and return 1/0
 
   {- iszero (n : nat) : nat = z -> 1 | _ -> 0 -}
