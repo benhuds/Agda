@@ -62,6 +62,10 @@ module Samples where
   isort : ∀ {Γ} → Γ Source.|- (list nat ->s list nat)
   isort = lam (listrec (var i0) nil (app (app insert (force (var (iS (iS i0))))) (var i0)))
 
+  {- map (l : list τ) (f : τ → τ) : list τ = [] -> [] | x :: xs -> f x :: map f xs -}
+  map : ∀ {Γ τ} → Γ Source.|- ((τ ->s τ) ->s (list τ ->s list τ))
+  map = lam (lam (listrec (var i0) nil (app (var (iS (iS (iS (iS i0))))) (var i0) ::s force (var (iS (iS i0))))))
+
   dbl-trans : ∀ {Γ τ} → {!!} --el ([ (⟨⟨ Γ ⟩⟩c) ]c ->p [ (|| τ ||) ]t)
   dbl-trans {Γ} = {!!}
 
