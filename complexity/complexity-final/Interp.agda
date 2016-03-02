@@ -1113,12 +1113,11 @@ module Interp where
          (Preorder-str.refl (snd [ τ2 ]t) (Monotone.f (interpE v2) k))))
       (ren-eq-r iS (ren (ren (Θ i0) iS) iS) (((Monotone.f (interpS {Γ} ids) k , Monotone.f (interpE v3) k) , Monotone.f (interpE v2) k) , Monotone.f (interpE v1) k))
 
-  s-cong2-lem : ∀ {Γ Γ'} (Θ Θ' : sctx Γ Γ')  (k : fst [ Γ ]c) (x : (τ₁ : CTp) (x₁ : τ₁ ∈ Γ') → Preorder-str.≤ (snd [ τ₁ ]t) (Monotone.f (interpE (Θ x₁)) k) (Monotone.f (interpE (Θ' x₁)) k))
-                  → Preorder-str.≤ (snd [ Γ' ]c) (Monotone.f (interpS Θ) k) (Monotone.f (interpS Θ') k)
-  s-cong2-lem {Γ']} Θ Θ' x k = {!!}
-
-    -- s-cong2-lem (throw-s Θ) (throw-s Θ') (λ τ₁ x₂ → x₁ τ₁ (iS x₂)) k ,
-    -- sound (Θ i0) (Θ' i0) (x₁ x i0) k
+  s-cong2-lem : ∀ {Γ Γ'} (Θ Θ' : sctx Γ Γ')  (k : fst [ Γ ]c)
+                (x : (τ₁ : CTp) (x₁ : τ₁ ∈ Γ') → Preorder-str.≤ (snd [ τ₁ ]t) (Monotone.f (interpE (Θ x₁)) k) (Monotone.f (interpE (Θ' x₁)) k))
+              → Preorder-str.≤ (snd [ Γ' ]c) (Monotone.f (interpS Θ) k) (Monotone.f (interpS Θ') k)
+  s-cong2-lem {Γ' = []} Θ Θ' x k = <>
+  s-cong2-lem {Γ' = x :: Γ'} Θ Θ' x₁ k = (s-cong2-lem (throw-s Θ) (throw-s Θ') x₁ (λ τ₁ x₂ → k τ₁ (iS x₂))) , k x i0
 
   sound {_} {τ} e .e refl-s k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
   sound {Γ} {τ} e e' (trans-s {.Γ} {.τ} {.e} {e''} {.e'} d d₁) k =
