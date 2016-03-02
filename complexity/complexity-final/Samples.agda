@@ -14,14 +14,17 @@ module Samples where
   s2r : ∀ {Γ τ} → Γ Source.|- τ → el ([ (⟨⟨ Γ ⟩⟩c) ]c ->p [ (|| τ ||) ]t)
   s2r p = interpE || p ||e
 
+  -- this works
   {- dbl (n : nat) : nat = 2 * n -}
   dbl : ∀ {Γ} → Γ Source.|- (nat ->s nat)
   dbl = lam (rec (var i0) z (suc (suc (force (var (iS i0))))))
 
+  -- this works
   {- add (m n : nat) : nat = m + n -}
   add : ∀ {Γ} → Γ Source.|- (nat ->s (nat ->s nat))
   add = lam (lam (rec (var (iS i0)) (var i0) (suc (force (var (iS i0))))))
 
+  -- this works
   {- mult (m n : nat) : nat = m * n -}
   mult : ∀ {Γ} → Γ Source.|- (nat ->s (nat ->s nat))
   mult = lam (lam (rec (var (iS i0)) z (app (app add (var (iS (iS i0)))) (force (var (iS i0))))))
@@ -32,10 +35,11 @@ module Samples where
 
   {- fib (n : nat) : nat = computes the nth fibonacci number (naive) -}
   fib : ∀ {Γ} → Γ Source.|- (nat ->s nat)
-  fib = lam (rec (var i0) z (rec (var i0) z (app (app add (force (var (iS i0)))) (app fib (app pred (var i0))))))
+  fib = lam (rec (var i0) (suc z) (rec (var i0) (suc z) (app (app add (force (var (iS i0)))) (app fib (app pred (var i0))))))
 
   -- hack : instead of having bool case analysis just do natural number recursion and return 1/0
 
+  -- this works
   {- iszero (n : nat) : nat = z -> 1 | _ -> 0 -}
   isz : ∀ {Γ} → Γ Source.|- (nat ->s nat)
   isz = lam (rec (var i0) (suc z) z)
@@ -46,9 +50,19 @@ module Samples where
           (app isz (var (iS i0)))
           (rec (var (iS (iS (iS i0)))) (suc z) (force (var (iS i0))))))
 
+  {- eq (m n : nat) : nat = m = n -}
+  eq : ∀ {Γ} → Γ Source.|- (nat ->s (nat ->s nat))
+  eq = lam (lam (rec (var (iS i0)) (app isz (var i0)) (rec (var (iS (iS i0))) z (app (app eq (var (iS (iS i0)))) (var i0)))))
+
+  -- this works
   {- len (l : list τ) : nat = [] -> z | x :: xs -> 1 + len xs -}
   len : ∀ {Γ τ} → Γ Source.|- (list τ ->s nat)
   len = lam (listrec (var i0) z (suc (force (var (iS (iS i0))))))
+
+  test : ∀ {Γ} → Γ Source.|- nat
+  test = {!!}
+
+  {- nth (n : nat) (l : list τ) : nat = [] -> 1 | x :: xs -> if n = x then 0 else 1 + (nth n xs) -}
 
   {- insert (l : list nat) (el : nat) : list nat = [] -> [el] | x :: xs -> (leq el x -> el :: x :: xs | x :: (insert el xs)) -}
   insert : ∀ {Γ} → Γ Source.|- (list nat ->s (nat ->s list nat))
@@ -69,8 +83,8 @@ module Samples where
   dbl-trans : ∀ {Γ τ} → {!!} --el ([ (⟨⟨ Γ ⟩⟩c) ]c ->p [ (|| τ ||) ]t)
   dbl-trans {Γ} = {!!}
 
-  example1 : ∀ {Γ} → || dbl {Γ} ||e == {!!}
-  example1 = {!!} --copy and paste from this goal to the thing below
+  example1 : ∀ {Γ τ} → {!!}
+  example1 {Γ} {τ} = {!!} --copy and paste from this goal to the thing below
 {-
   dbl-trans : ∀ {Γ} → ⟨⟨ Γ ⟩⟩c Pilot2.|- || nat ->s nat ||
   dbl-trans = prod 0C
