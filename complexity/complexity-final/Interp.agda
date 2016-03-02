@@ -1,7 +1,5 @@
 {- NEW INTERP WITHOUT RREC -}
 
-{-# OPTIONS --no-termination-check #-}
-
 open import Preliminaries
 open import Preorder
 open import Pilot2
@@ -1115,12 +1113,12 @@ module Interp where
          (Preorder-str.refl (snd [ τ2 ]t) (Monotone.f (interpE v2) k))))
       (ren-eq-r iS (ren (ren (Θ i0) iS) iS) (((Monotone.f (interpS {Γ} ids) k , Monotone.f (interpE v3) k) , Monotone.f (interpE v2) k) , Monotone.f (interpE v1) k))
 
-  s-cong2-lem : ∀ {Γ Γ'} (Θ Θ' : sctx Γ Γ') (x : (τ₁ : CTp) (x₁ : τ₁ ∈ Γ') → Θ x₁ ≤s Θ' x₁) (k : fst [ Γ ]c)
+  s-cong2-lem : ∀ {Γ Γ'} (Θ Θ' : sctx Γ Γ')  (k : fst [ Γ ]c) (x : (τ₁ : CTp) (x₁ : τ₁ ∈ Γ') → Preorder-str.≤ (snd [ τ₁ ]t) (Monotone.f (interpE (Θ x₁)) k) (Monotone.f (interpE (Θ' x₁)) k))
                   → Preorder-str.≤ (snd [ Γ' ]c) (Monotone.f (interpS Θ) k) (Monotone.f (interpS Θ') k)
-  s-cong2-lem {Γ' = []} Θ Θ' x k = <>
-  s-cong2-lem {Γ' = x :: Γ'} Θ Θ' x₁ k =
-    s-cong2-lem (throw-s Θ) (throw-s Θ') (λ τ₁ x₂ → x₁ τ₁ (iS x₂)) k ,
-    sound (Θ i0) (Θ' i0) (x₁ x i0) k
+  s-cong2-lem {Γ']} Θ Θ' x k = {!!}
+
+    -- s-cong2-lem (throw-s Θ) (throw-s Θ') (λ τ₁ x₂ → x₁ τ₁ (iS x₂)) k ,
+    -- sound (Θ i0) (Θ' i0) (x₁ x i0) k
 
   sound {_} {τ} e .e refl-s k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
   sound {Γ} {τ} e e' (trans-s {.Γ} {.τ} {.e} {e''} {.e'} d d₁) k =
@@ -1163,18 +1161,18 @@ module Interp where
            (Monotone.f (interpE (subst e2 Θ)) k)
              (sound e1 e2 d (Monotone.f (interpS Θ) k))
              (subst-eq-r Θ e2 k))
-  sound {Γ} {τ} ._ ._ (subst-cong2 {.Γ} {Γ'} {.τ} {Θ} {Θ'} {e} x) k =
-    Preorder-str.trans (snd [ τ ]t)
-      (Monotone.f (interpE (subst e Θ)) k)
-      (Monotone.f (interpE e) (Monotone.f (interpS Θ) k))
-      (Monotone.f (interpE (subst e Θ')) k) (subst-eq-l Θ e k)
-        (Preorder-str.trans (snd [ τ ]t)
-          (Monotone.f (interpE e) (Monotone.f (interpS Θ) k))
-          (Monotone.f (interpE e) (Monotone.f (interpS Θ') k))
-          (Monotone.f (interpE (subst e Θ')) k)
-            (Monotone.is-monotone (interpE e) (Monotone.f (interpS Θ) k)
-            (Monotone.f (interpS Θ') k) (s-cong2-lem Θ Θ' x k))
-        (subst-eq-r Θ' e k))
+  sound {Γ} {τ} ._ ._ (subst-cong2 {.Γ} {Γ'} {.τ} {Θ} {Θ'} {e} x) k = transport (λ X → X) {!!} (s-cong2-lem Θ Θ' k (λ τ1 x1 → sound _ _ (x _ x1) k)) 
+    -- Preorder-str.trans (snd [ τ ]t)
+    --   (Monotone.f (interpE (subst e Θ)) k)
+    --   (Monotone.f (interpE e) (Monotone.f (interpS Θ) k))
+    --   (Monotone.f (interpE (subst e Θ')) k) (subst-eq-l Θ e k)
+    --     (Preorder-str.trans (snd [ τ ]t)
+    --       (Monotone.f (interpE e) (Monotone.f (interpS Θ) k))
+    --       (Monotone.f (interpE e) (Monotone.f (interpS Θ') k))
+    --       (Monotone.f (interpE (subst e Θ')) k)
+    --         (Monotone.is-monotone (interpE e) (Monotone.f (interpS Θ) k)
+    --         (Monotone.f (interpS Θ') k) (s-cong2-lem Θ Θ' x k))
+    --     (subst-eq-r Θ' e k))
   sound {Γ} {τ} ._ ._ (cong-rec {.Γ} {.τ} {e} {e'} {e0} {e1} d) k =
     ♭h-fix-args (interpE e0) (interpE e1) (k , Monotone.f (interpE e) k) (k , Monotone.f (interpE e') k) (sound e e' d k)
   sound {Γ} {τ} ._ ._ (cong-listrec {.Γ} {τ'} {.τ} {e} {e'} {e0} {e1} d) k =
