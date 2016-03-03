@@ -59,7 +59,10 @@ module Samples where
   len : ∀ {Γ τ} → Γ Source.|- (list τ ->s nat)
   len = lam (listrec (var i0) z (suc (force (var (iS (iS i0))))))
 
+  -- this works
   {- nth (n : nat) (l : list τ) : nat = [] -> 1 | x :: xs -> if n = x then 0 else 1 + (nth n xs) -}
+  nth : ∀ {Γ} → Γ Source.|- (list nat ->s (nat ->s nat))
+  nth = lam (lam (listrec (var (iS i0)) (suc z) (rec (app (app eq (var (iS (iS (iS i0))))) (var i0)) (suc (force (var (iS (iS i0))))) z)))
 
   {- insert (l : list nat) (el : nat) : list nat = [] -> [el] | x :: xs -> (leq el x -> el :: x :: xs | x :: (insert el xs)) -}
   insert : ∀ {Γ} → Γ Source.|- (list nat ->s (nat ->s list nat))
@@ -79,7 +82,7 @@ module Samples where
   map = lam (lam (listrec (var i0) nil (app (var (iS (iS (iS (iS i0))))) (var i0) ::s force (var (iS (iS i0))))))
 
   dbl-trans : ∀ {Γ τ} → {!!} --el ([ (⟨⟨ Γ ⟩⟩c) ]c ->p [ (|| τ ||) ]t)
-  dbl-trans {Γ} = {!s2r (app (app leq (suc (suc z))) (suc z))!}
+  dbl-trans {Γ} = {!!}
 
   example1 : ∀ {Γ τ} → {!!}
   example1 {Γ} {τ} = {!!} --copy and paste from this goal to the thing below
