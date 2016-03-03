@@ -46,10 +46,10 @@ module Samples where
 
   {- leq (m n : nat) : nat = m ≤ n -}
   leq : ∀ {Γ} → Γ Source.|- (nat ->s (nat ->s nat))
-  leq = lam (lam (rec (var (iS i0))
-          (app isz (var (iS i0)))
-          (rec (var (iS (iS (iS i0)))) (suc z) (force (var (iS i0))))))
+  leq = lam (lam (rec (var (iS i0)) (suc z)
+          (rec (var (iS (iS i0))) (suc z) (app (app leq (var (iS (iS i0)))) (var i0)))))
 
+  -- this works
   {- eq (m n : nat) : nat = m = n -}
   eq : ∀ {Γ} → Γ Source.|- (nat ->s (nat ->s nat))
   eq = lam (lam (rec (var (iS i0)) (app isz (var i0)) (rec (var (iS (iS i0))) z (app (app eq (var (iS (iS i0)))) (var i0)))))
@@ -58,9 +58,6 @@ module Samples where
   {- len (l : list τ) : nat = [] -> z | x :: xs -> 1 + len xs -}
   len : ∀ {Γ τ} → Γ Source.|- (list τ ->s nat)
   len = lam (listrec (var i0) z (suc (force (var (iS (iS i0))))))
-
-  test : ∀ {Γ} → Γ Source.|- nat
-  test = {!!}
 
   {- nth (n : nat) (l : list τ) : nat = [] -> 1 | x :: xs -> if n = x then 0 else 1 + (nth n xs) -}
 
@@ -76,12 +73,13 @@ module Samples where
   isort : ∀ {Γ} → Γ Source.|- (list nat ->s list nat)
   isort = lam (listrec (var i0) nil (app (app insert (force (var (iS (iS i0))))) (var i0)))
 
+  -- this works
   {- map (l : list τ) (f : τ → τ) : list τ = [] -> [] | x :: xs -> f x :: map f xs -}
   map : ∀ {Γ τ} → Γ Source.|- ((τ ->s τ) ->s (list τ ->s list τ))
   map = lam (lam (listrec (var i0) nil (app (var (iS (iS (iS (iS i0))))) (var i0) ::s force (var (iS (iS i0))))))
 
   dbl-trans : ∀ {Γ τ} → {!!} --el ([ (⟨⟨ Γ ⟩⟩c) ]c ->p [ (|| τ ||) ]t)
-  dbl-trans {Γ} = {!!}
+  dbl-trans {Γ} = {!s2r (app (app leq (suc (suc z))) (suc z))!}
 
   example1 : ∀ {Γ τ} → {!!}
   example1 {Γ} {τ} = {!!} --copy and paste from this goal to the thing below
