@@ -29,13 +29,15 @@ module Samples where
   mult : ∀ {Γ} → Γ Source.|- (nat ->s (nat ->s nat))
   mult = lam (lam (rec (var (iS i0)) z (app (app add (var (iS (iS i0)))) (force (var (iS i0))))))
 
+  -- this works
   {- pred (n : nat) : nat = predecessor of n -}
   pred : ∀ {Γ} → Γ Source.|- (nat ->s nat)
-  pred = lam (rec (var i0) z (force (var (iS i0))))
+  pred = lam (rec (var i0) z (var i0))
 
+  -- this works if you don't have termination check
   {- fib (n : nat) : nat = computes the nth fibonacci number (naive) -}
   fib : ∀ {Γ} → Γ Source.|- (nat ->s nat)
-  fib = lam (rec (var i0) (suc z) (rec (var i0) (suc z) (app (app add (force (var (iS i0)))) (app fib (app pred (var i0))))))
+  fib = lam (rec (var i0) (suc z) (rec (var i0) (suc z) (app (app add (app fib (var i0))) (app fib (var (iS (iS i0)))))))
 
   -- hack : instead of having bool case analysis just do natural number recursion and return 1/0
 
@@ -47,9 +49,9 @@ module Samples where
   {- leq (m n : nat) : nat = m ≤ n -}
   leq : ∀ {Γ} → Γ Source.|- (nat ->s (nat ->s nat))
   leq = lam (lam (rec (var (iS i0)) (suc z)
-          (rec (var (iS (iS i0))) (suc z) (app (app leq (var (iS (iS i0)))) (var i0)))))
+          (rec (var (iS (iS i0))) z (app (app leq (var (iS (iS i0)))) (var i0)))))
 
-  -- this works
+  -- works but needs termination off
   {- eq (m n : nat) : nat = m = n -}
   eq : ∀ {Γ} → Γ Source.|- (nat ->s (nat ->s nat))
   eq = lam (lam (rec (var (iS i0)) (app isz (var i0)) (rec (var (iS (iS i0))) z (app (app eq (var (iS (iS i0)))) (var i0)))))
@@ -59,11 +61,17 @@ module Samples where
   len : ∀ {Γ τ} → Γ Source.|- (list τ ->s nat)
   len = lam (listrec (var i0) z (suc (force (var (iS (iS i0))))))
 
-  -- this works
+  -- this works but needs terminaion off for eq
   {- nth (n : nat) (l : list τ) : nat = [] -> 1 | x :: xs -> if n = x then 0 else 1 + (nth n xs) -}
   nth : ∀ {Γ} → Γ Source.|- (list nat ->s (nat ->s nat))
   nth = lam (lam (listrec (var (iS i0)) (suc z) (rec (app (app eq (var (iS (iS (iS i0))))) (var i0)) (suc (force (var (iS (iS i0))))) z)))
 
+  -- this works
+  {- append (l1 l2 : list τ) : list τ = match l1 with [] -> l2 | x :: xs -> x :: (append xs ys) -}
+  append : ∀ {Γ τ} → Γ Source.|- (list τ ->s (list τ ->s list τ))
+  append = lam (lam (listrec (var (iS i0)) (var i0) (var i0 ::s force (var (iS (iS i0))))))
+
+  -- need to redo these indices i think i messed something up
   {- insert (l : list nat) (el : nat) : list nat = [] -> [el] | x :: xs -> (leq el x -> el :: x :: xs | x :: (insert el xs)) -}
   insert : ∀ {Γ} → Γ Source.|- (list nat ->s (nat ->s list nat))
   insert = lam (lam (listrec (var (iS i0))
@@ -82,7 +90,7 @@ module Samples where
   map = lam (lam (listrec (var i0) nil (app (var (iS (iS (iS (iS i0))))) (var i0) ::s force (var (iS (iS i0))))))
 
   dbl-trans : ∀ {Γ τ} → {!!} --el ([ (⟨⟨ Γ ⟩⟩c) ]c ->p [ (|| τ ||) ]t)
-  dbl-trans {Γ} = {!!}
+  dbl-trans {Γ} = {!s2r (app (app leq (suc (suc z))) (suc (suc z)))!}
 
   example1 : ∀ {Γ τ} → {!!}
   example1 {Γ} {τ} = {!!} --copy and paste from this goal to the thing below
