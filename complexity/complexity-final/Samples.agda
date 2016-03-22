@@ -71,6 +71,11 @@ module Samples where
   append : ∀ {Γ τ} → Γ Source.|- (list τ ->s (list τ ->s list τ))
   append = lam (lam (listrec (var (iS i0)) (var i0) (var i0 ::s force (var (iS (iS i0))))))
 
+  -- this works
+  {- rev (l : list τ) : list τ = [] -> [] | x :: xs -> append (rev xs) [x] -}
+  rev : ∀ {Γ τ} → Γ Source.|- (list τ ->s list τ)
+  rev = lam (listrec (var i0) nil (app (app append (force (var (iS (iS i0))))) (var i0 ::s nil)))
+
   -- need to redo these indices i think i messed something up
   {- insert (l : list nat) (el : nat) : list nat = [] -> [el] | x :: xs -> (leq el x -> el :: x :: xs | x :: (insert el xs)) -}
   insert : ∀ {Γ} → Γ Source.|- (list nat ->s (nat ->s list nat))
@@ -90,7 +95,7 @@ module Samples where
   map = lam (lam (listrec (var i0) nil (app (var (iS (iS (iS (iS i0))))) (var i0) ::s force (var (iS (iS i0))))))
 
   dbl-trans : ∀ {Γ τ} → {!!} --el ([ (⟨⟨ Γ ⟩⟩c) ]c ->p [ (|| τ ||) ]t)
-  dbl-trans {Γ} = {!s2r (app (app leq (suc (suc z))) (suc (suc z)))!}
+  dbl-trans {Γ} = {!s2r rev!}
 
   example1 : ∀ {Γ τ} → {!!}
   example1 {Γ} {τ} = {!!} --copy and paste from this goal to the thing below
@@ -315,6 +320,9 @@ module Samples where
             (listrec (var (iS i0))
               (prod (var i0 ::s nil) nil)
               (prod (var (iS (iS (iS i0))) ::s split (force (var (iS (iS i0)))) (var i0)) (var i0 ::s split (force (var (iS (iS i0)))) (var (iS i0))))))
+
+  test : ∀ {Γ τ} → {!!}
+  test {Γ} = {!s2r (app halve (z ::s (z ::s (z ::s nil))))!}
 
   {- merge (l1 l2 : list nat) : list nat =
        match l1 with
