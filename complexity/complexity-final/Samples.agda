@@ -39,6 +39,12 @@ module Samples where
   fib : ∀ {Γ} → Γ Source.|- (nat ->s nat)
   fib = lam (rec (var i0) (suc z) (rec (var i0) (suc z) (app (app add (app fib (var i0))) (app fib (var (iS (iS i0)))))))
 
+  fastfib : ∀ {Γ} → Γ Source.|- (nat ->s (nat ×s nat))
+  fastfib =
+    lam (rec (var i0) (prod z (suc z))
+      (prod (split (force (var (iS i0))) (var (iS i0)))
+        (app (app add (split (force (var (iS i0))) (var i0))) (split (force (var (iS i0))) (var (iS i0))))))
+
   -- hack : instead of having bool case analysis just do natural number recursion and return 1/0
 
   -- this works
@@ -76,6 +82,12 @@ module Samples where
   rev : ∀ {Γ τ} → Γ Source.|- (list τ ->s list τ)
   rev = lam (listrec (var i0) nil (app (app append (force (var (iS (iS i0))))) (var i0 ::s nil)))
 
+  {- fast rev -}
+  rev2piles : ∀ {Γ τ} → Γ Source.|- (list τ ->s (list τ ->s list τ))
+  rev2piles = lam (lam (listrec (var (iS i0)) (var i0) (app (app rev2piles (var (iS i0))) (var i0 ::s var (iS (iS (iS i0)))))))
+  fastrev : ∀ {Γ τ} → Γ Source.|- (list τ ->s list τ)
+  fastrev = lam (app (app rev2piles (var i0)) nil)
+
   -- need to redo these indices i think i messed something up
   {- insert (l : list nat) (el : nat) : list nat = [] -> [el] | x :: xs -> (leq el x -> el :: x :: xs | x :: (insert el xs)) -}
   insert : ∀ {Γ} → Γ Source.|- (list nat ->s (nat ->s list nat))
@@ -95,7 +107,7 @@ module Samples where
   map = lam (lam (listrec (var i0) nil (app (var (iS (iS (iS (iS i0))))) (var i0) ::s force (var (iS (iS i0))))))
 
   dbl-trans : ∀ {Γ τ} → {!!} --el ([ (⟨⟨ Γ ⟩⟩c) ]c ->p [ (|| τ ||) ]t)
-  dbl-trans {Γ} = {!s2r rev!}
+  dbl-trans {Γ} = {!s2r fastfib!}
 
   example1 : ∀ {Γ τ} → {!!}
   example1 {Γ} {τ} = {!!} --copy and paste from this goal to the thing below
