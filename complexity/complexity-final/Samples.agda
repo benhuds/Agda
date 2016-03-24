@@ -34,11 +34,7 @@ module Samples where
   pred : ∀ {Γ} → Γ Source.|- (nat ->s nat)
   pred = lam (rec (var i0) z (var i0))
 
-  -- this works if you don't have termination check
-  {- fib (n : nat) : nat = computes the nth fibonacci number (naive) -}
-  fib : ∀ {Γ} → Γ Source.|- (nat ->s nat)
-  fib = lam (rec (var i0) (suc z) (rec (var i0) (suc z) (app (app add (app fib (var i0))) (app fib (var (iS (iS i0)))))))
-
+  -- uhhhh
   fastfib : ∀ {Γ} → Γ Source.|- (nat ->s (nat ×s nat))
   fastfib =
     lam (rec (var i0) (prod z (suc z))
@@ -52,10 +48,10 @@ module Samples where
   isz : ∀ {Γ} → Γ Source.|- (nat ->s nat)
   isz = lam (rec (var i0) (suc z) z)
 
+  -- this works
   {- leq (m n : nat) : nat = m ≤ n -}
   leq : ∀ {Γ} → Γ Source.|- (nat ->s (nat ->s nat))
-  leq = lam (lam (rec (var (iS i0)) (suc z)
-          (rec (var (iS (iS i0))) z (app (app leq (var (iS (iS i0)))) (var i0)))))
+  leq = lam (rec (var i0) (lam (suc z)) (lam (rec (var i0) z (app (force (var (iS (iS (iS (iS i0)))))) (var i0)))))
 
   -- works but needs termination off
   {- eq (m n : nat) : nat = m = n -}
@@ -88,15 +84,14 @@ module Samples where
   fastrev : ∀ {Γ τ} → Γ Source.|- (list τ ->s list τ)
   fastrev = lam (app (app rev2piles (var i0)) nil)
 
-  -- need to redo these indices i think i messed something up
+  -- this works
   {- insert (l : list nat) (el : nat) : list nat = [] -> [el] | x :: xs -> (leq el x -> el :: x :: xs | x :: (insert el xs)) -}
   insert : ∀ {Γ} → Γ Source.|- (list nat ->s (nat ->s list nat))
-  insert = lam (lam (listrec (var (iS i0))
-             (var i0 ::s nil)
-             (rec (app (app leq (var (iS (iS (iS i0))))) (var i0))
-               (var i0 ::s force (var (iS (iS i0))))
-               (var (iS (iS (iS (iS (iS i0))))) ::s var (iS (iS (iS (iS (iS (iS i0))))))))))
+  insert = lam (lam (listrec (var (iS i0)) (var i0 ::s nil)
+             (rec (app (app leq (var (iS (iS (iS i0))))) (var i0)) (var i0 ::s force (var (iS (iS i0))))
+               (var (iS (iS (iS (iS (iS i0))))) ::s (var (iS (iS i0)) ::s var (iS (iS (iS i0))))))))
 
+  -- this works
   {- insertion sort (l : list nat) : list nat = [] -> [] | x :: xs -> insert x (isort xs) -}
   isort : ∀ {Γ} → Γ Source.|- (list nat ->s list nat)
   isort = lam (listrec (var i0) nil (app (app insert (force (var (iS (iS i0))))) (var i0)))
@@ -107,7 +102,7 @@ module Samples where
   map = lam (lam (listrec (var i0) nil (app (var (iS (iS (iS (iS i0))))) (var i0) ::s force (var (iS (iS i0))))))
 
   dbl-trans : ∀ {Γ τ} → {!!} --el ([ (⟨⟨ Γ ⟩⟩c) ]c ->p [ (|| τ ||) ]t)
-  dbl-trans {Γ} = {!s2r fastfib!}
+  dbl-trans {Γ} = {!!}
 
   example1 : ∀ {Γ τ} → {!!}
   example1 {Γ} {τ} = {!!} --copy and paste from this goal to the thing below
