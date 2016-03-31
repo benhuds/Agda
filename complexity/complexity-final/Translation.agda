@@ -32,13 +32,18 @@ module Translation where
   lookup i0 = i0
   lookup (iS x) = iS (lookup x)
 
+  throw-s : ∀ {Γ Γ' τ} → Pilot2.sctx Γ (τ :: Γ') → Pilot2.sctx Γ Γ'
+  throw-s Θ x = Θ (iS x)
+
   -- translation from source expressions to complexity expressions
   ||_||e : ∀{Γ τ} → Γ Source.|- τ → ⟨⟨ Γ ⟩⟩c Pilot2.|- || τ ||
   || unit ||e = prod 0C unit
   || var x ||e = prod 0C (var (lookup x))
   || z ||e = prod 0C z
-  || suc e ||e = (letc (prod (l-proj (var i0)) (r-proj (var i0))) || e ||e)
-  || rec e e0 e1 ||e = letc (l-proj (var i0) +C rec (r-proj (var i0)) (Pilot2.wkn (1C +C || e0 ||e)) {!1C +C || e1 ||e!}) || e ||e
+  || suc e ||e = (letc (prod (l-proj (var i0)) (r-proj (var i0))) || e ||e) --1C +C || e1 ||e
+  || rec e e0 e1 ||e =
+    letc (l-proj (var i0) +C rec (r-proj (var i0))
+      (Pilot2.wkn (1C +C || e0 ||e)) (Pilot2.subst (1C +C || e1 ||e) (Pilot2.s-extend (Pilot2.s-extend (throw-s Pilot2.ids))))) || e ||e
   || lam e ||e = prod 0C (lam || e ||e) 
   || app e1 e2 ||e = letc (letc (prod (plusC (plusC (l-proj (var (iS i0))) (l-proj (var i0))) (l-proj (app (r-proj (var (iS i0))) (r-proj (var i0)))))
                           (r-proj (app (r-proj (var (iS i0))) (r-proj (var i0))))) (Pilot2.wkn || e2 ||e)) || e1 ||e
@@ -50,6 +55,8 @@ module Translation where
 --(Pilot2.subst || e1 ||e (Pilot2.lem4 (l-proj (r-proj || e0 ||e)) (r-proj (r-proj || e0 ||e))))
   || nil ||e = prod 0C nil
   || e ::s e₁ ||e = letc (letc (prod (plusC (l-proj (var (iS i0))) (l-proj (var i0))) (r-proj (var (iS i0)) ::c r-proj (var i0))) (Pilot2.wkn || e₁ ||e)) || e ||e
-  || listrec e e₁ e₂ ||e = letc (l-proj (var i0) +C listrec (r-proj (var i0)) (Pilot2.wkn (1C +C || e₁ ||e)) {!!}) || e ||e
+  || listrec e e₁ e₂ ||e =
+    letc (l-proj (var i0) +C listrec (r-proj (var i0))
+     (Pilot2.wkn (1C +C || e₁ ||e)) (Pilot2.subst (1C +C || e₂ ||e) (Pilot2.s-extend (Pilot2.s-extend (Pilot2.s-extend (throw-s Pilot2.ids)))))) || e ||e
   || true ||e = prod 0C true
   || false ||e = prod 0C false
