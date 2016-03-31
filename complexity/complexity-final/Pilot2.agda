@@ -87,6 +87,10 @@ module Pilot2 where
     true : ∀ {Γ} → Γ |- bool
     false : ∀ {Γ} → Γ |- bool
     max : ∀ {Γ τ} → CTpM τ → Γ |- τ → Γ |- τ  → Γ |- τ
+    letc : ∀ {Γ ρ τ} → (ρ :: Γ) |- τ → Γ |- ρ → Γ |- τ
+
+--  letc : ∀ {Γ ρ τ} → (ρ :: Γ) |- τ → Γ |- ρ → Γ |- τ
+  --letc e e' = app (lam e) e'
 
 {-[ Θ ]s : Monotone [ Γ ]  [ Γ' ]
   [ ρ ]r : same
@@ -199,6 +203,7 @@ equations that define ren and subst are true in the semantics-}
 --  ren (rsuc e) ρ = rsuc (ren e ρ)
 --  ren (rrec e e₁ e₂ p) ρ = rrec (ren e ρ) (ren e₁ ρ) (ren e₂ ρ) (ren-cong p)
   ren (max τ e1 e2) ρ = max τ (ren e1 ρ) (ren e2 ρ)
+  ren (letc e e') ρ = letc (ren e (r-extend ρ)) (ren e' ρ)
 
   extend-ren-comp-lemma i0 ρ1 ρ2 = Refl
   extend-ren-comp-lemma (iS x) ρ1 ρ2 = Refl
@@ -253,6 +258,7 @@ equations that define ren and subst are true in the semantics-}
 --  subst (rsuc e) Θ = rsuc (subst e Θ)
 --  subst (rrec e e₁ e₂ p) Θ = rrec (subst e Θ) (subst e₁ Θ) (subst e₂ Θ) (subst-cong p)
   subst (max τ e1 e2) Θ = max τ (subst e1 Θ) (subst e2 Θ)
+  subst (letc e e') Θ = letc (subst e (s-extend Θ)) (subst e' Θ)
 
   subst1 : ∀ {Γ τ τ1} → Γ |- τ1 → (τ1 :: Γ) |- τ → Γ |- τ
   subst1 e e' = subst e' (q e)

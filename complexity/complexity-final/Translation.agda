@@ -37,12 +37,13 @@ module Translation where
   || unit ||e = prod 0C unit
   || var x ||e = prod 0C (var (lookup x))
   || z ||e = prod 0C z
-  || suc e ||e =
-    let r = || e ||e in
-      prod (l-proj r) (s (r-proj r))
+  || suc e ||e = (letc (prod (l-proj (var i0)) (r-proj (var i0))) || e ||e)
+--    let r = || e ||e in
+  --    prod (l-proj r) (s (r-proj r))
   || rec e e0 e1 ||e =
-    let r = || e ||e in
-      (l-proj r) +C (rec (r-proj r) (1C +C || e0 ||e) (1C +C || e1 ||e)) 
+  --  let r = || e ||e in
+      (letc (l-proj (var i0) +C rec (r-proj (var i0)) (Pilot2.wkn (1C +C || e0 ||e)) {!!}) || e ||e)
+--((l-proj ?) +C (rec (r-proj ?) (1C +C || e0 ||e) (1C +C || e1 ||e)))
   || lam e ||e =
     let r = || e ||e in
       prod 0C (lam r) 
