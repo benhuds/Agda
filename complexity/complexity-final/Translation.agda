@@ -51,8 +51,7 @@ module Translation where
   || delay e ||e = prod 0C || e ||e
   || force e ||e = letc (prod (plusC (l-proj (var i0)) (l-proj (r-proj (var i0)))) (r-proj (r-proj (var i0)))) || e ||e
   || split e0 e1 ||e = letc (prod (plusC (Pilot2.wkn (l-proj || e0 ||e)) (l-proj (var i0))) (r-proj (var i0))) E1
-    where E1 = letc (Pilot2.subst || e1 ||e {!!}) || e0 ||e
---(Pilot2.subst || e1 ||e (Pilot2.lem4 (l-proj (r-proj || e0 ||e)) (r-proj (r-proj || e0 ||e))))
+    where E1 = letc (Pilot2.subst || e1 ||e (Pilot2.lem4 (l-proj (r-proj (var i0))) (r-proj (r-proj (var i0))) Pilot2.ss Pilot2.s-extend (Pilot2.s-extend (throw-s Pilot2.ids)))) || e0 ||e
   || nil ||e = prod 0C nil
   || e ::s e₁ ||e = letc (letc (prod (plusC (l-proj (var (iS i0))) (l-proj (var i0))) (r-proj (var (iS i0)) ::c r-proj (var i0))) (Pilot2.wkn || e₁ ||e)) || e ||e
   || listrec e e₁ e₂ ||e =
