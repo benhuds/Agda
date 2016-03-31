@@ -1,4 +1,4 @@
-{- NEW TRANSLATION STUFF: same thing but interpret source nat as ♭nat-}
+{- NEW TRANSLATION: notation change to avoid exponential increase in term size during translation -}
 
 open import Preliminaries
 open import Source
@@ -38,9 +38,7 @@ module Translation where
   || var x ||e = prod 0C (var (lookup x))
   || z ||e = prod 0C z
   || suc e ||e = (letc (prod (l-proj (var i0)) (r-proj (var i0))) || e ||e)
-  || rec e e0 e1 ||e =
-      (letc (l-proj (var i0) +C rec (r-proj (var i0)) (Pilot2.wkn (1C +C || e0 ||e)) (Pilot2.wkn (1C +C {!|| e1 ||e!}))) || e ||e)
---((l-proj ?) +C (rec (r-proj ?) (1C +C || e0 ||e) (1C +C || e1 ||e)))
+  || rec e e0 e1 ||e = letc (l-proj (var i0) +C rec (r-proj (var i0)) (Pilot2.wkn (1C +C || e0 ||e)) {!1C +C || e1 ||e!}) || e ||e
   || lam e ||e = prod 0C (lam || e ||e) 
   || app e1 e2 ||e = letc (letc (prod (plusC (plusC (l-proj (var (iS i0))) (l-proj (var i0))) (l-proj (app (r-proj (var (iS i0))) (r-proj (var i0)))))
                           (r-proj (app (r-proj (var (iS i0))) (r-proj (var i0))))) (Pilot2.wkn || e2 ||e)) || e1 ||e
@@ -52,10 +50,6 @@ module Translation where
 --(Pilot2.subst || e1 ||e (Pilot2.lem4 (l-proj (r-proj || e0 ||e)) (r-proj (r-proj || e0 ||e))))
   || nil ||e = prod 0C nil
   || e ::s e₁ ||e = letc (letc (prod (plusC (l-proj (var (iS i0))) (l-proj (var i0))) (r-proj (var (iS i0)) ::c r-proj (var i0))) (Pilot2.wkn || e₁ ||e)) || e ||e
-  || listrec e e₁ e₂ ||e =
-    let r = || e ||e in
-    let r1 = || e₁ ||e in
-    let r2 = || e₂ ||e in
-      l-proj r +C listrec (r-proj r) (1C +C r1) (1C +C r2)
+  || listrec e e₁ e₂ ||e = letc (l-proj (var i0) +C listrec (r-proj (var i0)) (Pilot2.wkn (1C +C || e₁ ||e)) {!!}) || e ||e
   || true ||e = prod 0C true
   || false ||e = prod 0C false
