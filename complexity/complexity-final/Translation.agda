@@ -37,18 +37,43 @@ module Translation where
   || unit ||e = prod 0C unit
   || var x ||e = prod 0C (var (lookup x))
   || z ||e = prod 0C z
-  || suc e ||e = prod (l-proj (|| e ||e)) (s (r-proj (|| e ||e)))
-  || rec e e0 e1 ||e = (l-proj (|| e ||e)) +C (rec (r-proj || e ||e) (1C +C || e0 ||e) (1C +C || e1 ||e)) 
-  || lam e ||e = prod 0C (lam || e ||e) 
-  || app e1 e2 ||e = prod (plusC (plusC (l-proj (|| e1 ||e)) (l-proj (|| e2 ||e))) (l-proj (app (r-proj (|| e1 ||e)) (r-proj (|| e2 ||e)))))
-                          (r-proj (app (r-proj (|| e1 ||e)) (r-proj (|| e2 ||e))))
-  || prod e1 e2 ||e = prod (plusC (l-proj (|| e1 ||e)) (l-proj (|| e2 ||e))) (prod (r-proj (|| e1 ||e)) (r-proj (|| e2 ||e)))
-  || delay e ||e = prod 0C (|| e ||e)
-  || force e ||e = prod (plusC (l-proj (|| e ||e)) (l-proj (r-proj || e ||e))) (r-proj (r-proj (|| e ||e)))
-  || split e0 e1 ||e = prod (plusC (l-proj (|| e0 ||e)) (l-proj E1)) (r-proj E1)
-    where E1 = (Pilot2.subst || e1 ||e (Pilot2.lem4 (l-proj (r-proj || e0 ||e)) (r-proj (r-proj || e0 ||e))))
+  || suc e ||e =
+    let r = || e ||e in
+      prod (l-proj r) (s (r-proj r))
+  || rec e e0 e1 ||e =
+    let r = || e ||e in
+      (l-proj r) +C (rec (r-proj r) (1C +C || e0 ||e) (1C +C || e1 ||e)) 
+  || lam e ||e =
+    let r = || e ||e in
+      prod 0C (lam r) 
+  || app e1 e2 ||e =
+    let r1 = || e1 ||e in
+    let r2 = || e2 ||e in
+      prod (plusC (plusC (l-proj r1) (l-proj r2)) (l-proj (app (r-proj r1) (r-proj r2))))
+                          (r-proj (app (r-proj r1) (r-proj r2)))
+  || prod e1 e2 ||e =
+    let r1 = || e1 ||e in
+    let r2 = || e2 ||e in
+      prod (plusC (l-proj r1) (l-proj r2)) (prod (r-proj r1) (r-proj r2))
+  || delay e ||e =
+    let r = || e ||e in
+    prod 0C r
+  || force e ||e =
+    let r = || e ||e in
+      prod (plusC (l-proj r) (l-proj (r-proj r))) (r-proj (r-proj r))
+  || split e0 e1 ||e =
+    let r0 = || e0 ||e in
+      prod (plusC (l-proj r0) (l-proj E1)) (r-proj E1)
+    where E1 = let r1 = || e1 ||e in let r0 = || e0 ||e in (Pilot2.subst r1 (Pilot2.lem4 (l-proj (r-proj r0)) (r-proj (r-proj r0))))
   || nil ||e = prod 0C nil
-  || e ::s e₁ ||e = prod (plusC (l-proj || e ||e) (l-proj || e₁ ||e)) ((r-proj || e ||e) ::c (r-proj || e₁ ||e))
-  || listrec e e₁ e₂ ||e = l-proj || e ||e +C listrec (r-proj || e ||e) (1C +C || e₁ ||e) (1C +C || e₂ ||e)
+  || e ::s e₁ ||e =
+    let r = || e ||e in
+    let r1 = || e₁ ||e in
+      prod (plusC (l-proj r) (l-proj r1)) ((r-proj r) ::c (r-proj r1))
+  || listrec e e₁ e₂ ||e =
+    let r = || e ||e in
+    let r1 = || e₁ ||e in
+    let r2 = || e₂ ||e in
+      l-proj r +C listrec (r-proj r) (1C +C r1) (1C +C r2)
   || true ||e = prod 0C true
   || false ||e = prod 0C false
