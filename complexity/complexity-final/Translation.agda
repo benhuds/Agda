@@ -38,39 +38,20 @@ module Translation where
   || var x ||e = prod 0C (var (lookup x))
   || z ||e = prod 0C z
   || suc e ||e = (letc (prod (l-proj (var i0)) (r-proj (var i0))) || e ||e)
---    let r = || e ||e in
-  --    prod (l-proj r) (s (r-proj r))
   || rec e e0 e1 ||e =
-  --  let r = || e ||e in
-      (letc (l-proj (var i0) +C rec (r-proj (var i0)) (Pilot2.wkn (1C +C || e0 ||e)) {!!}) || e ||e)
+      (letc (l-proj (var i0) +C rec (r-proj (var i0)) (Pilot2.wkn (1C +C || e0 ||e)) (Pilot2.wkn (1C +C {!|| e1 ||e!}))) || e ||e)
 --((l-proj ?) +C (rec (r-proj ?) (1C +C || e0 ||e) (1C +C || e1 ||e)))
-  || lam e ||e =
-    let r = || e ||e in
-      prod 0C (lam r) 
-  || app e1 e2 ||e =
-    let r1 = || e1 ||e in
-    let r2 = || e2 ||e in
-      prod (plusC (plusC (l-proj r1) (l-proj r2)) (l-proj (app (r-proj r1) (r-proj r2))))
-                          (r-proj (app (r-proj r1) (r-proj r2)))
-  || prod e1 e2 ||e =
-    let r1 = || e1 ||e in
-    let r2 = || e2 ||e in
-      prod (plusC (l-proj r1) (l-proj r2)) (prod (r-proj r1) (r-proj r2))
-  || delay e ||e =
-    let r = || e ||e in
-    prod 0C r
-  || force e ||e =
-    let r = || e ||e in
-      prod (plusC (l-proj r) (l-proj (r-proj r))) (r-proj (r-proj r))
-  || split e0 e1 ||e =
-    let r0 = || e0 ||e in
-      prod (plusC (l-proj r0) (l-proj E1)) (r-proj E1)
-    where E1 = let r1 = || e1 ||e in let r0 = || e0 ||e in (Pilot2.subst r1 (Pilot2.lem4 (l-proj (r-proj r0)) (r-proj (r-proj r0))))
+  || lam e ||e = prod 0C (lam || e ||e) 
+  || app e1 e2 ||e = letc (letc (prod (plusC (plusC (l-proj (var (iS i0))) (l-proj (var i0))) (l-proj (app (r-proj (var (iS i0))) (r-proj (var i0)))))
+                          (r-proj (app (r-proj (var (iS i0))) (r-proj (var i0))))) (Pilot2.wkn || e2 ||e)) || e1 ||e
+  || prod e1 e2 ||e = letc (letc (prod (plusC (l-proj (var (iS i0))) (l-proj (var i0))) (prod (r-proj (var (iS i0))) (r-proj (var i0)))) (Pilot2.wkn || e2 ||e)) || e1 ||e
+  || delay e ||e = prod 0C || e ||e
+  || force e ||e = letc (prod (plusC (l-proj (var i0)) (l-proj (r-proj (var i0)))) (r-proj (r-proj (var i0)))) || e ||e
+  || split e0 e1 ||e = letc (prod (plusC (Pilot2.wkn (l-proj || e0 ||e)) (l-proj (var i0))) (r-proj (var i0))) E1
+    where E1 = letc (Pilot2.subst || e1 ||e {!!}) || e0 ||e
+--(Pilot2.subst || e1 ||e (Pilot2.lem4 (l-proj (r-proj || e0 ||e)) (r-proj (r-proj || e0 ||e))))
   || nil ||e = prod 0C nil
-  || e ::s e₁ ||e =
-    let r = || e ||e in
-    let r1 = || e₁ ||e in
-      prod (plusC (l-proj r) (l-proj r1)) ((r-proj r) ::c (r-proj r1))
+  || e ::s e₁ ||e = letc (letc (prod (plusC (l-proj (var (iS i0))) (l-proj (var i0))) (r-proj (var (iS i0)) ::c r-proj (var i0))) (Pilot2.wkn || e₁ ||e)) || e ||e
   || listrec e e₁ e₂ ||e =
     let r = || e ||e in
     let r1 = || e₁ ||e in
