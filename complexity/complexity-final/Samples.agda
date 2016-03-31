@@ -1,7 +1,5 @@
 {- SAMPLE PROGRAMS IN SOURCE LANGUAGE -}
 
-{-# OPTIONS --no-termination-check #-}
-
 open import Preliminaries
 open import Source
 open import Pilot2
@@ -53,18 +51,18 @@ module Samples where
   leq : ∀ {Γ} → Γ Source.|- (nat ->s (nat ->s nat))
   leq = lam (rec (var i0) (lam (suc z)) (lam (rec (var i0) z (app (force (var (iS (iS (iS (iS i0)))))) (var i0)))))
 
-  -- works but needs termination off
+  -- this works
   {- eq (m n : nat) : nat = m = n -}
   eq : ∀ {Γ} → Γ Source.|- (nat ->s (nat ->s nat))
-  eq = lam (lam (rec (var (iS i0)) (app isz (var i0)) (rec (var (iS (iS i0))) z (app (app eq (var (iS (iS i0)))) (var i0)))))
+  eq = lam (rec (var i0) (lam (app isz (var i0))) (lam (rec (var i0) z (app (force (var (iS (iS (iS (iS i0)))))) (var i0)))))
 
   -- this works
   {- len (l : list τ) : nat = [] -> z | x :: xs -> 1 + len xs -}
   len : ∀ {Γ τ} → Γ Source.|- (list τ ->s nat)
   len = lam (listrec (var i0) z (suc (force (var (iS (iS i0))))))
 
-  -- this works but needs terminaion off for eq
-  {- nth (n : nat) (l : list τ) : nat = [] -> 1 | x :: xs -> if n = x then 0 else 1 + (nth n xs) -}
+  -- this works
+  {- nth (n : nat) (l : list τ) : nat = [] -> 1 (return 1+len(l) if element not in list) | x :: xs -> if n = x then 0 else 1 + (nth n xs) -}
   nth : ∀ {Γ} → Γ Source.|- (list nat ->s (nat ->s nat))
   nth = lam (lam (listrec (var (iS i0)) (suc z) (rec (app (app eq (var (iS (iS (iS i0))))) (var i0)) (suc (force (var (iS (iS i0))))) z)))
 
@@ -78,11 +76,13 @@ module Samples where
   rev : ∀ {Γ τ} → Γ Source.|- (list τ ->s list τ)
   rev = lam (listrec (var i0) nil (app (app append (force (var (iS (iS i0))))) (var i0 ::s nil)))
 
+{-
   {- fast rev -}
   rev2piles : ∀ {Γ τ} → Γ Source.|- (list τ ->s (list τ ->s list τ))
   rev2piles = lam (lam (listrec (var (iS i0)) (var i0) (app (app rev2piles (var (iS i0))) (var i0 ::s var (iS (iS (iS i0)))))))
   fastrev : ∀ {Γ τ} → Γ Source.|- (list τ ->s list τ)
   fastrev = lam (app (app rev2piles (var i0)) nil)
+-}
 
   -- this works
   {- insert (l : list nat) (el : nat) : list nat = [] -> [el] | x :: xs -> (leq el x -> el :: x :: xs | x :: (insert el xs)) -}
@@ -97,12 +97,12 @@ module Samples where
   isort = lam (listrec (var i0) nil (app (app insert (force (var (iS (iS i0))))) (var i0)))
 
   -- this works
-  {- map (l : list τ) (f : τ → τ) : list τ = [] -> [] | x :: xs -> f x :: map f xs -}
-  map : ∀ {Γ τ} → Γ Source.|- ((τ ->s τ) ->s (list τ ->s list τ))
+  {- map (l : list τ) (f : τ → τ') : list τ = [] -> [] | x :: xs -> f x :: map f xs -}
+  map : ∀ {Γ τ τ'} → Γ Source.|- ((τ ->s τ') ->s (list τ ->s list τ'))
   map = lam (lam (listrec (var i0) nil (app (var (iS (iS (iS (iS i0))))) (var i0) ::s force (var (iS (iS i0))))))
 
   dbl-trans : ∀ {Γ τ} → {!!} --el ([ (⟨⟨ Γ ⟩⟩c) ]c ->p [ (|| τ ||) ]t)
-  dbl-trans {Γ} = {!!}
+  dbl-trans {Γ} = {!s2r map!}
 
   example1 : ∀ {Γ τ} → {!!}
   example1 {Γ} {τ} = {!!} --copy and paste from this goal to the thing below
@@ -320,6 +320,7 @@ module Samples where
                                 ((x , w) , w) ((y , w) , w) ((z₁ , ♭nat-refl w) , ♭nat-refl w))))
 -} 
 
+{-
   {- halve (l : list nat) : (list nat * list nat) = splits a list in half -}
   halve : ∀ {Γ} → Γ Source.|- (list nat ->s (list nat ×s list nat))
   halve = lam (listrec (var i0)
@@ -358,3 +359,4 @@ module Samples where
               (app merge (prod
                 (app msort (split (app halve (var (iS (iS (iS (iS (iS (iS i0)))))))) (var i0)))
                 (app msort (split (app halve (var (iS (iS (iS (iS (iS (iS i0)))))))) (var (iS i0))))))))
+-}
