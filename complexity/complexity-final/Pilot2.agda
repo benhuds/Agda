@@ -101,6 +101,7 @@ equations that define ren and subst are true in the semantics-}
     refl-s : ∀ {Γ T} → {e : Γ |- T} → e ≤s e
     trans-s : ∀ {Γ T} → {e e' e'' : Γ |- T} → e ≤s e' → e' ≤s e'' → e ≤s e''
     cong-refl : ∀ {Γ τ} {e e' : Γ |- τ} → e == e' → e ≤s e'
+    lt : ∀ {Γ} → _≤s_ {Γ} 0C 1C
     +-unit-l : ∀ {Γ} {e : Γ |- C} → (plusC 0C e) ≤s e
     +-unit-l' : ∀ {Γ} {e : Γ |- C} → e ≤s (plusC 0C e) 
     +-unit-r : ∀ {Γ} {e : Γ |- C} → (plusC e 0C) ≤s e

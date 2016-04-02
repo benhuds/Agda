@@ -9,7 +9,7 @@ open import Preorder
 
 module Samples where
 
-  s2r : ∀ {Γ τ} → Γ Source.|- τ → el ([ (⟨⟨ Γ ⟩⟩c) ]c ->p [ (|| τ ||) ]t)
+  s2r : ∀ {Γ τ} → Γ Source.|- τ → (el ([ (⟨⟨ Γ ⟩⟩c) ]c ->p [ (|| τ ||) ]t))
   s2r p = interpE || p ||e
 
   -- this works
@@ -102,7 +102,7 @@ module Samples where
   map = lam (lam (listrec (var i0) nil (app (var (iS (iS (iS (iS i0))))) (var i0) ::s force (var (iS (iS i0))))))
 
   dbl-trans : ∀ {Γ τ} → {!!} --el ([ (⟨⟨ Γ ⟩⟩c) ]c ->p [ (|| τ ||) ]t)
-  dbl-trans {Γ} = {!s2r insert!}
+  dbl-trans {Γ} = {!s2r dbl!}
 
   example1 : ∀ {Γ τ} → {!!}
   example1 {Γ} {τ} = {!!} --copy and paste from this goal to the thing below

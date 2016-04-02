@@ -40,8 +40,11 @@ module Translation-Original where
   || suc e ||e = prod (l-proj (|| e ||e)) (s (r-proj (|| e ||e)))
   || rec e e0 e1 ||e = (l-proj (|| e ||e)) +C (rec (r-proj || e ||e) (1C +C || e0 ||e) (1C +C || e1 ||e)) 
   || lam e ||e = prod 0C (lam || e ||e) 
-  || app e1 e2 ||e = prod (plusC (plusC (l-proj (|| e1 ||e)) (l-proj (|| e2 ||e))) (l-proj (app (r-proj (|| e1 ||e)) (r-proj (|| e2 ||e)))))
-                          (r-proj (app (r-proj (|| e1 ||e)) (r-proj (|| e2 ||e))))
+  || app e1 e2 ||e =
+    prod (plusC (plusC (plusC 1C (l-proj || e1 ||e)) (l-proj || e2 ||e)) (l-proj (app (r-proj || e1 ||e) (r-proj || e2 ||e))))
+    (r-proj (app (r-proj || e1 ||e) (r-proj || e2 ||e)))
+--prod (plusC (plusC (l-proj (|| e1 ||e)) (l-proj (|| e2 ||e))) (l-proj (app (r-proj (|| e1 ||e)) (r-proj (|| e2 ||e)))))
+  --                        (r-proj (app (r-proj (|| e1 ||e)) (r-proj (|| e2 ||e))))
   || prod e1 e2 ||e = prod (plusC (l-proj (|| e1 ||e)) (l-proj (|| e2 ||e))) (prod (r-proj (|| e1 ||e)) (r-proj (|| e2 ||e)))
   || delay e ||e = prod 0C (|| e ||e)
   || force e ||e = prod (plusC (l-proj (|| e ||e)) (l-proj (r-proj || e ||e))) (r-proj (r-proj (|| e ||e)))

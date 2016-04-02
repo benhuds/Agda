@@ -115,7 +115,8 @@ module Bounding where
            weakeningVal' vv (snd IH) (cong-rproj (subst-compose-r Θ' E1 || e ||e trans lam-s trans cong-app r-proj-s)))
   bounding (app e1 e2) Θ a Θ' sb v val-v .((n0 +c n1) +c n)
            (app-evals {n0} {n1} {n} {τ2} {τ} {.(Source.subst e1 Θ)} {e1'} {.(Source.subst e2 Θ)} {v2} e1-evals e2-evals subst-evals) =
-    cong-+ (cong-+ (fst IH1) (fst IH2)) (fst IH1a) trans l-proj-s ,
+    cong-+ (cong-+ (fst IH1 trans +-unit-l' trans cong-+ lt (cong-lproj refl-s)) (fst IH2)) (fst IH1a) trans l-proj-s ,
+    --cong-+ (cong-+ (fst IH1) (fst IH2)) (fst IH1a) trans l-proj-s ,
     weakeningVal' val-v (snd IH1a) r-proj-s
       where
         IH1 = (bounding e1 Θ a Θ' sb (lam e1') (lam-isval e1') n0 e1-evals)

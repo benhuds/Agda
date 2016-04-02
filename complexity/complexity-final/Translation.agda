@@ -40,7 +40,7 @@ module Translation where
   || unit ||e = prod 0C unit
   || var x ||e = prod 0C (var (lookup x))
   || z ||e = prod 0C z
-  || suc e ||e = (letc (prod (l-proj (var i0)) (r-proj (var i0))) || e ||e) --1C +C || e1 ||e
+  || suc e ||e = (letc (prod (l-proj (var i0)) (s (r-proj (var i0)))) || e ||e)
   || rec e e0 e1 ||e =
     letc (l-proj (var i0) +C rec (r-proj (var i0))
       (Pilot2.wkn (1C +C || e0 ||e)) (Pilot2.subst (1C +C || e1 ||e) (Pilot2.s-extend (Pilot2.s-extend (throw-s Pilot2.ids))))) || e ||e
