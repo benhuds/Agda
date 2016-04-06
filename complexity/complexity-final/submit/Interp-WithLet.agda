@@ -2,7 +2,7 @@
 
 open import Preliminaries
 open import Preorder
-open import Complexity-WithLet
+open import Complexity
 
 module Interp-WithLet where
 
