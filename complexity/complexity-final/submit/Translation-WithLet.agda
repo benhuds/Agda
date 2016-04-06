@@ -2,13 +2,12 @@
 
 open import Preliminaries
 open import Source
-open import Complexity-WithLet
 open import Complexity
 
 module Translation-WithLet where
 
   mutual
-    ⟨⟨_⟩⟩ : Tp → Complexity-WithLet.CTp
+    ⟨⟨_⟩⟩ : Tp → Complexity.CTp
     ⟨⟨ unit ⟩⟩ = unit
     ⟨⟨ nat ⟩⟩ = nat
     ⟨⟨ susp A ⟩⟩ = || A ||
@@ -17,47 +16,50 @@ module Translation-WithLet where
     ⟨⟨ list A ⟩⟩ = list ⟨⟨ A ⟩⟩
     ⟨⟨ bool ⟩⟩ = bool
   
-    ||_|| : Tp → Complexity-WithLet.CTp
+    ||_|| : Tp → Complexity.CTp
     || τ || = C ×c ⟨⟨ τ ⟩⟩
 
-  ⟨⟨_⟩⟩c : Source.Ctx → Complexity-WithLet.Ctx
+  ⟨⟨_⟩⟩c : Source.Ctx → Complexity.Ctx
   ⟨⟨ [] ⟩⟩c = []
   ⟨⟨ x :: Γ ⟩⟩c = ⟨⟨ x ⟩⟩ :: ⟨⟨ Γ ⟩⟩c
 
-  interp-Cost : ∀{Γ} → Cost → Γ Complexity-WithLet.|- C
+  interp-Cost : ∀{Γ} → Cost → Γ Complexity.|- C
   interp-Cost 0c = 0C
   interp-Cost 1c = 1C
   interp-Cost (m +c n) = plusC (interp-Cost m) (interp-Cost n)
 
-  lookup : ∀{Γ τ} → τ Source.∈ Γ → ⟨⟨ τ ⟩⟩ Complexity-WithLet.∈ ⟨⟨ Γ ⟩⟩c
+  lookup : ∀{Γ τ} → τ Source.∈ Γ → ⟨⟨ τ ⟩⟩ Complexity.∈ ⟨⟨ Γ ⟩⟩c
   lookup i0 = i0
   lookup (iS x) = iS (lookup x)
   
-  throw-s : ∀ {Γ Γ' τ} → Complexity-WithLet.sctx Γ (τ :: Γ') → Complexity-WithLet.sctx Γ Γ'
+  throw-s : ∀ {Γ Γ' τ} → Complexity.sctx Γ (τ :: Γ') → Complexity.sctx Γ Γ'
   throw-s Θ x = Θ (iS x)
 
+  _+C_ : ∀ {Γ τ} → Γ Complexity.|- C  → Γ Complexity.|- (C ×c τ)→ Γ Complexity.|- (C ×c τ)
+  c +C e = letc (prod (l-proj (var i0)) (r-proj (var i0))) e
+
   -- translation from source expressions to complexity expressions
-  ||_||e : ∀{Γ τ} → Γ Source.|- τ → ⟨⟨ Γ ⟩⟩c Complexity-WithLet.|- || τ ||
+  ||_||e : ∀{Γ τ} → Γ Source.|- τ → ⟨⟨ Γ ⟩⟩c Complexity.|- || τ ||
   || unit ||e = prod 0C unit
   || var x ||e = prod 0C (var (lookup x))
   || z ||e = prod 0C z
   || suc e ||e = (letc (prod (l-proj (var i0)) (s (r-proj (var i0)))) || e ||e)
   || rec e e0 e1 ||e =
-      letc (l-proj (var i0) Complexity-WithLet.+C rec (r-proj (var i0))
-           (Complexity-WithLet.wkn (1C Complexity-WithLet.+C || e0 ||e)) (Complexity-WithLet.subst (1C Complexity-WithLet.+C || e1 ||e) (Complexity-WithLet.s-extend (Complexity-WithLet.s-extend (throw-s Complexity-WithLet.ids))))) || e ||e
+      letc (l-proj (var i0) +C rec (r-proj (var i0))
+           (Complexity.wkn (1C +C || e0 ||e)) (Complexity.subst (1C +C || e1 ||e) (Complexity.s-extend (Complexity.s-extend (throw-s Complexity.ids))))) || e ||e
   || lam e ||e = prod 0C (lam || e ||e) 
   || app e1 e2 ||e = letc (letc (prod (plusC (plusC (l-proj (var (iS i0))) (l-proj (var i0))) (l-proj (app (r-proj (var (iS i0))) (r-proj (var i0)))))
-                            (r-proj (app (r-proj (var (iS i0))) (r-proj (var i0))))) (Complexity-WithLet.wkn || e2 ||e)) || e1 ||e
-  || prod e1 e2 ||e = letc (letc (prod (plusC (l-proj (var (iS i0))) (l-proj (var i0))) (prod (r-proj (var (iS i0))) (r-proj (var i0)))) (Complexity-WithLet.wkn || e2 ||e)) || e1 ||e
+                            (r-proj (app (r-proj (var (iS i0))) (r-proj (var i0))))) (Complexity.wkn || e2 ||e)) || e1 ||e
+  || prod e1 e2 ||e = letc (letc (prod (plusC (l-proj (var (iS i0))) (l-proj (var i0))) (prod (r-proj (var (iS i0))) (r-proj (var i0)))) (Complexity.wkn || e2 ||e)) || e1 ||e
   || delay e ||e = prod 0C || e ||e
   || force e ||e = letc (prod (plusC (l-proj (var i0)) (l-proj (r-proj (var i0)))) (r-proj (r-proj (var i0)))) || e ||e
-  || split e0 e1 ||e = letc (prod (plusC (Complexity-WithLet.wkn (l-proj || e0 ||e)) (l-proj (var i0))) (r-proj (var i0))) E1
-       where E1 = letc (Complexity-WithLet.subst || e1 ||e (Complexity-WithLet.lem4 (l-proj (r-proj (var i0))) (r-proj (r-proj (var i0))) Complexity-WithLet.ss Complexity-WithLet.s-extend (Complexity-WithLet.s-extend (throw-s Complexity-WithLet.ids)))) || e0 ||e
+  || split e0 e1 ||e = letc (prod (plusC (Complexity.wkn (l-proj || e0 ||e)) (l-proj (var i0))) (r-proj (var i0))) E1
+       where E1 = letc (Complexity.subst || e1 ||e (Complexity.lem4 (l-proj (r-proj (var i0))) (r-proj (r-proj (var i0))) Complexity.ss Complexity.s-extend (Complexity.s-extend (throw-s Complexity.ids)))) || e0 ||e
   || nil ||e = prod 0C nil
-  || e ::s e₁ ||e = letc (letc (prod (plusC (l-proj (var (iS i0))) (l-proj (var i0))) (r-proj (var (iS i0)) ::c r-proj (var i0))) (Complexity-WithLet.wkn || e₁ ||e)) || e ||e
+  || e ::s e₁ ||e = letc (letc (prod (plusC (l-proj (var (iS i0))) (l-proj (var i0))) (r-proj (var (iS i0)) ::c r-proj (var i0))) (Complexity.wkn || e₁ ||e)) || e ||e
   || listrec e e₁ e₂ ||e =
-      letc (l-proj (var i0) Complexity-WithLet.+C listrec (r-proj (var i0))
-        (Complexity-WithLet.wkn (1C Complexity-WithLet.+C || e₁ ||e)) (Complexity-WithLet.subst (1C Complexity-WithLet.+C || e₂ ||e) (Complexity-WithLet.s-extend (Complexity-WithLet.s-extend (Complexity-WithLet.s-extend (throw-s Complexity-WithLet.ids)))))) || e ||e
+      letc (l-proj (var i0) +C listrec (r-proj (var i0))
+        (Complexity.wkn (1C +C || e₁ ||e)) (Complexity.subst (1C +C || e₂ ||e) (Complexity.s-extend (Complexity.s-extend (Complexity.s-extend (throw-s Complexity.ids)))))) || e ||e
   || true ||e = prod 0C true
   || false ||e = prod 0C false
 

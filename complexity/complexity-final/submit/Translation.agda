@@ -32,6 +32,10 @@ module Translation where
   lookup i0 = i0
   lookup (iS x) = iS (lookup x)
 
+  _+C_ : ∀ {Γ τ} → Γ Complexity.|- C  → Γ Complexity.|- (C ×c τ)→ Γ Complexity.|- (C ×c τ)
+  c +C e = prod (plusC c (l-proj e)) (r-proj e)
+--letc (prod (l-proj (var i0)) (r-proj (var i0))) e
+
   -- translation from source expressions to complexity expressions
   ||_||e : ∀{Γ τ} → Γ Source.|- τ → ⟨⟨ Γ ⟩⟩c Complexity.|- || τ ||
   || unit ||e = prod 0C unit

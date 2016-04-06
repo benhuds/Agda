@@ -266,10 +266,6 @@ equations that define ren and subst are true in the semantics-}
   extend-id-twice : ∀ {Γ τ1 τ2} → Id {_} {sctx (τ1 :: τ2 :: Γ) (τ1 :: τ2 :: Γ)} (ids {τ1 :: τ2 :: Γ}) (s-extend (s-extend ids))
   extend-id-twice = ap s-extend extend-id-once ∘ extend-id-once
 
-  _+C_ : ∀ {Γ τ} → Γ |- C  → Γ |- (C ×c τ)→ Γ |- (C ×c τ)
-  c +C e = prod (plusC c (l-proj e)) (r-proj e)
---letc (prod (l-proj (var i0)) (r-proj (var i0))) e
-
   _trans_ : ∀ {Γ T}
             → {e e' e'' : Γ |- T}
             → e ≤s e' → e' ≤s e''
