@@ -55,6 +55,7 @@ module Interp where
   interpE (listrec e e₁ e₂) = comp (pair' id (interpE e)) (lrec' (interpE e₁) (interpE e₂))
   interpE true = monotone (λ x → True) (λ x y x₁ → <>)
   interpE false = monotone (λ x → False) (λ x y x₁ → <>)
+  interpE (letc e e') = app' (lam' (interpE e)) (interpE e')
   interpE {Γ} {τ'} (max τ e1 e2) =
     monotone (λ x → Preorder-max-str.max [ τ ]tm (Monotone.f (interpE e1) x) (Monotone.f (interpE e2) x))
     (λ x y x₁ → Preorder-max-str.max-lub [ τ ]tm (Preorder-max-str.max [ τ ]tm (Monotone.f (interpE e1) y) (Monotone.f (interpE e2) y))
@@ -234,6 +235,19 @@ module Interp where
                   Preorder-str.refl (snd [ τ' ]t) (snd x)))))
   ren-eq-l ρ true k = <>
   ren-eq-l ρ false k = <>
+  ren-eq-l {Γ} {Γ'} {τ = τ} ρ (letc {.Γ'} {ρ'} e e') k =
+    Preorder-str.trans (snd [ τ ]t)
+      (Monotone.f (interpE (ren e (r-extend ρ)))
+       (k , Monotone.f (interpE (ren e' ρ)) k))
+      (Monotone.f (interpE e) (Monotone.f (interpR (r-extend {_} {_} {ρ'} ρ)) (k , Monotone.f (interpE (ren e' ρ)) k)))
+      (Monotone.f (interpE e) (Monotone.f (interpR ρ) k , Monotone.f (interpE e') (Monotone.f (interpR ρ) k)))
+      (ren-eq-l (r-extend ρ) e (k , Monotone.f (interpE (ren e' ρ)) k))
+      (Monotone.is-monotone (interpE e)
+         (Monotone.f (interpR (r-extend {_} {_} {ρ'} ρ))
+          (k , Monotone.f (interpE (ren e' ρ)) k))
+         (Monotone.f (interpR ρ) k ,
+          Monotone.f (interpE e') (Monotone.f (interpR ρ) k))
+         (ren-eq-l-lam ρ k (Monotone.f (interpE (ren e' ρ)) k) , ren-eq-l ρ e' k))
   ren-eq-l {τ = τ} ρ (max x e e₁) k =
     Preorder-max-str.max-lub [ x ]tm
       (Monotone.f (interpE (max x e e₁)) (Monotone.f (interpR ρ) k))
@@ -406,6 +420,19 @@ module Interp where
         (Preorder-str.refl (snd [ Γ ]c) k , ren-eq-r ρ e k))
   ren-eq-r ρ true k = <>
   ren-eq-r ρ false k = <>
+  ren-eq-r {Γ} {Γ'} {τ = τ} ρ (letc {.Γ'} {ρ'} e e') k =
+    Preorder-str.trans (snd [ τ ]t)
+      (Monotone.f (interpE e) (Monotone.f (interpR ρ) k , Monotone.f (interpE e') (Monotone.f (interpR ρ) k)))
+      (Monotone.f (interpE e) (Monotone.f (interpR (r-extend {_} {_} {ρ'} ρ)) (k , Monotone.f (interpE (ren e' ρ)) k)))
+      (Monotone.f (interpE (ren e (r-extend ρ)))
+       (k , Monotone.f (interpE (ren e' ρ)) k))
+      (Monotone.is-monotone (interpE e)
+         (Monotone.f (interpR ρ) k ,
+          Monotone.f (interpE e') (Monotone.f (interpR ρ) k))
+         (Monotone.f (interpR (r-extend {_} {_} {ρ'} ρ))
+          (k , Monotone.f (interpE (ren e' ρ)) k))
+         (ren-eq-r-lam ρ k (Monotone.f (interpE (ren e' ρ)) k) , ren-eq-r ρ e' k))
+      (ren-eq-r (r-extend ρ) e (k , Monotone.f (interpE (ren e' ρ)) k))
   ren-eq-r {τ = τ} ρ (max x e e₁) k =
     Preorder-max-str.max-lub [ x ]tm
       (Monotone.f (interpE (ren (max x e e₁) ρ)) k)
@@ -594,6 +621,16 @@ module Interp where
                      (Preorder-str.refl (snd [ τ' ]t) (snd x))))))
   subst-eq-l Θ true k = <>
   subst-eq-l Θ false k = <>
+  subst-eq-l {Γ} {Γ'} {τ = τ} Θ (letc {.Γ'} {ρ'} e e') k =
+    Preorder-str.trans (snd [ τ ]t)
+      (Monotone.f (interpE (subst e (s-extend Θ))) (k , Monotone.f (interpE (subst e' Θ)) k))
+      (Monotone.f (interpE e) (Monotone.f (interpS (s-extend {_} {_} {ρ'} Θ)) (k , Monotone.f (interpE (subst e' Θ)) k)))
+      (Monotone.f (interpE e) (Monotone.f (interpS Θ) k , Monotone.f (interpE e') (Monotone.f (interpS Θ) k)))
+      (subst-eq-l (s-extend Θ) e (k , Monotone.f (interpE (subst e' Θ)) k))
+      (Monotone.is-monotone (interpE e)
+        (Monotone.f (interpS (s-extend {_} {_} {ρ'} Θ)) (k , Monotone.f (interpE (subst e' Θ)) k))
+        (Monotone.f (interpS Θ) k , Monotone.f (interpE e') (Monotone.f (interpS Θ) k))
+        ((subst-eq-l-lam Θ k (Monotone.f (interpE (subst e' Θ)) k)) , (subst-eq-l Θ e' k)))
   subst-eq-l {τ = τ} Θ (max x e e₁) k =
     Preorder-max-str.max-lub [ x ]tm
       (Monotone.f (interpE (max x e e₁)) (Monotone.f (interpS Θ) k))
@@ -782,6 +819,16 @@ module Interp where
         (Preorder-str.refl (snd [ Γ ]c) k , subst-eq-r Θ e k))
   subst-eq-r Θ true k = <>
   subst-eq-r Θ false k = <>
+  subst-eq-r {Γ} {Γ'} {τ = τ} Θ (letc {.Γ'} {ρ'} e e') k =
+    Preorder-str.trans (snd [ τ ]t)
+      (Monotone.f (interpE e) (Monotone.f (interpS Θ) k , Monotone.f (interpE e') (Monotone.f (interpS Θ) k)))
+      (Monotone.f (interpE e) (Monotone.f (interpS (s-extend {_} {_} {ρ'} Θ)) (k , Monotone.f (interpE (subst e' Θ)) k)))
+      (Monotone.f (interpE (subst e (s-extend Θ))) (k , Monotone.f (interpE (subst e' Θ)) k))
+      (Monotone.is-monotone (interpE e)
+        (Monotone.f (interpS Θ) k , Monotone.f (interpE e') (Monotone.f (interpS Θ) k))
+        (Monotone.f (interpS (s-extend {_} {_} {ρ'} Θ)) (k , Monotone.f (interpE (subst e' Θ)) k))
+        ((subst-eq-r-lam Θ k (Monotone.f (interpE (subst e' Θ)) k)) , (subst-eq-r Θ e' k)))
+      (subst-eq-r (s-extend Θ) e (k , Monotone.f (interpE (subst e' Θ)) k))
   subst-eq-r {τ = τ} Θ (max x e e₁) k =
     Preorder-max-str.max-lub [ x ]tm
       (Monotone.f (interpE (subst (max x e e₁) Θ)) k)
@@ -1124,6 +1171,8 @@ module Interp where
     Preorder-str.trans (snd [ τ ]t) (Monotone.f (interpE e) k) (Monotone.f (interpE e'') k) (Monotone.f (interpE e') k) (sound e e'' d k) (sound e'' e' d₁ k)
   sound {_} {τ} e .e (cong-refl Refl) k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) k)
   sound {_} {._} ._ ._ (lt {._}) k = <>
+  sound {_} {τ} (letc e e') .(app (lam e) e') letc-app-l k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) (k , Monotone.f (interpE e') k))
+  sound {_} {τ} (app (lam e) e') .(letc e e') letc-app-r k = Preorder-str.refl (snd [ τ ]t) (Monotone.f (interpE e) (k , Monotone.f (interpE e') k))
   sound .(plusC 0C e') e' +-unit-l k = Preorder-str.refl (snd [ C ]t) (Monotone.f (interpE e') k)
   sound e .(plusC 0C e) +-unit-l' k = Preorder-str.refl (snd [ C ]t) (Monotone.f (interpE e) k)
   sound {_} {.C} .(plusC e' 0C) e' +-unit-r k = +-unit (Monotone.f (interpE e') k)
@@ -1134,8 +1183,11 @@ module Interp where
   sound {Γ} {C} ._ ._ (cong-+ {.Γ} {e0} {e1} {e0'} {e1'} d d₁) k = --also called plus-s. should really delete this rule so we don't have duplicates
     plus-lem (Monotone.f (interpE e0) k) (Monotone.f (interpE e1) k) (Monotone.f (interpE e0') k) (Monotone.f (interpE e1') k)
       (sound e0 e0' d k) (sound e1 e1' d₁ k)
+  sound ._ ._ (cong-suc d) k = sound _ _ d k
+  sound ._ ._ (cong-prod d d₁) k = (sound _ _ d k) , (sound _ _ d₁ k)
   sound {Γ} {τ} ._ ._ (cong-lproj {.Γ} {.τ} {_} {e} {e'} d) k = fst (sound e e' d k)
   sound {Γ} {τ} ._ ._ (cong-rproj {.Γ} {_} {.τ} {e} {e'} d) k = snd (sound e e' d k)
+  sound ._ ._ (cong-lam d) k x = sound _ _ d (k , x)
   sound {Γ} {τ} ._ ._ (cong-app {.Γ} {τ'} {.τ} {e} {e'} {e1} d) k = sound e e' d k (Monotone.f (interpE e1) k)
   sound {Γ} {τ} ._ ._ (ren-cong {.Γ} {Γ'} {.τ} {e1} {e2} {ρ} d) k =
     Preorder-str.trans (snd [ τ ]t)
