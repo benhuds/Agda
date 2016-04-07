@@ -74,7 +74,7 @@ module Translation where
       letc (l-proj (var i0) +C' rec (r-proj (var i0))
            (Complexity.wkn (1C +C' || e0 ||e')) (Complexity.subst (1C +C' || e1 ||e') (Complexity.s-extend (Complexity.s-extend (throw-s Complexity.ids))))) || e ||e'
   || lam e ||e' = prod 0C (lam || e ||e') 
-  || app e1 e2 ||e' = letc (letc (prod (plusC (plusC (l-proj (var (iS i0))) (l-proj (var i0))) (l-proj (app (r-proj (var (iS i0))) (r-proj (var i0)))))
+  || app e1 e2 ||e' = letc (letc (prod (plusC (plusC (plusC 1C (l-proj (var (iS i0)))) (l-proj (var i0))) (l-proj (app (r-proj (var (iS i0))) (r-proj (var i0)))))
                             (r-proj (app (r-proj (var (iS i0))) (r-proj (var i0))))) (Complexity.wkn || e2 ||e')) || e1 ||e'
   || prod e1 e2 ||e' = letc (letc (prod (plusC (l-proj (var (iS i0))) (l-proj (var i0))) (prod (r-proj (var (iS i0))) (r-proj (var i0)))) (Complexity.wkn || e2 ||e')) || e1 ||e'
   || delay e ||e' = prod 0C || e ||e'
