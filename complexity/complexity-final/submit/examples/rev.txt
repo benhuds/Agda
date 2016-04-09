@@ -1,0 +1,36 @@
+monotone
+(λ x →
+   0 ,
+   monotone
+   (λ p₁ →
+      fst
+      (lrec p₁ (1 , [])
+       (λ x₁ x₂ x₃ →
+          S
+          (S
+           (S
+            (((fst x₃ + 0) + 0) +
+             fst
+             (lrec (snd x₃) (1 , x₁ :: [])
+              (λ x₄ x₅ x₆ → S (fst x₆) , x₄ :: snd x₆)))))
+          ,
+          snd
+          (lrec (snd x₃) (1 , x₁ :: [])
+           (λ x₄ x₅ x₆ → S (fst x₆) , x₄ :: snd x₆))))
+      ,
+      snd
+      (lrec p₁ (1 , [])
+       (λ x₁ x₂ x₃ →
+          S
+          (S
+           (S
+            (((fst x₃ + 0) + 0) +
+             fst
+             (lrec (snd x₃) (1 , x₁ :: [])
+              (λ x₄ x₅ x₆ → S (fst x₆) , x₄ :: snd x₆)))))
+          ,
+          snd
+          (lrec (snd x₃) (1 , x₁ :: [])
+           (λ x₄ x₅ x₆ → S (fst x₆) , x₄ :: snd x₆)))))
+   (λ a b c → ERASED))
+(λ x y z₁ → ERASED)

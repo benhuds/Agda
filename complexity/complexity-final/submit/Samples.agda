@@ -1,10 +1,9 @@
 {- SAMPLE PROGRAMS IN SOURCE LANGUAGE -}
-
 open import Preliminaries
 open import Source
 open import Complexity
 open import Translation
-open import Interp
+open import Interp-Erased
 open import Preorder
 
 module Samples where

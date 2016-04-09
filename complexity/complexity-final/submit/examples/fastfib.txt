@@ -1,0 +1,42 @@
+monotone
+(λ x →
+   0 ,
+   monotone
+   (λ p₁ →
+      fst
+      (natrec (1 , 0 , 1)
+       (λ n x₂ →
+          S
+          ((fst x₂ + 0) +
+           S
+           (S
+            ((((fst x₂ + 0) + 0) + (fst x₂ + 0)) +
+             fst
+             (natrec (1 , snd (snd x₂)) (λ n₁ x₃ → S (fst x₃) , S (snd x₃))
+              (fst (snd x₂))))))
+          ,
+          snd (snd x₂) ,
+          snd
+          (natrec (1 , snd (snd x₂)) (λ n₁ x₃ → S (fst x₃) , S (snd x₃))
+           (fst (snd x₂))))
+       p₁)
+      ,
+      snd
+      (natrec (1 , 0 , 1)
+       (λ n x₂ →
+          S
+          ((fst x₂ + 0) +
+           S
+           (S
+            ((((fst x₂ + 0) + 0) + (fst x₂ + 0)) +
+             fst
+             (natrec (1 , snd (snd x₂)) (λ n₁ x₃ → S (fst x₃) , S (snd x₃))
+              (fst (snd x₂))))))
+          ,
+          snd (snd x₂) ,
+          snd
+          (natrec (1 , snd (snd x₂)) (λ n₁ x₃ → S (fst x₃) , S (snd x₃))
+           (fst (snd x₂))))
+       p₁))
+   (λ a b c → ERASED))
+(λ x y z₁ → ERASED)

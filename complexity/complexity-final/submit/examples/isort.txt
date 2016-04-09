@@ -1,0 +1,452 @@
+monotone
+(λ x →
+   0 ,
+   monotone
+   (λ p₁ →
+      fst
+      (lrec p₁ (1 , [])
+       (λ x₁ x₂ x₃ →
+          S
+          (S
+           (S
+            (((fst x₃ + 0) + 0) +
+             fst
+             (lrec (snd x₃) (1 , x₁ :: [])
+              (λ x₄ x₅ x₆ →
+                 S
+                 (S
+                  (S
+                   (((fst
+                      (natrec (1 , monotone (λ p₂ → 0 , 1) (λ a b c → ERASED))
+                       (λ n x₇ →
+                          1 ,
+                          monotone
+                          (λ p₂ →
+                             fst
+                             (natrec (1 , 0)
+                              (λ n₁ x₈ →
+                                 S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                                 snd (Monotone.f (snd x₇) n₁))
+                              p₂)
+                             ,
+                             snd
+                             (natrec (1 , 0)
+                              (λ n₁ x₈ →
+                                 S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                                 snd (Monotone.f (snd x₇) n₁))
+                              p₂))
+                          (λ a b c → ERASED))
+                       x₁)
+                      + 0)
+                     +
+                     fst
+                     (Monotone.f
+                      (snd
+                       (natrec (1 , monotone (λ p₂ → 0 , 1) (λ a b c → ERASED))
+                        (λ n x₇ →
+                           1 ,
+                           monotone
+                           (λ p₂ →
+                              fst
+                              (natrec (1 , 0)
+                               (λ n₁ x₈ →
+                                  S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                                  snd (Monotone.f (snd x₇) n₁))
+                               p₂)
+                              ,
+                              snd
+                              (natrec (1 , 0)
+                               (λ n₁ x₈ →
+                                  S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                                  snd (Monotone.f (snd x₇) n₁))
+                               p₂))
+                           (λ a b c → ERASED))
+                        x₁))
+                      x₄))
+                    +
+                    fst
+                    (natrec (S (fst x₆) , x₄ :: snd x₆) (λ n x₇ → 1 , x₁ :: x₄ :: x₅)
+                     (snd
+                      (Monotone.f
+                       (snd
+                        (natrec (1 , monotone (λ p₂ → 0 , 1) (λ a b c → ERASED))
+                         (λ n x₇ →
+                            1 ,
+                            monotone
+                            (λ p₂ →
+                               fst
+                               (natrec (1 , 0)
+                                (λ n₁ x₈ →
+                                   S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                                   snd (Monotone.f (snd x₇) n₁))
+                                p₂)
+                               ,
+                               snd
+                               (natrec (1 , 0)
+                                (λ n₁ x₈ →
+                                   S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                                   snd (Monotone.f (snd x₇) n₁))
+                                p₂))
+                            (λ a b c → ERASED))
+                         x₁))
+                       x₄))))))
+                 ,
+                 snd
+                 (natrec (S (fst x₆) , x₄ :: snd x₆) (λ n x₇ → 1 , x₁ :: x₄ :: x₅)
+                  (snd
+                   (Monotone.f
+                    (snd
+                     (natrec (1 , monotone (λ p₂ → 0 , 1) (λ a b c → ERASED))
+                      (λ n x₇ →
+                         1 ,
+                         monotone
+                         (λ p₂ →
+                            fst
+                            (natrec (1 , 0)
+                             (λ n₁ x₈ →
+                                S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                                snd (Monotone.f (snd x₇) n₁))
+                             p₂)
+                            ,
+                            snd
+                            (natrec (1 , 0)
+                             (λ n₁ x₈ →
+                                S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                                snd (Monotone.f (snd x₇) n₁))
+                             p₂))
+                         (λ a b c → ERASED))
+                      x₁))
+                    x₄))))))))
+          ,
+          snd
+          (lrec (snd x₃) (1 , x₁ :: [])
+           (λ x₄ x₅ x₆ →
+              S
+              (S
+               (S
+                (((fst
+                   (natrec (1 , monotone (λ p₂ → 0 , 1) (λ a b c → ERASED))
+                    (λ n x₇ →
+                       1 ,
+                       monotone
+                       (λ p₂ →
+                          fst
+                          (natrec (1 , 0)
+                           (λ n₁ x₈ →
+                              S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                              snd (Monotone.f (snd x₇) n₁))
+                           p₂)
+                          ,
+                          snd
+                          (natrec (1 , 0)
+                           (λ n₁ x₈ →
+                              S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                              snd (Monotone.f (snd x₇) n₁))
+                           p₂))
+                       (λ a b c → ERASED))
+                    x₁)
+                   + 0)
+                  +
+                  fst
+                  (Monotone.f
+                   (snd
+                    (natrec (1 , monotone (λ p₂ → 0 , 1) (λ a b c → ERASED))
+                     (λ n x₇ →
+                        1 ,
+                        monotone
+                        (λ p₂ →
+                           fst
+                           (natrec (1 , 0)
+                            (λ n₁ x₈ →
+                               S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                               snd (Monotone.f (snd x₇) n₁))
+                            p₂)
+                           ,
+                           snd
+                           (natrec (1 , 0)
+                            (λ n₁ x₈ →
+                               S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                               snd (Monotone.f (snd x₇) n₁))
+                            p₂))
+                        (λ a b c → ERASED))
+                     x₁))
+                   x₄))
+                 +
+                 fst
+                 (natrec (S (fst x₆) , x₄ :: snd x₆) (λ n x₇ → 1 , x₁ :: x₄ :: x₅)
+                  (snd
+                   (Monotone.f
+                    (snd
+                     (natrec (1 , monotone (λ p₂ → 0 , 1) (λ a b c → ERASED))
+                      (λ n x₇ →
+                         1 ,
+                         monotone
+                         (λ p₂ →
+                            fst
+                            (natrec (1 , 0)
+                             (λ n₁ x₈ →
+                                S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                                snd (Monotone.f (snd x₇) n₁))
+                             p₂)
+                            ,
+                            snd
+                            (natrec (1 , 0)
+                             (λ n₁ x₈ →
+                                S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                                snd (Monotone.f (snd x₇) n₁))
+                             p₂))
+                         (λ a b c → ERASED))
+                      x₁))
+                    x₄))))))
+              ,
+              snd
+              (natrec (S (fst x₆) , x₄ :: snd x₆) (λ n x₇ → 1 , x₁ :: x₄ :: x₅)
+               (snd
+                (Monotone.f
+                 (snd
+                  (natrec (1 , monotone (λ p₂ → 0 , 1) (λ a b c → ERASED))
+                   (λ n x₇ →
+                      1 ,
+                      monotone
+                      (λ p₂ →
+                         fst
+                         (natrec (1 , 0)
+                          (λ n₁ x₈ →
+                             S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                             snd (Monotone.f (snd x₇) n₁))
+                          p₂)
+                         ,
+                         snd
+                         (natrec (1 , 0)
+                          (λ n₁ x₈ →
+                             S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                             snd (Monotone.f (snd x₇) n₁))
+                          p₂))
+                      (λ a b c → ERASED))
+                   x₁))
+                 x₄)))))))
+      ,
+      snd
+      (lrec p₁ (1 , [])
+       (λ x₁ x₂ x₃ →
+          S
+          (S
+           (S
+            (((fst x₃ + 0) + 0) +
+             fst
+             (lrec (snd x₃) (1 , x₁ :: [])
+              (λ x₄ x₅ x₆ →
+                 S
+                 (S
+                  (S
+                   (((fst
+                      (natrec (1 , monotone (λ p₂ → 0 , 1) (λ a b c → ERASED))
+                       (λ n x₇ →
+                          1 ,
+                          monotone
+                          (λ p₂ →
+                             fst
+                             (natrec (1 , 0)
+                              (λ n₁ x₈ →
+                                 S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                                 snd (Monotone.f (snd x₇) n₁))
+                              p₂)
+                             ,
+                             snd
+                             (natrec (1 , 0)
+                              (λ n₁ x₈ →
+                                 S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                                 snd (Monotone.f (snd x₇) n₁))
+                              p₂))
+                          (λ a b c → ERASED))
+                       x₁)
+                      + 0)
+                     +
+                     fst
+                     (Monotone.f
+                      (snd
+                       (natrec (1 , monotone (λ p₂ → 0 , 1) (λ a b c → ERASED))
+                        (λ n x₇ →
+                           1 ,
+                           monotone
+                           (λ p₂ →
+                              fst
+                              (natrec (1 , 0)
+                               (λ n₁ x₈ →
+                                  S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                                  snd (Monotone.f (snd x₇) n₁))
+                               p₂)
+                              ,
+                              snd
+                              (natrec (1 , 0)
+                               (λ n₁ x₈ →
+                                  S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                                  snd (Monotone.f (snd x₇) n₁))
+                               p₂))
+                           (λ a b c → ERASED))
+                        x₁))
+                      x₄))
+                    +
+                    fst
+                    (natrec (S (fst x₆) , x₄ :: snd x₆) (λ n x₇ → 1 , x₁ :: x₄ :: x₅)
+                     (snd
+                      (Monotone.f
+                       (snd
+                        (natrec (1 , monotone (λ p₂ → 0 , 1) (λ a b c → ERASED))
+                         (λ n x₇ →
+                            1 ,
+                            monotone
+                            (λ p₂ →
+                               fst
+                               (natrec (1 , 0)
+                                (λ n₁ x₈ →
+                                   S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                                   snd (Monotone.f (snd x₇) n₁))
+                                p₂)
+                               ,
+                               snd
+                               (natrec (1 , 0)
+                                (λ n₁ x₈ →
+                                   S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                                   snd (Monotone.f (snd x₇) n₁))
+                                p₂))
+                            (λ a b c → ERASED))
+                         x₁))
+                       x₄))))))
+                 ,
+                 snd
+                 (natrec (S (fst x₆) , x₄ :: snd x₆) (λ n x₇ → 1 , x₁ :: x₄ :: x₅)
+                  (snd
+                   (Monotone.f
+                    (snd
+                     (natrec (1 , monotone (λ p₂ → 0 , 1) (λ a b c → ERASED))
+                      (λ n x₇ →
+                         1 ,
+                         monotone
+                         (λ p₂ →
+                            fst
+                            (natrec (1 , 0)
+                             (λ n₁ x₈ →
+                                S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                                snd (Monotone.f (snd x₇) n₁))
+                             p₂)
+                            ,
+                            snd
+                            (natrec (1 , 0)
+                             (λ n₁ x₈ →
+                                S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                                snd (Monotone.f (snd x₇) n₁))
+                             p₂))
+                         (λ a b c → ERASED))
+                      x₁))
+                    x₄))))))))
+          ,
+          snd
+          (lrec (snd x₃) (1 , x₁ :: [])
+           (λ x₄ x₅ x₆ →
+              S
+              (S
+               (S
+                (((fst
+                   (natrec (1 , monotone (λ p₂ → 0 , 1) (λ a b c → ERASED))
+                    (λ n x₇ →
+                       1 ,
+                       monotone
+                       (λ p₂ →
+                          fst
+                          (natrec (1 , 0)
+                           (λ n₁ x₈ →
+                              S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                              snd (Monotone.f (snd x₇) n₁))
+                           p₂)
+                          ,
+                          snd
+                          (natrec (1 , 0)
+                           (λ n₁ x₈ →
+                              S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                              snd (Monotone.f (snd x₇) n₁))
+                           p₂))
+                       (λ a b c → ERASED))
+                    x₁)
+                   + 0)
+                  +
+                  fst
+                  (Monotone.f
+                   (snd
+                    (natrec (1 , monotone (λ p₂ → 0 , 1) (λ a b c → ERASED))
+                     (λ n x₇ →
+                        1 ,
+                        monotone
+                        (λ p₂ →
+                           fst
+                           (natrec (1 , 0)
+                            (λ n₁ x₈ →
+                               S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                               snd (Monotone.f (snd x₇) n₁))
+                            p₂)
+                           ,
+                           snd
+                           (natrec (1 , 0)
+                            (λ n₁ x₈ →
+                               S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                               snd (Monotone.f (snd x₇) n₁))
+                            p₂))
+                        (λ a b c → ERASED))
+                     x₁))
+                   x₄))
+                 +
+                 fst
+                 (natrec (S (fst x₆) , x₄ :: snd x₆) (λ n x₇ → 1 , x₁ :: x₄ :: x₅)
+                  (snd
+                   (Monotone.f
+                    (snd
+                     (natrec (1 , monotone (λ p₂ → 0 , 1) (λ a b c → ERASED))
+                      (λ n x₇ →
+                         1 ,
+                         monotone
+                         (λ p₂ →
+                            fst
+                            (natrec (1 , 0)
+                             (λ n₁ x₈ →
+                                S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                                snd (Monotone.f (snd x₇) n₁))
+                             p₂)
+                            ,
+                            snd
+                            (natrec (1 , 0)
+                             (λ n₁ x₈ →
+                                S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                                snd (Monotone.f (snd x₇) n₁))
+                             p₂))
+                         (λ a b c → ERASED))
+                      x₁))
+                    x₄))))))
+              ,
+              snd
+              (natrec (S (fst x₆) , x₄ :: snd x₆) (λ n x₇ → 1 , x₁ :: x₄ :: x₅)
+               (snd
+                (Monotone.f
+                 (snd
+                  (natrec (1 , monotone (λ p₂ → 0 , 1) (λ a b c → ERASED))
+                   (λ n x₇ →
+                      1 ,
+                      monotone
+                      (λ p₂ →
+                         fst
+                         (natrec (1 , 0)
+                          (λ n₁ x₈ →
+                             S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                             snd (Monotone.f (snd x₇) n₁))
+                          p₂)
+                         ,
+                         snd
+                         (natrec (1 , 0)
+                          (λ n₁ x₈ →
+                             S (S ((fst x₇ + 0) + fst (Monotone.f (snd x₇) n₁))) ,
+                             snd (Monotone.f (snd x₇) n₁))
+                          p₂))
+                      (λ a b c → ERASED))
+                   x₁))
+                 x₄))))))))
+   (λ a b c → ERASED))
+(λ x y z₁ → ERASED)

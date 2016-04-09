@@ -1,4 +1,4 @@
-{- NEW INTERP WITHOUT RREC -}
+{- all monotonicity proofs replaced with a postulate -}
 
 open import Preliminaries
 open import Preorder
@@ -34,16 +34,19 @@ module Interp where
 
   interpE : ∀{Γ τ} → Γ |- τ → el ([ Γ ]c ->p [ τ ]t)
   sound : ∀ {Γ τ} (e e' : Γ |- τ) → e ≤s e' → PREORDER≤ ([ Γ ]c ->p [ τ ]t) (interpE e) (interpE e')
-  interpE unit = monotone (λ x → <>) (λ x y x₁ → <>)
-  interpE 0C = monotone (λ x → Z) (λ x y x₁ → <>)
-  interpE 1C = monotone (λ x → S Z) (λ x y x₁ → <>)
+  interpE unit = monotone' (λ x → <>) (λ x y x₁ → <>)
+  interpE 0C = monotone' (λ x → Z) (λ x y x₁ → <>)
+  interpE 1C = monotone' (λ x → S Z) (λ x y x₁ → <>)
   interpE (plusC e e₁) =
-    monotone (λ x → Monotone.f (interpE e) x + Monotone.f (interpE e₁) x)
-             (λ x y x₁ → plus-lem (Monotone.f (interpE e) x) (Monotone.f (interpE e₁) x) (Monotone.f (interpE e) y) (Monotone.f (interpE e₁) y)
-               (Monotone.is-monotone (interpE e) x y x₁) (Monotone.is-monotone (interpE e₁) x y x₁))
+    monotone' (λ x → Monotone.f (interpE e) x + Monotone.f (interpE e₁) x)
+              (λ x y x₁ → ERASED
+                -- plus-lem (Monotone.f (interpE e) x) (Monotone.f (interpE e₁) x) (Monotone.f (interpE e) y) (Monotone.f (interpE e₁) y)
+                --          (Monotone.is-monotone (interpE e) x y x₁) (Monotone.is-monotone (interpE e₁) x y x₁)
+              )
   interpE (var x) = lookup x
-  interpE z = monotone (λ x → Z) (λ x y x₁ → <>)
-  interpE (s e) = monotone (λ x → S (Monotone.f (interpE e) x)) (λ x y x₁ → Monotone.is-monotone (interpE e) x y x₁)
+  interpE z = monotone' (λ x → Z) (λ x y x₁ → <>)
+  interpE (s e) = monotone' (λ x → S (Monotone.f (interpE e) x)) (λ x y x₁ → ERASED -- Monotone.is-monotone (interpE e) x y x₁
+                                                                  )
   interpE {Γ} {τ} (rec e e₁ e₂) = comp (pair' id (interpE e)) (♭rec' (interpE e₁) (interpE e₂))
   interpE (lam e) = lam' (interpE e)
   interpE (app e e₁) = app' (interpE e) (interpE e₁)
@@ -53,11 +56,11 @@ module Interp where
   interpE nil = nil'
   interpE (e ::c e₁) = cons' (interpE e) (interpE e₁)
   interpE (listrec e e₁ e₂) = comp (pair' id (interpE e)) (lrec' (interpE e₁) (interpE e₂))
-  interpE true = monotone (λ x → True) (λ x y x₁ → <>)
-  interpE false = monotone (λ x → False) (λ x y x₁ → <>)
+  interpE true = monotone' (λ x → True) (λ x y x₁ → <>)
+  interpE false = monotone' (λ x → False) (λ x y x₁ → <>)
   interpE (letc e e') = app' (lam' (interpE e)) (interpE e')
   interpE {Γ} {τ'} (max τ e1 e2) =
-    monotone (λ x → Preorder-max-str.max [ τ ]tm (Monotone.f (interpE e1) x) (Monotone.f (interpE e2) x))
+    monotone' (λ x → Preorder-max-str.max [ τ ]tm (Monotone.f (interpE e1) x) (Monotone.f (interpE e2) x))
     (λ x y x₁ → Preorder-max-str.max-lub [ τ ]tm (Preorder-max-str.max [ τ ]tm (Monotone.f (interpE e1) y) (Monotone.f (interpE e2) y))
                 (Monotone.f (interpE e1) x) (Monotone.f (interpE e2) x)
                 (Preorder-str.trans (snd [ τ' ]t) (Monotone.f (interpE e1) x) (Monotone.f (interpE e1) y)

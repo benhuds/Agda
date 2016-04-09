@@ -1,0 +1,13 @@
+monotone
+(λ x →
+   0 ,
+   monotone
+   (λ p₁ →
+      0 ,
+      monotone
+      (λ p₂ →
+         fst (lrec p₁ (1 , p₂) (λ x₁ x₂ x₃ → S (fst x₃) , x₁ :: snd x₃)) ,
+         snd (lrec p₁ (1 , p₂) (λ x₁ x₂ x₃ → S (fst x₃) , x₁ :: snd x₃)))
+      (λ a b c → ERASED))
+   (λ a b c → ERASED))
+(λ x y z₁ → ERASED)
