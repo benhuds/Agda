@@ -63,16 +63,19 @@ module Translation where
   throw-s Θ x = Θ (iS x)
 
   _+C'_ : ∀ {Γ τ} → Γ Complexity.|- C  → Γ Complexity.|- (C ×c τ)→ Γ Complexity.|- (C ×c τ)
-  c +C' e = letc (prod (l-proj (var i0)) (r-proj (var i0))) e
+  c +C' e = letc (prod (plusC (Complexity.wkn c) (l-proj (var i0))) (r-proj (var i0))) e
 
   ||_||e' : ∀{Γ τ} → Γ Source.|- τ → ⟨⟨ Γ ⟩⟩c Complexity.|- || τ ||
   || unit ||e' = prod 0C unit
   || var x ||e' = prod 0C (var (lookup x))
   || z ||e' = prod 0C z
   || suc e ||e' = (letc (prod (l-proj (var i0)) (s (r-proj (var i0)))) || e ||e')
+--  || rec e e0 e1 ||e = (l-proj (|| e ||e)) +C (rec (r-proj || e ||e) (1C +C || e0 ||e) (1C +C || e1 ||e)) 
   || rec e e0 e1 ||e' =
       letc (l-proj (var i0) +C' rec (r-proj (var i0))
-           (Complexity.wkn (1C +C' || e0 ||e')) (Complexity.subst (1C +C' || e1 ||e') (Complexity.s-extend (Complexity.s-extend (throw-s Complexity.ids))))) || e ||e'
+                   (Complexity.wkn (1C +C' || e0 ||e'))
+                   (Complexity.subst (1C +C' || e1 ||e') (Complexity.s-extend (Complexity.s-extend (throw-s Complexity.ids)))))
+           || e ||e'
   || lam e ||e' = prod 0C (lam || e ||e') 
   || app e1 e2 ||e' = letc (letc (prod (plusC (plusC (plusC 1C (l-proj (var (iS i0)))) (l-proj (var i0))) (l-proj (app (r-proj (var (iS i0))) (r-proj (var i0)))))
                             (r-proj (app (r-proj (var (iS i0))) (r-proj (var i0))))) (Complexity.wkn || e2 ||e')) || e1 ||e'

@@ -10,7 +10,7 @@ open import Preorder
 module Samples where
 
   s2r : ∀ {Γ τ} → Γ Source.|- τ → el ([ ⟨⟨ Γ ⟩⟩c ]c ->p [ || τ || ]t)
-  s2r p = interpE || p ||e
+  s2r p = interpE || p ||e'
 
   -- this works
   {- dbl (n : nat) : nat = 2 * n -}
